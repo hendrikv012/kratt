@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KRATT settings, styles</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600&amp;family=VT323&amp;display=swap">
+<style>
+body{margin:0}
+.app{font-family:"Pixelify Sans",monospace;font-size:15px;line-height:1.5;letter-spacing:.01em;color:var(--text);background:var(--ground);min-height:900px;box-sizing:border-box;padding:40px 24px;display:flex;justify-content:center;align-items:flex-start}
+.app button{font:inherit;color:inherit;letter-spacing:inherit}
+.dlg{width:100%;max-width:1080px;display:flex;flex-wrap:wrap;background:var(--raise);border-radius:14px;box-shadow:0 0 0 1px var(--line),0 24px 60px rgba(0,0,0,.35);overflow:hidden}
+.navcol{flex:1 1 220px;max-width:240px;padding:18px 10px;display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--line)}
+.nav{text-align:left;min-height:34px;padding:0 12px;border:0;border-radius:6px;background:transparent;color:var(--soft);cursor:pointer}
+.nav:hover{background:var(--hover);color:var(--text)}
+.nav.on{background:var(--hover);color:var(--text);box-shadow:inset 2px 0 0 var(--accent)}
+.body{flex:999 1 520px;min-width:0;padding:28px 32px 32px;display:flex;flex-direction:column;gap:22px}
+.h{font-size:28px;font-weight:500;margin:0}
+.sub{color:var(--soft);margin:4px 0 0}
+.lab{font-weight:500;margin:0 0 10px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.card{border:0;border-radius:12px;padding:0;background:transparent;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:8px}
+.card .sw{height:104px;border-radius:12px;background:var(--c-ground);box-shadow:inset 0 0 0 1px var(--c-line);display:flex;align-items:flex-end;justify-content:space-between;padding:12px;box-sizing:border-box}
+.card[aria-pressed="true"] .sw{box-shadow:inset 0 0 0 1px var(--c-line),0 0 0 2px var(--ground),0 0 0 4px var(--accent)}
+.card .dots{display:flex;flex-direction:column;gap:4px}
+.card .dots i{display:block;width:22px;height:6px;border-radius:2px}
+.card .nm{padding:0 2px;color:var(--soft)}
+.card[aria-pressed="true"] .nm{color:var(--text)}
+.seg{display:inline-flex;background:var(--ground);border-radius:8px;padding:3px;gap:2px}
+.seg button{border:0;border-radius:6px;min-height:32px;padding:0 16px;background:transparent;color:var(--soft);cursor:pointer}
+.seg button[aria-checked="true"]{background:var(--hover);color:var(--text)}
+.rowx{display:flex;flex-wrap:wrap;align-items:center;gap:16px;justify-content:space-between;padding:14px 0;border-top:1px solid var(--line)}
+.rowx .d{color:var(--soft);font-size:14px}
+.sel{border:0;border-radius:8px;min-height:34px;padding:0 14px;background:var(--ground);color:var(--text);cursor:pointer}
+.switch{width:42px;height:24px;border-radius:12px;border:0;padding:3px;background:var(--line);cursor:pointer;display:flex}
+.switch[aria-checked="true"]{background:var(--accent);justify-content:flex-end}
+.switch i{display:block;width:18px;height:18px;border-radius:9px;background:var(--text)}
+.switch[aria-checked="true"] i{background:var(--ink)}
+.pv{display:flex;gap:0;border-radius:12px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line);background:var(--ground)}
+.pv .s{width:190px;padding:12px 8px;display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--line)}
+.pv .r{min-height:30px;display:flex;align-items:center;padding:0 10px;border-radius:6px;color:var(--soft)}
+.pv .r.on{background:var(--raise);color:var(--text);box-shadow:inset 2px 0 0 var(--accent)}
+.pv .nc{min-height:30px;display:flex;align-items:center;padding:0 10px;border-radius:6px;margin-top:6px;color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--ground))}
+.pv .m{flex:1;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.pv .tile{background:var(--raise);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.pv .count{background:color-mix(in srgb,var(--accent) 14%,var(--ground));color:var(--accent);padding:0 6px;border-radius:9px;font-size:14px;line-height:18px}
+.pv .solid{align-self:flex-start;border:0;border-radius:6px;min-height:30px;padding:0 12px;background:var(--accent);color:var(--ink)}
+.app.still .kratt *{animation:none!important}
+.app :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.kratt{fill:var(--kratt);flex:none;overflow:visible}
+.kratt .k-lids{opacity:0;animation:k-blink 4.6s steps(1) infinite}
+.kratt .k-tl{animation:k-tuft 3.2s steps(1) infinite}
+.kratt .k-tr{animation:k-tuft 3.2s steps(1) .25s infinite}
+.kratt .k-fork{animation:k-fork 5.4s steps(1) infinite}
+.kratt .k-z{display:none}
+.kratt.think .k-fork{animation:k-poke .5s steps(2) infinite}
+.kratt.think .k-tl{animation:k-tuft-fast .5s steps(2) infinite}
+.kratt.think .k-tr{animation:k-tuft-fast .5s steps(2) .25s infinite}
+.kratt.hop .k-hop,.hopper:hover .kratt .k-hop{animation:k-hop .6s steps(2) infinite}
+.kratt.sleep .k-lids{opacity:1;animation:none}
+.kratt.sleep .k-fork,.kratt.sleep .k-tl,.kratt.sleep .k-tr{animation:none}
+.kratt.sleep .k-fork{transform:translate(2px,6px)}
+.kratt.sleep .k-z{display:inline;animation:k-z 2.4s steps(4) infinite}
+@keyframes k-blink{0%,92%{opacity:0}93%,96%{opacity:1}97%,100%{opacity:0}}
+@keyframes k-tuft{0%,72%{transform:none}76%,84%{transform:translateY(-2px)}88%,100%{transform:none}}
+@keyframes k-tuft-fast{0%{transform:none}50%{transform:translateY(-2px)}}
+@keyframes k-fork{0%,60%{transform:none}64%,74%{transform:translateY(-2px)}78%,100%{transform:none}}
+@keyframes k-poke{0%{transform:none}50%{transform:translateY(-3px)}}
+@keyframes k-hop{0%{transform:none}50%{transform:translateY(-4px)}}
+@keyframes k-z{0%{transform:none;opacity:1}100%{transform:translate(4px,-8px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.kratt *{animation:none!important}}
+.wordmark{font-family:"Pixelify Sans",monospace;font-weight:600;font-size:19px;letter-spacing:.12em}
+.kempty{display:flex;align-items:center;gap:14px;margin:auto 0;color:var(--soft)}
+
+</style>
+</helmet>
+<div class="{{appCls}}" style="{{themeVars}}">
+<div class="dlg" role="dialog" aria-label="Settings">
+  <nav class="navcol" aria-label="Settings sections">
+<button class="nav on" aria-current="page">Appearance</button>
+<button class="nav">Layout and home screen</button>
+<button class="nav">Studying</button>
+<button class="nav">AI</button>
+<button class="nav">Notifications</button>
+<button class="nav">Shortcuts</button>
+<button class="nav">Data</button>
+<button class="nav">Extensions</button>
+<button class="nav">About</button>
+  </nav>
+  <div class="body">
+    <div>
+      <h1 class="h">Appearance</h1>
+      <p class="sub">Pick a style. Kratt changes color with it.</p>
+    </div>
+
+    <div>
+      <p class="lab">Style</p>
+      <div class="cards" role="group" aria-label="Style">
+        <sc-for list="{{cards}}" as="c" hint-placeholder-count="5">
+          <button class="card" aria-pressed="{{c.pressed}}" onClick="{{c.pick}}" style="{{c.vars}}">
+            <span class="sw">
+              <span style="--kratt: var(--c-kratt);"><svg class="kratt" width="46" height="37" viewBox="-3 -6 72 58" shape-rendering="crispEdges" aria-hidden="true"><g class="k-hop"><rect class="k-tl" x="18" y="6" width="4" height="14"></rect><rect class="k-tr" x="42" y="10" width="4" height="10"></rect><path class="k-body" d="M12 18h40v18h-40z M22 26v8h6v-8z M36 26v8h6v-8z M12 38h40v4h-40z M6 30h8v4h-8z M6 30h4v14h-4z M4 42h8v8h-8z M20 40h4v10h-4z M40 40h4v10h-4z"></path><path class="k-fork" d="M50 30h10v4h-10z M56 0h4v34h-4z M50 8h16v4h-16z M50 0h4v10h-4z M62 0h4v10h-4z"></path><g class="k-lids"><rect x="22" y="26" width="6" height="8"></rect><rect x="36" y="26" width="6" height="8"></rect></g><g class="k-z"><path d="M58 -6h6v2h-2v2h-2v2h4v2h-6v-2h2v-2h2v-2h-4z"></path></g></g></svg></span>
+              <span class="dots" aria-hidden="true"><i style="background: var(--c-accent);"></i><i style="background: var(--c-text);"></i><i style="background: var(--c-raise);"></i></span>
+            </span>
+            <span class="nm">{{c.name}}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div class="rowx">
+      <div><p class="lab" style="margin: 0;">Mode</p><span class="d">Every style comes dark or light.</span></div>
+      <div class="seg" role="radiogroup" aria-label="Mode">
+        <button role="radio" aria-checked="{{isDark}}" onClick="{{setDark}}">Dark</button>
+        <button role="radio" aria-checked="{{isLight}}" onClick="{{setLight}}">Light</button>
+      </div>
+    </div>
+
+    <div class="rowx">
+      <div><p class="lab" style="margin: 0;">Text font</p><span class="d">Long notes stay in Geist so they read easily.</span></div>
+      <button class="sel">Pixelify Sans</button>
+    </div>
+
+    <div class="rowx">
+      <div><p class="lab" style="margin: 0;">Kratt moves</p><span class="d">He blinks, hops and thinks. Off keeps him still.</span></div>
+      <button class="switch" role="switch" aria-checked="{{moves}}" aria-label="Kratt moves" onClick="{{toggleMoves}}"><i></i></button>
+    </div>
+
+    <div>
+      <p class="lab">Preview</p>
+      <div class="pv">
+        <div class="s hopper">
+          <div style="display: flex; align-items: center; gap: 8px; padding: 2px 8px 10px;"><svg class="kratt" width="24" height="19" viewBox="-3 -6 72 58" shape-rendering="crispEdges" aria-hidden="true"><g class="k-hop"><rect class="k-tl" x="18" y="6" width="4" height="14"></rect><rect class="k-tr" x="42" y="10" width="4" height="10"></rect><path class="k-body" d="M12 18h40v18h-40z M22 26v8h6v-8z M36 26v8h6v-8z M12 38h40v4h-40z M6 30h8v4h-8z M6 30h4v14h-4z M4 42h8v8h-8z M20 40h4v10h-4z M40 40h4v10h-4z"></path><path class="k-fork" d="M50 30h10v4h-10z M56 0h4v34h-4z M50 8h16v4h-16z M50 0h4v10h-4z M62 0h4v10h-4z"></path><g class="k-lids"><rect x="22" y="26" width="6" height="8"></rect><rect x="36" y="26" width="6" height="8"></rect></g><g class="k-z"><path d="M58 -6h6v2h-2v2h-2v2h4v2h-6v-2h2v-2h2v-2h-4z"></path></g></g></svg><span class="wordmark" style="font-size: 16px;">KRATT</span></div>
+          <span class="r on">Home</span>
+          <span class="r">Graph</span>
+          <span class="r">Notes</span>
+          <span class="nc">New chat</span>
+        </div>
+        <div class="m">
+          <div class="tile">
+            <span style="display: flex; align-items: center; gap: 8px; color: var(--soft);">Due for review<span class="count">3</span></span>
+            <span>Glycolysis</span>
+            <button class="solid">Start review</button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; color: var(--soft);"><svg class="kratt think" width="22" height="18" viewBox="-3 -6 72 58" shape-rendering="crispEdges" aria-hidden="true"><g class="k-hop"><rect class="k-tl" x="18" y="6" width="4" height="14"></rect><rect class="k-tr" x="42" y="10" width="4" height="10"></rect><path class="k-body" d="M12 18h40v18h-40z M22 26v8h6v-8z M36 26v8h6v-8z M12 38h40v4h-40z M6 30h8v4h-8z M6 30h4v14h-4z M4 42h8v8h-8z M20 40h4v10h-4z M40 40h4v10h-4z"></path><path class="k-fork" d="M50 30h10v4h-10z M56 0h4v34h-4z M50 8h16v4h-16z M50 0h4v10h-4z M62 0h4v10h-4z"></path><g class="k-lids"><rect x="22" y="26" width="6" height="8"></rect><rect x="36" y="26" width="6" height="8"></rect></g><g class="k-z"><path d="M58 -6h6v2h-2v2h-2v2h4v2h-6v-2h2v-2h2v-2h-4z"></path></g></g></svg>Kratt is thinking</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  state = { style: "ember", mode: "dark", moves: true };
+  renderVals() {
+    const THEMES = {"ember":{"name":"Ember","dark":{"ground":"#0e0e0e","raise":"#161616","hover":"#1c1c1c","line":"#232323","text":"#ece8e3","soft":"#a19c96","body":"#d6d1cb","accent":"#ff8a3d","ink":"#0e0e0e","kratt":"#ff8a3d"},"light":{"ground":"#f6f3ee","raise":"#ffffff","hover":"#ece8e1","line":"#dcd6cc","text":"#1b1917","soft":"#5f5a54","body":"#2b2825","accent":"#b04d0c","ink":"#ffffff","kratt":"#d9661b"}},"deepred":{"name":"Deep red","dark":{"ground":"#100d0d","raise":"#191414","hover":"#201919","line":"#2a2121","text":"#efe6e4","soft":"#a89a98","body":"#dccfcc","accent":"#e5605a","ink":"#100d0d","kratt":"#c8423e"},"light":{"ground":"#f5f1ef","raise":"#ffffff","hover":"#ece5e2","line":"#dcd2ce","text":"#1d1716","soft":"#645856","body":"#2e2624","accent":"#a3302e","ink":"#ffffff","kratt":"#a3302e"}},"chrome":{"name":"Chrome","dark":{"ground":"#0e0f10","raise":"#16181a","hover":"#1d1f22","line":"#25282b","text":"#e9ecef","soft":"#9ca3ab","body":"#d3d8dd","accent":"#c3c7cc","ink":"#0e0f10","kratt":"#c3c7cc"},"light":{"ground":"#f2f3f4","raise":"#ffffff","hover":"#e7e9eb","line":"#d6d9dc","text":"#16181a","soft":"#565d65","body":"#26292c","accent":"#454b53","ink":"#ffffff","kratt":"#7c8289"}},"green":{"name":"Racing green","dark":{"ground":"#0c0f0d","raise":"#141815","hover":"#1a1f1b","line":"#222924","text":"#e6ece7","soft":"#97a49b","body":"#cdd8d0","accent":"#4cbb7f","ink":"#0c0f0d","kratt":"#34935c"},"light":{"ground":"#f1f4f1","raise":"#ffffff","hover":"#e5ebe6","line":"#d2dbd4","text":"#141a16","soft":"#56605a","body":"#242b26","accent":"#24613f","ink":"#ffffff","kratt":"#24613f"}},"steel":{"name":"Calm steel","dark":{"ground":"#0d0f11","raise":"#15181b","hover":"#1b1f23","line":"#23282d","text":"#e6eaee","soft":"#9aa3ad","body":"#ced5dc","accent":"#a3adb9","ink":"#0d0f11","kratt":"#8a939e"},"light":{"ground":"#f1f3f5","raise":"#ffffff","hover":"#e6e9ec","line":"#d3d8dd","text":"#15181b","soft":"#575f68","body":"#262a2e","accent":"#4f5862","ink":"#ffffff","kratt":"#6b737d"}}};
+    const mode = this.state.mode;
+    const theme = THEMES[this.state.style][mode];
+    const themeVars = Object.keys(theme).map((k) => "--" + k + ": " + theme[k] + ";").join(" ");
+    const cards = Object.keys(THEMES).map((id) => {
+      const t = THEMES[id][mode];
+      return {
+        name: THEMES[id].name,
+        pressed: String(id === this.state.style),
+        vars: "--c-ground: " + t.ground + "; --c-raise: " + t.raise + "; --c-line: " + t.line + "; --c-text: " + t.text + "; --c-accent: " + t.accent + "; --c-kratt: " + t.kratt + ";",
+        pick: () => this.setState({ style: id }),
+      };
+    });
+    return {
+      themeVars,
+      cards,
+      appCls: this.state.moves ? "app" : "app still",
+      isDark: String(mode === "dark"),
+      isLight: String(mode === "light"),
+      setDark: () => this.setState({ mode: "dark" }),
+      setLight: () => this.setState({ mode: "light" }),
+      moves: String(this.state.moves),
+      toggleMoves: () => this.setState({ moves: !this.state.moves }),
+    };
+  }
+}
+</script>
+</body>
+</html>

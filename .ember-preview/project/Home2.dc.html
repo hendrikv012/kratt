@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kratt home, Ember v2</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600&amp;family=VT323&amp;family=Geist:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#0e0e0e}
+.app{--ground:#0e0e0e;--raise:#161616;--hover:#1c1c1c;--line:#232323;--text:#ece8e3;--soft:#a19c96;--accent-bg:color-mix(in srgb,var(--accent) 14%,#0e0e0e);--px:"Pixelify Sans",monospace;font-family:"Geist",system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--text);background:var(--ground);min-height:900px;display:flex;flex-wrap:wrap}
+.app.sans{--px:"Geist",system-ui,sans-serif}
+.app button,.app input{font:inherit;color:inherit}
+.px{font-family:var(--px);font-weight:500;letter-spacing:.01em}
+.side{flex:1 1 248px;max-width:248px;box-sizing:border-box;padding:16px 10px;display:flex;flex-direction:column;gap:1px}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 8px 14px}
+.mark{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--accent);color:#0e0e0e;font-family:"Pixelify Sans",monospace;font-weight:600;font-size:15px;border-radius:3px}
+.row{display:flex;align-items:center;gap:10px;min-height:32px;padding:0 10px;border:0;border-radius:6px;background:transparent;text-align:left;cursor:pointer;width:100%;box-sizing:border-box;text-decoration:none;color:var(--soft)}
+.row:hover{background:var(--hover);color:var(--text)}
+.row.on{background:var(--raise);color:var(--text)}
+.row.on svg{color:var(--accent)}
+.row .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .meta{color:var(--soft);font-size:12.5px;font-variant-numeric:tabular-nums}
+.find{background:var(--raise);color:var(--soft);margin-bottom:10px}
+.kbd{font-size:12px;color:var(--soft)}
+.sec{display:flex;align-items:center;justify-content:space-between;margin:18px 10px 4px;color:var(--soft);font-size:12.5px;font-weight:500}
+.count{background:var(--accent-bg);color:var(--accent);padding:0 6px;border-radius:9px;font-size:12px;font-weight:600;line-height:18px}
+.newchat{display:flex;align-items:center;gap:8px;margin-top:10px;min-height:34px;padding:0 10px;border:0;border-radius:6px;background:var(--accent-bg);color:var(--accent);cursor:pointer;font-weight:500}
+.newchat:hover{background:color-mix(in srgb,var(--accent) 22%,#0e0e0e)}
+.dot{width:7px;height:7px;border-radius:1px;flex:none}
+.main{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;border-left:1px solid var(--line)}
+.top{display:flex;align-items:center;gap:4px;min-height:44px;padding:0 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{display:flex;align-items:center;min-height:30px;padding:0 12px;border:0;border-radius:6px;color:var(--soft);background:transparent;cursor:pointer}
+.tab:hover{color:var(--text)}
+.tab.on{color:var(--text);background:var(--raise)}
+.btn{display:inline-flex;align-items:center;gap:7px;min-height:32px;padding:0 12px;border:0;border-radius:6px;background:transparent;cursor:pointer;color:var(--soft);font-weight:500}
+.btn:hover{background:var(--hover);color:var(--text)}
+.btn.solid{background:var(--accent);color:#0e0e0e}
+.btn.solid:hover{background:color-mix(in srgb,var(--accent) 85%,#fff)}
+.btn.quiet{background:var(--hover);color:var(--text)}
+.stage{padding:28px 32px 36px}
+.head{display:flex;align-items:baseline;gap:14px;margin:0 0 20px}
+.editbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 16px;padding:8px 8px 8px 14px;border-radius:8px;background:var(--raise);color:var(--soft)}
+.grid{position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:150px;gap:14px;grid-auto-flow:row dense}
+.under{position:absolute;inset:0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:150px;gap:14px;pointer-events:none}
+.under i{display:block;border-radius:10px;border:1px dashed #2e2e2e}
+.tile{grid-column:span var(--w);grid-row:span var(--h);background:var(--raise);border-radius:10px;padding:16px 18px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;overflow:hidden;position:relative;min-width:0}
+.grid.editing .tile{box-shadow:0 0 0 1px #333;cursor:grab}
+.grid.editing .tile:hover{box-shadow:0 0 0 1px var(--accent)}
+.th{display:flex;align-items:center;gap:8px;color:var(--soft);font-size:13px;font-weight:500}
+.tedit{position:absolute;top:10px;right:10px;display:flex;gap:2px;background:var(--ground);padding:3px;border-radius:7px;z-index:2}
+.chip{min-width:36px;min-height:26px;padding:0 6px;border:0;border-radius:5px;background:transparent;cursor:pointer;font-size:12.5px;color:var(--soft);font-variant-numeric:tabular-nums}
+.chip:hover{color:var(--text)}
+.chip.on{background:var(--hover);color:var(--accent)}
+.big{font-family:"VT323",monospace;line-height:.8;color:var(--text)}
+.lt{font-family:var(--px);font-size:22px;font-weight:500;color:var(--text)}
+.soft{color:var(--soft)}
+.list{display:flex;flex-direction:column;margin:0;padding:0;list-style:none}
+.li{display:flex;align-items:center;gap:10px;min-height:34px}
+.li .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{display:inline-flex;gap:2px}
+.bar i{display:block;width:5px;height:10px;border-radius:1px;background:#2e2e2e}
+.bar i.f{background:var(--accent)}
+.qn{display:flex;align-items:center;gap:8px;border-radius:8px;background:var(--ground);min-height:40px;padding:0 12px;margin-top:auto}
+.qn input{flex:1;background:transparent;border:0;outline:none;min-width:0}
+.qn input::placeholder{color:var(--soft)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.app :focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+@media (max-width:760px){.side{max-width:none;flex-basis:100%}.main{border-left:0;border-top:1px solid var(--line)}.stage{padding:20px 16px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tile{grid-column:span 2}.under{display:none}}
+</style>
+</helmet>
+<div class="{{appCls}}" style="--accent: {{accent}};">
+
+<nav class="side" aria-label="Sidebar">
+  <div class="brand">
+    <span class="mark" aria-hidden="true">K</span>
+    <span class="px" style="font-size: 19px;">Kratt</span>
+  </div>
+  <button class="row find">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="m10.5 10.5 3 3"></path></svg>
+    <span class="t">Find</span><span class="kbd">Ctrl K</span>
+  </button>
+  <a class="row on" href="#home" aria-current="page">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 7.5 8 3l5.5 4.5V13h-11z"></path></svg>
+    <span class="t">Home</span>
+  </a>
+  <a class="row" href="#graph">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2" y="2" width="4" height="4" rx="1"></rect><rect x="10" y="4" width="4" height="4" rx="1"></rect><rect x="5" y="10" width="4" height="4" rx="1"></rect><path d="M6 4h4M6.5 10 5 6M10.5 8 9 10"></path></svg>
+    <span class="t">Graph</span>
+  </a>
+  <a class="row" href="#notes">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M3 2.5h10v7l-4 4H3z"></path></svg>
+    <span class="t">Notes</span><span class="meta">7</span>
+  </a>
+
+  <button class="newchat">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3.5v9M3.5 8h9"></path></svg>
+    New chat
+  </button>
+
+  <div class="sec"><span>Chats</span><a href="#chats" style="color: var(--soft); text-decoration: none; font-weight: 400;">See all</a></div>
+  <a class="row" href="#c1"><span class="t">Krebs cycle, step by step</span><span class="meta">12m</span></a>
+  <a class="row" href="#c2"><span class="t">Quiz me on mitosis</span><span class="meta">2h</span></a>
+  <a class="row" href="#c3"><span class="t">Essay outline: Cold War</span><span class="meta">Sun</span></a>
+
+  <div class="sec"><span>Due for review</span><span class="count">3</span></div>
+  <a class="row" href="#r1"><span class="t">Glycolysis</span></a>
+  <a class="row" href="#r2"><span class="t">Mitosis phases</span></a>
+  <a class="row" href="#r3"><span class="t">Treaty of Versailles</span></a>
+
+  <div class="sec"><span>Pinned</span></div>
+  <a class="row" href="#p1"><span class="t">Exam plan, autumn</span></a>
+  <a class="row" href="#p2"><span class="t">Organic chem formulas</span></a>
+
+  <div class="sec"><span>Subjects</span></div>
+  <a class="row" href="#s1"><span class="dot" style="background: var(--accent);"></span><span class="t">Biology</span><span class="meta">24</span></a>
+  <a class="row" href="#s2"><span class="dot" style="background: #d8c3a5;"></span><span class="t">Chemistry</span><span class="meta">11</span></a>
+  <a class="row" href="#s3"><span class="dot" style="background: #8fa3b8;"></span><span class="t">History</span><span class="meta">9</span></a>
+
+  <div style="flex: 1; min-height: 20px;"></div>
+  <a class="row" href="#sources"><span class="t">Sources</span></a>
+  <a class="row" href="#ext"><span class="t">Extensions</span></a>
+  <a class="row" href="#settings"><span class="t">Settings</span></a>
+</nav>
+
+<main class="main">
+  <div class="top">
+    <button class="tab on">Home</button>
+    <button class="tab">Krebs cycle</button>
+    <button class="tab" aria-label="New tab">+</button>
+    <div style="margin-left: auto; display: flex; gap: 4px;">
+      <sc-if value="{{notEditing}}" hint-placeholder-val="{{true}}">
+        <button class="btn" onClick="{{toggleEdit}}">Edit home</button>
+      </sc-if>
+      <button class="btn">Kratt Chat</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <sc-if value="{{editing}}" hint-placeholder-val="{{false}}">
+      <div class="editbar" role="toolbar" aria-label="Edit home">
+        <span style="flex: 1; min-width: 200px;">Drag tiles to move them. Pick a size on each tile.</span>
+        <button class="btn">Add widget</button>
+        <button class="btn" onClick="{{reset}}">Reset</button>
+        <button class="btn solid" onClick="{{toggleEdit}}">Done</button>
+      </div>
+    </sc-if>
+
+    <div style="position: relative;">
+      <sc-if value="{{editing}}" hint-placeholder-val="{{false}}">
+        <div class="under" aria-hidden="true">
+          <sc-for list="{{cells}}" as="c" hint-placeholder-count="24"><i></i></sc-for>
+        </div>
+      </sc-if>
+
+      <div class="{{gridCls}}">
+
+        <section class="tile" style="{{tile.graph}}" aria-label="Graph">
+          
+          <sc-if value="{{editing}}" hint-placeholder-val="{{false}}">
+            <div class="tedit"><sc-for list="{{chips.graph}}" as="c" hint-placeholder-count="2"><button class="{{c.cls}}" onClick="{{c.pick}}">{{c.label}}</button></sc-for></div>
+          </sc-if>
+          <svg viewBox="0 0 520 220" preserveAspectRatio="xMidYMid meet" style="flex: 1; width: 100%; min-height: 0;" shape-rendering="crispEdges" role="img" aria-label="Knowledge graph with 12 topics">
+            <g stroke="#2e2e2e" stroke-width="1">
+              <line x1="90" y1="60" x2="170" y2="40"></line><line x1="90" y1="60" x2="140" y2="120"></line><line x1="170" y1="40" x2="250" y2="80"></line><line x1="140" y1="120" x2="250" y2="80"></line><line x1="250" y1="80" x2="330" y2="50"></line><line x1="250" y1="80" x2="300" y2="150"></line><line x1="330" y1="50" x2="420" y2="70"></line><line x1="300" y1="150" x2="390" y2="170"></line><line x1="420" y1="70" x2="470" y2="130"></line><line x1="390" y1="170" x2="470" y2="130"></line><line x1="140" y1="120" x2="110" y2="180"></line><line x1="110" y1="180" x2="200" y2="190"></line><line x1="200" y1="190" x2="300" y2="150"></line><line x1="60" y1="130" x2="140" y2="120"></line>
+            </g>
+            <g fill="{{accent}}">
+              <rect x="86" y="56" width="9" height="9"></rect>
+              <rect x="166" y="36" width="9" height="9" opacity=".55"></rect>
+              <rect x="136" y="116" width="9" height="9" opacity=".8"></rect>
+              <rect x="244" y="74" width="13" height="13"></rect>
+              <rect x="326" y="46" width="9" height="9" opacity=".45"></rect>
+              <rect x="296" y="146" width="9" height="9" opacity=".7"></rect>
+              <rect x="416" y="66" width="9" height="9" opacity=".35"></rect>
+              <rect x="386" y="166" width="9" height="9" opacity=".9"></rect>
+              <rect x="106" y="176" width="9" height="9" opacity=".6"></rect>
+              <rect x="196" y="186" width="9" height="9" opacity=".3"></rect>
+            </g>
+            <g fill="none" stroke="#6b6560" stroke-width="1.5">
+              <rect x="466" y="126" width="8" height="8"></rect>
+              <rect x="56" y="126" width="8" height="8"></rect>
+            </g>
+            <g fill="#a19c96" font-family="Geist, system-ui, sans-serif" font-size="12">
+              <text x="262" y="78">Krebs cycle</text>
+              <text x="100" y="53">Glycolysis</text>
+              <text x="340" y="44">ATP</text>
+              <text x="400" y="190">Mitosis</text>
+            </g>
+          </svg>
+        </section>
+
+        <section class="tile" style="{{tile.clock}}" aria-label="Clock">
+          <sc-if value="{{editing}}" hint-placeholder-val="{{false}}">
+            <div class="tedit"><sc-for list="{{chips.clock}}" as="c" hint-placeholder-count="3"><button class="{{c.cls}}" onClick="{{c.pick}}">{{c.label}}</button></sc-for></div>
+          </sc-if>
+          <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 10px;">
+            <time class="big" style="{{clockStyle}}">{{time}}</time>
+            <span class="soft">{{date}}</span>
+          </div>
+        </section>
+
+        <section class="tile" style="{{tile.cont}}" aria-label="Continue">
+          <div class="th">Continue</div>
+          <sc-if value="{{editing}}" hint-placeholder-val="{{false}}">
+            <div class="tedit"><sc-for list="{{chips.cont}}" as="c" hint-placeholder-count="2"><button class="{{c.cls}}" onClick="{{c.pick}}">{{c.label}}</button></sc-for></div>
+          </sc-if>
+          <div style="display: flex; align-items: flex-end; gap: 12px; margin-top: auto;">
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+              <span class="lt">Krebs cycle</span>
+              <span class="soft">Biology, step 3 of 5</span>
+            </div>
+            <button class="btn solid">Resume</button>
+          </div>
+        </section>
+
+        <section class="tile" style="{{tile.review}}" aria-label="Due for review">
+          <div class="th">Due for review<span class="count">3</span></div>
+          <sc-if value="{{editing}}" hint-placeholder-val="{{false}}">
+            <div class="tedit"><sc-for list="{{chips.review}}" as="c" hint-placeholder-count="2"><button class="{{c.cls}}" onClick="{{c.pick}}">{{c.label}}</button></sc-for></div>
+          </sc-if>
+          <ul class="list">
+            <li class="li"><span class="t">Glycolysis</span><span class="soft">4 days</span><span class="bar" aria-label="Known 2 of 5"><i class="f"></i><i class="f"></i><i></i><i></i><i></i></span></li>
+            <li class="li"><span class="t">Mitosis phases</span><span class="soft">2 days</span><span class="bar" aria-label="Known 3 of 5"><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i></span></li>
+            <li class="li"><span class="t">Treaty of Versailles</span><span class="soft">new</span><span class="bar" aria-label="Known 1 of 5"><i class="f"></i><i></i><i></i><i></i><i></i></span></li>
+          </ul>
+          <button class="btn quiet" style="margin-top: auto; align-self: flex-start;">Start review</button>
+        </section>
+
+        <section class="tile" style="{{tile.chats}}" aria-label="Latest chats">
+          <div class="th">Latest chats</div>
+          <sc-if value="{{editing}}" hint-placeholder-val="{{false}}">
+            <div class="tedit"><sc-for list="{{chips.chats}}" as="c" hint-placeholder-count="2"><button class="{{c.cls}}" onClick="{{c.pick}}">{{c.label}}</button></sc-for></div>
+          </sc-if>
+          <ul class="list" style="gap: 12px;">
+            <li style="display: flex; flex-direction: column; gap: 2px; min-width: 0;"><span style="display: flex; gap: 8px;"><span class="t" style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Krebs cycle, step by step</span><span class="soft">12m</span></span><span class="soft" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Each turn gives 3 NADH, 1 FADH2 and 1 GTP.</span></li>
+            <li style="display: flex; flex-direction: column; gap: 2px; min-width: 0;"><span style="display: flex; gap: 8px;"><span class="t" style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Quiz me on mitosis</span><span class="soft">2h</span></span><span class="soft" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">7 of 10 right. Anaphase tripped you up twice.</span></li>
+            <li style="display: flex; flex-direction: column; gap: 2px; min-width: 0;"><span style="display: flex; gap: 8px;"><span class="t" style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Essay outline: Cold War</span><span class="soft">Sun</span></span><span class="soft" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Three parts: causes, the arms race, the thaw.</span></li>
+          </ul>
+        </section>
+
+        <section class="tile" style="{{tile.dead}}" aria-label="Deadlines">
+          <div class="th">Deadlines</div>
+          <sc-if value="{{editing}}" hint-placeholder-val="{{false}}">
+            <div class="tedit"><sc-for list="{{chips.dead}}" as="c" hint-placeholder-count="2"><button class="{{c.cls}}" onClick="{{c.pick}}">{{c.label}}</button></sc-for></div>
+          </sc-if>
+          <ul class="list">
+            <li class="li"><span class="t">Biology test</span><span style="color: var(--accent); font-weight: 500;">in 4 days</span></li>
+            <li class="li"><span class="t">History essay</span><span class="soft">Mon 3 Nov</span></li>
+          </ul>
+        </section>
+
+        <section class="tile" style="{{tile.note}}" aria-label="Quick note">
+          <div class="th">Quick note</div>
+          <sc-if value="{{editing}}" hint-placeholder-val="{{false}}">
+            <div class="tedit"><sc-for list="{{chips.note}}" as="c" hint-placeholder-count="1"><button class="{{c.cls}}" onClick="{{c.pick}}">{{c.label}}</button></sc-for></div>
+          </sc-if>
+          <label class="qn">
+            <span class="sr">Quick note</span>
+            <input placeholder="Write it down, sort it later">
+            <span class="kbd">Enter</span>
+          </label>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#ff8a3d","options":["#ff8a3d","#ffa04d","#f97316","#e8a46a"]},"pixelTitles":{"editor":"boolean","default":true},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  state = { editing: false, sizes: null, now: new Date() };
+  componentDidMount() { this.timer = setInterval(() => this.setState({ now: new Date() }), 15000); }
+  componentWillUnmount() { clearInterval(this.timer); }
+  renderVals() {
+    const DEFAULT = { graph: "4x2", clock: "2x1", cont: "2x1", review: "2x2", chats: "2x2", dead: "2x1", note: "2x1" };
+    const ALLOWED = { graph: ["2x2", "4x2"], clock: ["1x1", "2x1", "2x2"], cont: ["2x1", "2x2"], review: ["2x1", "2x2"], chats: ["2x1", "2x2"], dead: ["1x1", "2x1"], note: ["2x1"] };
+    const SPAN = { "1x1": [1, 1], "2x1": [2, 1], "2x2": [2, 2], "4x2": [4, 2] };
+    const sizes = this.state.sizes || DEFAULT;
+    const tile = {};
+    const chips = {};
+    Object.keys(ALLOWED).forEach((id) => {
+      const s = sizes[id];
+      tile[id] = "--w: " + SPAN[s][0] + "; --h: " + SPAN[s][1] + ";";
+      chips[id] = ALLOWED[id].map((k) => ({
+        label: k.replace("x", "×"),
+        cls: k === s ? "chip on" : "chip",
+        pick: () => this.setState({ sizes: Object.assign({}, sizes, { [id]: k }) }),
+      }));
+    });
+    const clockPx = { "1x1": 60, "2x1": 92, "2x2": 140 }[sizes.clock];
+    const now = this.state.now;
+    const editing = this.state.editing;
+    return {
+      accent: this.props.accent ?? "#ff8a3d",
+      appCls: this.props.pixelTitles === false ? "app sans" : "app",
+      editing,
+      notEditing: !editing,
+      gridCls: editing ? "grid editing" : "grid",
+      cells: Array.from({ length: 24 }, (_, i) => i),
+      tile,
+      chips,
+      clockStyle: "font-size: " + clockPx + "px;",
+      time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false }),
+      date: now.toLocaleDateString([], { weekday: "long", day: "numeric", month: "long" }),
+      toggleEdit: () => this.setState({ editing: !editing }),
+      reset: () => this.setState({ sizes: null }),
+    };
+  }
+}
+</script>
+</body>
+</html>

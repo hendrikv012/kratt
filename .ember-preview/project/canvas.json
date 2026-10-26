@@ -1,0 +1,202 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Settings5.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "v5 Settings: Kratt styles",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "Home5.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "v5 Home in any style",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "Chat5.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "v5 Kratt Chat in any style",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "Home4.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "v4 Home with Kratt",
+      "w": 1440,
+      "x": 0,
+      "y": 2100
+    },
+    "Chat4.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "v4 Kratt Chat with Kratt",
+      "w": 1440,
+      "x": 1520,
+      "y": 2100
+    },
+    "Kratt4.dc.html": {
+      "h": 720,
+      "title": "Kratt: states, colors, sizes",
+      "w": 1120,
+      "x": 0,
+      "y": 3120
+    },
+    "Home3.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "v3 Home: pixel text, readable",
+      "w": 1440,
+      "x": 0,
+      "y": 4200
+    },
+    "Chat3.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "v3 Kratt Chat beside a page",
+      "w": 1440,
+      "x": 1520,
+      "y": 4200
+    },
+    "Tokens3.dc.html": {
+      "h": 640,
+      "title": "v3 text font options",
+      "w": 1120,
+      "x": 0,
+      "y": 5220
+    },
+    "Home2.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "v2 Home: neutral, readable",
+      "w": 1440,
+      "x": 0,
+      "y": 6300
+    },
+    "Chat2.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "v2 AI chat beside a page",
+      "w": 1440,
+      "x": 1520,
+      "y": 6300
+    },
+    "Tokens2.dc.html": {
+      "h": 640,
+      "title": "v2 tokens",
+      "w": 1120,
+      "x": 0,
+      "y": 7320
+    },
+    "Main.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "v1 Home: snap grid + new sidebar",
+      "w": 1440,
+      "x": 0,
+      "y": 8400
+    },
+    "Chat.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "v1 AI chat beside a page",
+      "w": 1440,
+      "x": 1520,
+      "y": 8400
+    },
+    "Tokens.dc.html": {
+      "h": 720,
+      "title": "v1 Ember tokens",
+      "w": 1120,
+      "x": 0,
+      "y": 9420
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-19T23:55:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "v5": {
+      "kind": "title1",
+      "maxW": 4480,
+      "text": "v5: styles in Kratt's colors",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "v4": {
+      "kind": "title1",
+      "maxW": 2960,
+      "text": "v4: KRATT, with Kratt himself",
+      "w": 240,
+      "x": 0,
+      "y": 1800
+    },
+    "v3": {
+      "kind": "title1",
+      "maxW": 2960,
+      "text": "Ember v3: clean, with pixel text",
+      "w": 240,
+      "x": 0,
+      "y": 3900
+    },
+    "v2": {
+      "kind": "title1",
+      "maxW": 2960,
+      "text": "Ember v2: neutral and readable",
+      "w": 240,
+      "x": 0,
+      "y": 6000
+    },
+    "v1": {
+      "kind": "title1",
+      "maxW": 2960,
+      "text": "Ember v1: all pixel, all orange",
+      "w": 240,
+      "x": 0,
+      "y": 8100
+    }
+  },
+  "order": [
+    "Settings5.dc.html",
+    "Home5.dc.html",
+    "Chat5.dc.html",
+    "Home4.dc.html",
+    "Chat4.dc.html",
+    "Kratt4.dc.html",
+    "Home3.dc.html",
+    "Chat3.dc.html",
+    "Tokens3.dc.html",
+    "Home2.dc.html",
+    "Chat2.dc.html",
+    "Tokens2.dc.html",
+    "Main.dc.html",
+    "Chat.dc.html",
+    "Tokens.dc.html"
+  ],
+  "pages": [],
+  "title": "Kratt Ember redesign"
+}

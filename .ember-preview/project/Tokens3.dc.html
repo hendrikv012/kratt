@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ember v3 type</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500&amp;family=VT323&amp;family=Geist:wght@400;500&amp;family=DotGothic16&amp;family=Handjet:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+.lab{font-size:14px;color:#a19c96;margin-bottom:6px}
+.opt{display:grid;grid-template-columns:150px minmax(0,1fr);align-items:baseline;gap:20px;padding:14px 0;border-bottom:1px solid #232323}
+.opt:last-child{border-bottom:0}
+.nm{font-family:'Geist',system-ui,sans-serif;font-size:14px;color:#a19c96}
+</style>
+</helmet>
+<div style="width: 1120px; height: 640px; box-sizing: border-box; padding: 48px 56px; background: #0e0e0e; color: #ece8e3; font-family: 'Pixelify Sans', monospace; letter-spacing: .01em; display: flex; flex-direction: column; gap: 22px;">
+  <h1 style="margin: 0; font-weight: 500; font-size: 34px;">Ember v3: pixel text that still reads</h1>
+  <p style="margin: 0; font-size: 15px; line-height: 1.5; color: #a19c96; max-width: 70ch;">Small text is 15 px, labels never go under 14 px, letters get a hair more spacing. Pick the text font with the Text font tweak on the home and chat boards.</p>
+  <div>
+    <div class="opt"><span class="nm">Pixelify Sans (default)</span><span style="font-family: 'Pixelify Sans', monospace; font-size: 15px;">Due for review 3 · Quiz me on mitosis · Biology test in 4 days · Each turn gives 3 NADH, 1 FADH2 and 1 GTP.</span></div>
+    <div class="opt"><span class="nm">DotGothic16</span><span style="font-family: 'DotGothic16', monospace; font-size: 15px;">Due for review 3 · Quiz me on mitosis · Biology test in 4 days · Each turn gives 3 NADH, 1 FADH2 and 1 GTP.</span></div>
+    <div class="opt"><span class="nm">Handjet</span><span style="font-family: 'Handjet', monospace; font-size: 19px;">Due for review 3 · Quiz me on mitosis · Biology test in 4 days · Each turn gives 3 NADH, 1 FADH2 and 1 GTP.</span></div>
+    <div class="opt"><span class="nm">Geist (v2, clean)</span><span style="font-family: 'Geist', system-ui, sans-serif; font-size: 15px;">Due for review 3 · Quiz me on mitosis · Biology test in 4 days · Each turn gives 3 NADH, 1 FADH2 and 1 GTP.</span></div>
+  </div>
+  <div style="display: flex; gap: 48px; align-items: flex-end; margin-top: auto;">
+    <div><div class="lab">Titles</div><div style="font-size: 40px; font-weight: 500; line-height: 1;">Krebs cycle</div></div>
+    <div><div class="lab">Clock</div><div style="font-family: 'VT323', monospace; font-size: 80px; line-height: .8;">21:47</div></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1120,"height":640}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

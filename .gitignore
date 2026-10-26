@@ -1,0 +1,36 @@
+# OS / editors
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# secrets
+.env
+.env.*
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+
+# local data: student score DBs must never be pushed
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# local models
+*.gguf
+*.safetensors
+.ollama/
+
+# build / deps (kratt/.gitignore covers these too)
+node_modules/
+.next/
+out/
+build/
+coverage/
+*.tsbuildinfo
+
+# Claude Code personal settings
+.claude/settings.local.json

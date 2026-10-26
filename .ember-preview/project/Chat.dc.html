@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kratt AI chat, Ember</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&amp;family=VT323&amp;family=Atkinson+Hyperlegible:wght@400;700&amp;display=swap">
+<style>
+body{margin:0;background:#0c0b0a}
+.app{--ground:#0c0b0a;--tile:#14110f;--line:#2a211a;--line-2:#3d2e21;--ink-2:color-mix(in srgb,var(--ink) 82%,#0c0b0a);--ink-3:color-mix(in srgb,var(--ink) 70%,#0c0b0a);--hot:#ffd2a1;font-family:"Pixelify Sans",monospace;-webkit-font-smoothing:none;color:var(--ink);background:var(--ground);min-height:900px;display:flex;flex-wrap:wrap}
+.app button,.app input,.app textarea{font:inherit;color:inherit}
+.read{font-family:"Atkinson Hyperlegible",system-ui,sans-serif;-webkit-font-smoothing:auto}
+.app.pixelbody .read{font-family:"Pixelify Sans",monospace;-webkit-font-smoothing:none}
+.side{flex:1 1 260px;max-width:260px;box-sizing:border-box;border-right:1px solid var(--line);padding:14px 10px;display:flex;flex-direction:column;gap:2px;font-size:15px}
+.mark{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--ink);color:var(--ground);font-weight:700;font-size:15px}
+.row{display:flex;align-items:center;gap:9px;min-height:32px;padding:0 8px;border:0;background:transparent;text-align:left;cursor:pointer;width:100%;box-sizing:border-box;text-decoration:none;color:var(--ink-2)}
+.row:hover{background:#1b1612;color:var(--ink)}
+.row.on{background:#22190f;color:var(--hot);box-shadow:inset 2px 0 0 var(--ink)}
+.row .meta{margin-left:auto;color:var(--ink-3);font-size:13px}
+.row .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sec{display:flex;align-items:center;justify-content:space-between;margin:14px 8px 4px;color:var(--ink-3);font-size:13px}
+.count{background:var(--ink);color:var(--ground);padding:0 5px;font-size:12px;line-height:16px}
+.newchat{display:flex;align-items:center;gap:8px;margin:10px 0 2px;min-height:36px;padding:0 10px;border:1px solid var(--ink);background:transparent;cursor:pointer;color:var(--ink)}
+.newchat:hover{background:var(--ink);color:var(--ground)}
+.kbd{margin-left:auto;font-size:12px;color:var(--ink-3);border:1px solid var(--line-2);padding:0 4px}
+.main{flex:999 1 420px;min-width:0;display:flex;flex-direction:column}
+.tabs{display:flex;align-items:stretch;border-bottom:1px solid var(--line);min-height:42px;flex-wrap:wrap}
+.tab{display:flex;align-items:center;gap:8px;padding:0 16px;border:0;border-right:1px solid var(--line);color:var(--ink-3);font-size:15px;background:transparent;cursor:pointer}
+.tab.on{color:var(--hot);background:var(--tile);box-shadow:inset 0 -2px 0 var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:7px;min-height:32px;padding:0 12px;border:1px solid var(--line-2);background:transparent;cursor:pointer;color:var(--ink-2);font-size:14px}
+.btn:hover{border-color:var(--ink);color:var(--ink)}
+.btn.solid{background:var(--ink);border-color:var(--ink);color:var(--ground)}
+.btn.on{border-color:var(--ink);color:var(--hot)}
+.icon{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border:1px solid transparent;background:transparent;cursor:pointer;color:var(--ink-3)}
+.icon:hover{color:var(--ink);border-color:var(--line-2)}
+.page{max-width:68ch;margin:0 auto;padding:40px 32px 64px;box-sizing:border-box;width:100%}
+.page h1{font-size:40px;font-weight:600;margin:0 0 6px;color:var(--hot);letter-spacing:.01em}
+.page h2{font-size:21px;font-weight:600;margin:30px 0 8px;color:var(--ink)}
+.page p,.page li{font-size:17px;line-height:1.65;color:#f1c79c}
+.wl{color:var(--ink);text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px}
+.ai{flex:1 1 360px;max-width:420px;box-sizing:border-box;border-left:1px solid var(--line);display:flex;flex-direction:column;background:#0f0d0c;min-height:900px}
+.ai-head{display:flex;align-items:center;gap:6px;min-height:42px;padding:0 6px 0 14px;border-bottom:1px solid var(--line)}
+.ctx{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line);font-size:13px;color:var(--ink-3)}
+.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line-2);padding:2px 8px;font-size:13px;color:var(--ink-2);background:transparent}
+.msgs{flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:18px}
+.who{font-size:13px;color:var(--ink-3);margin-bottom:5px}
+.me{align-self:flex-end;max-width:85%;border:1px solid var(--line-2);background:var(--tile);padding:9px 12px;font-size:16px;line-height:1.5;color:var(--hot)}
+.bot{font-size:16px;line-height:1.6;color:#f1c79c}
+.bot p{margin:0 0 8px}
+.bot ol{margin:0 0 8px;padding-left:20px}
+.cites{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.cursor{display:inline-block;width:9px;height:16px;background:var(--ink);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.compose{border-top:1px solid var(--line);padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.box{display:flex;align-items:flex-end;gap:8px;border:1px solid var(--line-2);padding:8px 8px 8px 12px;background:var(--tile)}
+.box:focus-within{border-color:var(--ink)}
+.box textarea{flex:1;resize:none;border:0;outline:none;background:transparent;font-size:16px;line-height:1.45;min-height:44px}
+.box textarea::placeholder{color:var(--ink-3)}
+.status{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-3)}
+.sq{width:7px;height:7px;background:var(--ink)}
+.sq.off{background:transparent;box-shadow:inset 0 0 0 1.5px var(--ink-3)}
+.warn{border:1px solid var(--ink);padding:14px;display:flex;flex-direction:column;gap:10px;font-size:15px;color:var(--ink)}
+.sugg{display:flex;flex-direction:column;gap:6px}
+.sugg button{text-align:left;border:1px solid var(--line-2);background:transparent;padding:10px 12px;cursor:pointer;color:var(--ink-2);font-size:15px}
+.sugg button:hover{border-color:var(--ink);color:var(--hot)}
+.app :focus-visible{outline:2px solid var(--hot);outline-offset:1px}
+@media (max-width:900px){.ai{max-width:none;flex-basis:100%;border-left:0;border-top:1px solid var(--line);min-height:600px}}
+@media (max-width:760px){.side{max-width:none;flex-basis:100%;border-right:0;border-bottom:1px solid var(--line)}}
+@media (prefers-reduced-motion:reduce){.cursor{animation:none}}
+</style>
+</helmet>
+<div class="{{appCls}}" style="--ink: {{ink}};">
+
+<nav class="side" aria-label="Sidebar">
+  <div style="display: flex; align-items: center; gap: 10px; padding: 2px 8px 10px;">
+    <span class="mark" aria-hidden="true">K</span>
+    <span style="font-size: 18px; font-weight: 600; color: var(--hot);">Kratt</span>
+  </div>
+  <button class="row" style="border: 1px solid var(--line-2);"><span class="t">Find anything</span><span class="kbd">Ctrl K</span></button>
+  <div style="height: 8px;"></div>
+  <a class="row" href="#home"><span class="t">Home</span></a>
+  <a class="row" href="#graph"><span class="t">Graph</span></a>
+  <a class="row" href="#notes"><span class="t">Quick notes</span><span class="meta">7</span></a>
+  <button class="newchat">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" shape-rendering="crispEdges" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+    New chat<span class="kbd" style="border-color: currentColor; color: inherit;">Ctrl J</span>
+  </button>
+  <div class="sec"><span>Chats</span><a href="#chats" style="font-size: 13px; color: var(--ink-3); text-decoration: none;">All 18</a></div>
+  <a class="row on" href="#c1" aria-current="page"><span class="t">Krebs cycle, step by step</span><span class="meta">now</span></a>
+  <a class="row" href="#c2"><span class="t">Quiz me on mitosis</span><span class="meta">2h</span></a>
+  <a class="row" href="#c3"><span class="t">Essay outline: Cold War</span><span class="meta">Sun</span></a>
+  <a class="row" href="#c4"><span class="t">Why does ATP matter?</span><span class="meta">Fri</span></a>
+  <div class="sec"><span>Due for review</span><span class="count">3</span></div>
+  <a class="row" href="#r1"><span class="t">Glycolysis</span></a>
+  <a class="row" href="#r2"><span class="t">Mitosis phases</span></a>
+  <a class="row" href="#r3"><span class="t">Treaty of Versailles</span></a>
+  <div class="sec"><span>Pinned</span></div>
+  <a class="row" href="#p1"><span class="t">Exam plan, autumn</span></a>
+  <a class="row" href="#p2"><span class="t">Organic chem formulas</span></a>
+  <div class="sec"><span>Subjects</span></div>
+  <a class="row" href="#s1"><span style="width: 8px; height: 8px; background: var(--ink);"></span><span class="t">Biology</span><span class="meta">24</span></a>
+  <a class="row" href="#s2"><span style="width: 8px; height: 8px; background: var(--hot);"></span><span class="t">Chemistry</span><span class="meta">11</span></a>
+  <a class="row" href="#s3"><span style="width: 8px; height: 8px; border: 1.5px solid var(--ink); box-sizing: border-box;"></span><span class="t">History</span><span class="meta">9</span></a>
+  <div style="flex: 1; min-height: 16px;"></div>
+  <div style="border-top: 1px solid var(--line); padding-top: 6px;">
+    <a class="row" href="#settings"><span class="t">Settings</span></a>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="tabs">
+    <button class="tab">Home</button>
+    <button class="tab on">Krebs cycle</button>
+    <button class="tab" aria-label="New tab">+</button>
+    <div style="margin-left: auto; display: flex; align-items: center; padding: 0 12px;">
+      <button class="btn on" aria-pressed="true">AI chat</button>
+    </div>
+  </div>
+  <article class="page">
+    <p style="margin: 0 0 4px; font-size: 14px; color: var(--ink-3); font-family: 'Pixelify Sans', monospace;">Biology / Cell respiration</p>
+    <h1>Krebs cycle</h1>
+    <div class="read">
+      <p>The Krebs cycle runs in the mitochondrial matrix. Each turn takes one acetyl-CoA from <a class="wl" href="#g">Glycolysis</a> and the link reaction, and gives off two CO2.</p>
+      <h2 style="font-family: 'Pixelify Sans', monospace;">What one turn makes</h2>
+      <ul>
+        <li>3 NADH and 1 FADH2, which carry electrons to the <a class="wl" href="#etc">electron transport chain</a></li>
+        <li>1 GTP, which becomes <a class="wl" href="#atp">ATP</a></li>
+        <li>2 CO2 as waste</li>
+      </ul>
+      <h2 style="font-family: 'Pixelify Sans', monospace;">Why it matters</h2>
+      <p>Most of the cell's ATP comes later, from the electrons these carriers bring. The cycle itself makes little ATP directly.</p>
+    </div>
+  </article>
+</main>
+
+<aside class="ai" aria-label="AI chat">
+  <div class="ai-head">
+    <span style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--hot);">{{chatTitle}}</span>
+    <button class="icon" aria-label="Chat history">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" shape-rendering="crispEdges" aria-hidden="true"><path d="M3 4h10M3 8h10M3 12h6"></path></svg>
+    </button>
+    <button class="icon" aria-label="New chat">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" shape-rendering="crispEdges" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+    </button>
+    <button class="icon" aria-label="Close AI chat">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" shape-rendering="crispEdges" aria-hidden="true"><path d="m6 3 5 5-5 5"></path></svg>
+    </button>
+  </div>
+  <div class="ctx">
+    <span style="align-self: center;">Reading</span>
+    <button class="pill">This page</button>
+    <button class="pill">Biology, 24 notes</button>
+    <button class="pill" aria-label="Add context">+</button>
+  </div>
+
+  <sc-if value="{{isOffline}}" hint-placeholder-val="{{false}}">
+    <div class="msgs">
+      <div class="warn" role="alert">
+        <span>Open Notebook isn't answering at localhost:5055.</span>
+        <span class="read" style="color: var(--ink-2); font-size: 15px;">Start Open Notebook, or change the address in Settings, AI. Your chats are saved and will be here when it's back.</span>
+        <div style="display: flex; gap: 8px;"><button class="btn solid">Try again</button><button class="btn">Open settings</button></div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{isEmpty}}" hint-placeholder-val="{{false}}">
+    <div class="msgs" style="justify-content: flex-end;">
+      <span class="read" style="color: var(--ink-2); font-size: 16px;">Ask about this page or anything in your notes. Answers point to the notes they came from.</span>
+      <div class="sugg">
+        <button>Explain this page in 5 steps</button>
+        <button>Quiz me on the Krebs cycle</button>
+        <button>What should I review before the Biology test?</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{isChat}}" hint-placeholder-val="{{true}}">
+    <div class="msgs" aria-live="polite">
+      <div class="me read">Walk me through one turn of the cycle, step by step.</div>
+      <div>
+        <div class="who">Kratt</div>
+        <div class="bot read">
+          <p>One turn, from your notes:</p>
+          <ol>
+            <li>Acetyl-CoA joins oxaloacetate to make citrate.</li>
+            <li>Citrate is rearranged and loses two CO2 over the next steps.</li>
+            <li>Along the way, 3 NAD+ become NADH and 1 FAD becomes FADH2.</li>
+            <li>One GTP is made, then turned into ATP.</li>
+            <li>Oxaloacetate is rebuilt, ready for the next acetyl-CoA.</li>
+          </ol>
+          <p>Want a 5-question quiz on it?</p>
+        </div>
+        <div class="cites">
+          <button class="pill">From: Krebs cycle</button>
+          <button class="pill">From: Lecture 6 slides</button>
+        </div>
+        <div style="display: flex; gap: 6px; margin-top: 10px;">
+          <button class="btn">Quiz me</button>
+          <button class="btn">Save as note</button>
+        </div>
+      </div>
+      <sc-for list="{{sent}}" as="m" hint-placeholder-count="0">
+        <div class="me read">{{m.text}}</div>
+        <div><div class="who">Kratt</div><span class="cursor" aria-label="Kratt is answering"></span></div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <div class="compose">
+    <label class="box">
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Message</span>
+      <textarea class="read" rows="2" placeholder="Ask about your notes" value="{{draft}}" onInput="{{onDraft}}" onKeyDown="{{onKey}}"></textarea>
+      <button class="btn solid" onClick="{{send}}" aria-label="Send">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" shape-rendering="crispEdges" aria-hidden="true"><path d="M8 13V3M3 8l5-5 5 5"></path></svg>
+      </button>
+    </label>
+    <div class="status"><span class="{{sqCls}}"></span>{{statusText}}</div>
+  </div>
+</aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"ink":{"editor":"color","default":"#ff9535","options":["#ff9535","#ffab4a","#ff7a2e","#f5b26b"]},"panel":{"editor":"enum","options":["conversation","empty","offline"],"default":"conversation"},"pixelBody":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  state = { draft: "", sent: [] };
+  renderVals() {
+    const panel = this.props.panel ?? "conversation";
+    const send = () => {
+      const text = this.state.draft.trim();
+      if (!text) return;
+      this.setState({ draft: "", sent: this.state.sent.concat([{ text }]) });
+    };
+    const offline = panel === "offline";
+    return {
+      ink: this.props.ink ?? "#ff9535",
+      appCls: this.props.pixelBody ? "app pixelbody" : "app",
+      isChat: panel === "conversation",
+      isEmpty: panel === "empty",
+      isOffline: offline,
+      chatTitle: panel === "empty" ? "New chat" : "Krebs cycle, step by step",
+      sent: this.state.sent,
+      draft: this.state.draft,
+      onDraft: (e) => this.setState({ draft: e.target.value }),
+      onKey: (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } },
+      send,
+      sqCls: offline ? "sq off" : "sq",
+      statusText: offline ? "Open Notebook: not answering" : "Open Notebook: connected. Chats save to your Study folder.",
+    };
+  }
+}
+</script>
+</body>
+</html>

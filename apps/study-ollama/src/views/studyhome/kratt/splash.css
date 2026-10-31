@@ -1,0 +1,58 @@
+/* The opening screen (Splash.jsx). While data-playing, 1.4s:
+     0.0–0.5s  Kratt drops in from above in 3 pixel steps, lands with one hop,
+               and his tufts pop up as he lands
+     0.5–1.0s  "KRATT" types in, one letter per 100ms (a width clip, 5 steps)
+     1.0–1.4s  he blinks and waves his fork
+   data-fading fades the screen out (250ms) into Home. data-still stops him. */
+
+.st-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 16px;
+  background: var(--st-bg);
+  color: var(--st-text-soft);
+  font-family: var(--st-sans);
+  text-align: center;
+}
+
+.st-splash-word {
+  color: var(--st-kratt);
+  font-size: 32px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.st-splash-text {
+  margin: 0;
+  max-width: 32em;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+}
+
+.st-splash[data-playing] .st-splash-kratt { animation: st-splash-drop 400ms steps(3) both, st-splash-hop 100ms steps(2) 400ms; }
+.st-splash[data-playing] .st-kratt .k-tl,
+.st-splash[data-playing] .st-kratt .k-tr { animation: st-splash-tuft 100ms steps(1) 400ms; }
+.st-splash[data-playing] .st-splash-word { animation: st-splash-type 500ms steps(5) 500ms both; }
+.st-splash[data-playing] .st-kratt .k-lids { animation: st-splash-blink 200ms steps(1) 1000ms; }
+.st-splash[data-playing] .st-kratt .k-fork { animation: st-splash-wave 400ms steps(1) 1000ms; }
+.st-splash[data-fading] { animation: st-splash-fade 250ms ease-out forwards; }
+.st-splash[data-still] .st-kratt * { animation: none !important; }
+
+@keyframes st-splash-drop { from { transform: translateY(-72px); } }
+@keyframes st-splash-hop { 50% { transform: translateY(-6px); } }
+@keyframes st-splash-tuft { from { transform: translateY(-2px); } }
+@keyframes st-splash-type { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes st-splash-blink { from { opacity: 1; } to { opacity: 0; } }
+@keyframes st-splash-wave { 25%, 75% { transform: translateY(-3px); } 50% { transform: translateY(1px); } }
+@keyframes st-splash-fade { to { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .st-splash, .st-splash * { animation: none !important; }
+}

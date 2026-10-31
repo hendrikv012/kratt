@@ -1,0 +1,29 @@
+/* The opening animation, about 1.8s:
+     0.0s  the graph fades in; its dots spread out from the centre as the
+           force simulation settles (that motion is the graph's own)
+     1.3s  sidebar and side widget lanes glide in from the sides
+   It only runs while .study has data-intro (set by StudyPreview), so
+   ending or skipping it simply shows everything in place. */
+
+@keyframes st-intro-fade { from { opacity: 0; } }
+@keyframes st-intro-from-left { from { transform: translateX(-24px); opacity: 0; } }
+@keyframes st-intro-from-right { from { transform: translateX(24px); opacity: 0; } }
+
+.study[data-intro] .st-graph-canvas { animation: st-intro-fade 900ms ease-out both; }
+
+.study[data-intro] .st-intro-fade {
+  animation: st-intro-fade 400ms ease-out both;
+  animation-delay: 1300ms;
+}
+
+.study[data-intro] > .st-sidebar:not([data-side="right"]),
+.study[data-intro] .st-lane[data-lane="left"] {
+  animation: st-intro-from-left 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 1300ms;
+}
+
+.study[data-intro] > .st-sidebar[data-side="right"],
+.study[data-intro] .st-lane[data-lane="right"] {
+  animation: st-intro-from-right 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 1380ms;
+}

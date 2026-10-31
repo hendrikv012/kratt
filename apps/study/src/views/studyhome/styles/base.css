@@ -1,0 +1,146 @@
+/* Study-app design probe. Tokens are scoped to .study so the rest of
+   Lokus (Obsidian tokens, core/theme/manager.js inline styles) is
+   untouched. Default look: Notion layout, deep solid dark, Arch blue. */
+
+.study {
+  --st-bg: #10141a;      /* ground: Gotham-style blue-slate */
+  --st-sidebar: #0c1015; /* a step deeper than the ground */
+  --st-surface: #171c24; /* panels */
+  --st-hover: #1f2630;   /* raised */
+  --st-line: #2a323d;    /* hairlines */
+  --st-text: #e8ecf1;
+  --st-text-soft: #9aa5b4;
+  --st-text-faint: #7a8698;
+  --st-accent: #4c90f0;
+  --st-accent-ink: #ffffff;
+
+  --st-sans: "Archivo Variable", "Archivo", system-ui, sans-serif;
+
+  /* A soft spring: overshoots a touch, then settles. */
+  --st-spring: cubic-bezier(0.22, 1.2, 0.36, 1);
+
+  /* One spacing scale for the whole app. */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --st-page-font: var(--st-sans);
+
+  font-family: var(--st-sans);
+  font-size: calc(14px * var(--st-scale, 1));
+  line-height: 1.5;
+  color: var(--st-text);
+  background: var(--st-bg);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+.study *:focus-visible {
+  outline: 2px solid var(--st-accent);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+:where(.study) button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.study * {
+  scrollbar-color: var(--st-line) transparent;
+  scrollbar-width: thin;
+}
+
+/* The window drag strip above every view gets an inline background from
+   elsewhere in the app, so matching it needs !important. */
+.app-root:has(.study) .app-titlebar {
+  background-color: hsl(var(--st-c-background)) !important;
+  transition: none !important;
+}
+
+.study[data-reduce-motion] *,
+.study[data-reduce-motion] *::before {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Pixel faces are unreadable small: under data-pixel nothing drops below 14px. */
+.study { --st-min-text: 0px; }
+.study[data-pixel] { --st-min-text: 14px; }
+.study[data-pixel] :is(.text-xs, .text-\[11px\], .text-\[12px\], .text-\[12\.5px\], .text-\[13px\]) { font-size: 14px; }
+
+.st-faint { color: var(--st-text-faint); }
+.st-small { font-size: max(12.5px, var(--st-min-text)); }
+.st-block { display: block; }
+.st-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.st-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+.st-button {
+  background: var(--st-accent);
+  color: var(--st-accent-ink);
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 6px;
+}
+
+.st-button:hover { filter: brightness(1.1); }
+
+.st-ghost-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--st-text-soft);
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: max(13px, var(--st-min-text));
+}
+
+.st-ghost-button:hover { background: var(--st-hover); color: var(--st-text); }
+
+.st-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: var(--st-text-soft);
+}
+
+.st-icon-button:hover { background: var(--st-hover); color: var(--st-text); }
+
+/* Only two button styles: filled .st-button for the one main action on a
+   screen, and .st-ghost-button for everything else. */
+.st-small-button {
+  font-size: max(12.5px, var(--st-min-text));
+  font-weight: 500;
+  color: var(--st-text-soft);
+  padding: 2px 10px;
+  border-radius: 5px;
+}
+
+.st-small-button:hover { background: var(--st-hover); color: var(--st-text); }
+
+.st-subject-mark {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex: none;
+}
+
+.st-dot {
+  display: inline-block;
+  border-radius: 50%;
+  flex: none;
+}

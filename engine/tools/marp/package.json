@@ -1,0 +1,8 @@
+{
+  "name": "memory-engine-marp",
+  "private": true,
+  "description": "The Marp CLI the Doctor uses to check that slide decks render",
+  "dependencies": {
+    "@marp-team/marp-cli": "4.5.1"
+  }
+}

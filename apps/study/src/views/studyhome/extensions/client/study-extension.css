@@ -1,0 +1,131 @@
+/* Study extension styles: the app's look inside an extension frame.
+   The client sets the --st-* tokens on :root from the theme the app sends
+   and keeps them current. The values below are the Blackout defaults,
+   used until then. The page stays transparent, so a widget or block shows
+   the card it sits on. */
+
+/* The app's fonts, served next to this file. */
+@font-face {
+  font-family: "Archivo Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  src: url("/_client/archivo.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("/_client/jetbrains-mono.woff2") format("woff2");
+}
+
+:root {
+  color-scheme: dark;
+  --st-bg: #000000;
+  --st-sidebar: #07090c;
+  --st-surface: #07090c;
+  --st-hover: #0e1116;
+  --st-line: #1c222b;
+  --st-text: #e6e9ee;
+  --st-text-soft: #7d8796;
+  --st-text-faint: #727c8c;
+  --st-accent: #4c90f0;
+  --st-accent-ink: #ffffff;
+  --st-font: "Archivo Variable", "Archivo", system-ui, sans-serif;
+  --st-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --st-scale: 1;
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html,
+body {
+  margin: 0;
+  background: transparent;
+}
+
+body {
+  font-family: var(--st-font);
+  font-size: calc(14px * var(--st-scale));
+  line-height: 1.5;
+  letter-spacing: -0.003em;
+  color: var(--st-text);
+}
+
+button,
+input,
+select,
+textarea { font: inherit; color: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--st-accent);
+  outline-offset: 1px;
+  border-radius: 3px;
+}
+
+/* The one main action. */
+.st-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 3px;
+  background: var(--st-accent);
+  color: var(--st-accent-ink);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.st-button:hover:not(:disabled) { filter: brightness(1.1); }
+.st-button:disabled { opacity: 0.45; cursor: default; }
+
+/* Everything else, as in the app. */
+.st-ghost-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  color: var(--st-text-soft);
+  font-size: max(13px, var(--st-min-text));
+  cursor: pointer;
+}
+
+.st-ghost-button:hover:not(:disabled) { background: var(--st-hover); color: var(--st-text); }
+.st-ghost-button:disabled { opacity: 0.45; cursor: default; }
+
+.st-input {
+  padding: 5px 8px;
+  border: 1px solid var(--st-line);
+  border-radius: 3px;
+  background: var(--st-surface);
+  color: var(--st-text);
+  font-size: max(13px, var(--st-min-text));
+}
+
+.st-input::placeholder { color: var(--st-text-faint); }
+.st-input:disabled { opacity: 0.45; }
+
+.st-card {
+  padding: 12px 16px;
+  border-radius: 3px;
+  background: var(--st-surface);
+  box-shadow: inset 0 0 0 1px var(--st-line);
+}
+
+.st-faint { color: var(--st-text-faint); }
+
+/* Numbers and codes: times, counts, scores. */
+.st-mono {
+  font-family: var(--st-mono);
+  font-size: max(11.5px, var(--st-min-text));
+  letter-spacing: 0.01em;
+}

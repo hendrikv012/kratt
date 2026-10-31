@@ -1,0 +1,29 @@
+/* The Study folder's saving messages: quiet, flat, one hairline. Shown only when work is at risk. */
+.st-vault-banner {
+  margin: 8px 16px 0;
+  padding: 8px 12px;
+  border: 1px solid var(--st-line);
+  border-left: 2px solid var(--st-accent);
+  background: var(--st-surface);
+  color: var(--st-text);
+  font: 13px/1.4 var(--st-sans);
+}
+.st-vault-banner p {
+  margin: 0;
+}
+.st-vault-banner p + p {
+  margin-top: 4px;
+  color: var(--st-text-soft);
+}
+
+/* Before the folder is open: one plain line in the middle of the window. */
+.st-vault-gate {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 16px;
+  background: #000;
+  color: #c9d1d9;
+  font: 14px/1.5 system-ui, sans-serif;
+  text-align: center;
+}

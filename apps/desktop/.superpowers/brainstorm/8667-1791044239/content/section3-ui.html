@@ -1,0 +1,134 @@
+<style>
+  .st { background:#10141A; color:#C9D1DC; font:13px Inter,system-ui,sans-serif; border-radius:10px; overflow:hidden; border:1px solid #232A35; position:relative; }
+  .st b { color:#E6ECF3; font-weight:600; }
+  .st small, .st .dim { color:#7A8696; }
+  .st .mono { font:10px 'JetBrains Mono',ui-monospace,monospace; letter-spacing:.08em; text-transform:uppercase; color:#5D6878; }
+  .app { display:flex; height:440px; }
+  .side { width:180px; background:#171C24; border-right:1px solid #232A35; padding:12px 8px; display:flex; flex-direction:column; gap:2px; }
+  .side .row { padding:5px 8px; border-radius:5px; color:#9AA5B4; display:flex; align-items:center; gap:8px; }
+  .side .row.on { background:#1F2632; color:#E6ECF3; }
+  .side .mono { padding:10px 8px 3px; }
+  .dot { width:6px; height:6px; border-radius:50%; background:#4C90F0; margin-left:auto; box-shadow:0 0 6px #4C90F0; }
+  .ic { width:14px; height:14px; border-radius:4px; background:#2E3846; display:inline-block; flex:none; }
+  .list { width:270px; border-right:1px solid #232A35; padding:12px; display:flex; flex-direction:column; gap:8px; }
+  .search { background:#171C24; border:1px solid #232A35; border-radius:6px; padding:6px 9px; color:#5D6878; }
+  .chips { display:flex; gap:4px; flex-wrap:wrap; }
+  .chip { font:10px 'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.06em; padding:3px 7px; border-radius:5px; color:#7A8696; border:1px solid #232A35; }
+  .chip.on { background:#4C90F0; border-color:#4C90F0; color:#fff; }
+  .item { display:flex; gap:9px; padding:7px; border-radius:7px; border:1px solid transparent; align-items:center; }
+  .item.on { background:#1F2632; border-color:#2E3846; }
+  .item .big { width:28px; height:28px; border-radius:7px; flex:none; }
+  .item .meta { flex:1; min-width:0; }
+  .tag { font:9px 'JetBrains Mono',monospace; text-transform:uppercase; color:#7A8696; }
+  .status { font-size:11px; color:#7A8696; }
+  .status.up { color:#4C90F0; }
+  .fill { flex:1; }
+  .ghost { border:1px dashed #2E3846; border-radius:6px; padding:6px; text-align:center; color:#7A8696; }
+  .detail { flex:1; padding:18px 20px; display:flex; flex-direction:column; gap:12px; overflow:hidden; }
+  .head { display:flex; gap:12px; align-items:center; }
+  .head .big { width:44px; height:44px; border-radius:10px; }
+  .btn { border-radius:6px; padding:5px 12px; font-size:12px; border:1px solid #2E3846; color:#C9D1DC; background:#171C24; }
+  .btn.pri { background:#4C90F0; border-color:#4C90F0; color:#fff; }
+  .btn.danger { color:#F0716B; border-color:#5A2A2A; }
+  .sec { border-top:1px solid #232A35; padding-top:10px; display:flex; flex-direction:column; gap:6px; }
+  .line { display:flex; align-items:center; gap:8px; }
+  .tog { margin-left:auto; width:26px; height:14px; border-radius:8px; background:#4C90F0; position:relative; flex:none; }
+  .tog::after { content:""; position:absolute; right:2px; top:2px; width:10px; height:10px; border-radius:50%; background:#fff; }
+  .tog.off { background:#2E3846; } .tog.off::after { right:auto; left:2px; }
+  .modal-wrap { display:flex; align-items:center; justify-content:center; padding:26px; background:radial-gradient(#0B0E13cc,#0B0E13); min-height:260px; }
+  .modal { width:360px; background:#171C24; border:1px solid #2E3846; border-radius:12px; padding:18px; display:flex; flex-direction:column; gap:10px; box-shadow:0 20px 50px #0008; }
+  .modal .acts { display:flex; gap:8px; justify-content:flex-end; margin-top:6px; }
+  .warn { background:#2A2312; border:1px solid #5A4A1E; color:#E8C46A; border-radius:7px; padding:7px 9px; font-size:12px; }
+  .perm::before { content:"•  "; color:#4C90F0; }
+  .qf { width:460px; background:#171C24; border:1px solid #2E3846; border-radius:12px; overflow:hidden; box-shadow:0 20px 50px #0008; }
+  .qf .in { padding:12px 14px; border-bottom:1px solid #232A35; color:#E6ECF3; font-size:14px; }
+  .qf .grp { padding:8px 14px 2px; }
+  .qf .r { padding:6px 14px; display:flex; gap:9px; align-items:center; }
+  .qf .r.on { background:#1F2632; }
+  .qf .kb { margin-left:auto; font:10px 'JetBrains Mono',monospace; color:#5D6878; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:900px){ .grid2{grid-template-columns:1fr;} }
+</style>
+
+<h2>Section 3: what the student sees</h2>
+<p class="subtitle">Four screens, using the app's real look. Reply in the terminal with what works and what to change. Each screen is numbered so you can refer to it.</p>
+
+<div class="section">
+  <p class="label">1 · Extensions view (sidebar + list + detail)</p>
+  <div class="st"><div class="app">
+    <div class="side">
+      <div class="row"><span class="ic"></span>Home</div>
+      <div class="row"><span class="ic"></span>Quick notes</div>
+      <div class="mono">Subjects</div>
+      <div class="row"><span class="ic" style="background:#4C90F0"></span>Biology</div>
+      <div class="row"><span class="ic" style="background:#3FB68B"></span>Calculus</div>
+      <div class="mono">Library</div>
+      <div class="row"><span class="ic"></span>Sources</div>
+      <div class="row"><span class="ic"></span>AI chats</div>
+      <div class="row on"><span class="ic"></span>Extensions<span class="dot"></span></div>
+      <div class="mono">Tools</div>
+      <div class="row"><span class="ic" style="background:#C77DFF"></span>Quiz mode</div>
+      <div class="fill"></div>
+      <div class="row"><span class="ic"></span>Settings</div>
+    </div>
+    <div class="list">
+      <div class="search">Search extensions…</div>
+      <div class="chips"><span class="chip on">All</span><span class="chip">Installed</span><span class="chip">Catalog</span><span class="chip">Updates · 1</span></div>
+      <div class="item on"><span class="big" style="background:linear-gradient(135deg,#F0716B,#C2453F)"></span><div class="meta"><b>Flashcards</b><br><span class="tag">Block · Command</span></div><span class="status">Installed</span></div>
+      <div class="item"><span class="big" style="background:linear-gradient(135deg,#C77DFF,#7B3FD1)"></span><div class="meta"><b>Quiz mode</b><br><span class="tag">Tool</span></div><span class="status up">Update</span></div>
+      <div class="item"><span class="big" style="background:linear-gradient(135deg,#F2B33D,#C98A16)"></span><div class="meta"><b>Pomodoro</b><br><span class="tag">Widget</span></div><span class="status"></span></div>
+      <div class="item"><span class="big" style="background:linear-gradient(135deg,#88C0D0,#5E81AC)"></span><div class="meta"><b>Nord</b><br><span class="tag">Theme</span></div><span class="status"></span></div>
+      <div class="fill"></div>
+      <div class="ghost">Install from file…</div>
+    </div>
+    <div class="detail">
+      <div class="head"><span class="big" style="background:linear-gradient(135deg,#F0716B,#C2453F)"></span>
+        <div><b style="font-size:16px">Flashcards</b><br><small>by Study team · v1.2.0</small></div>
+        <span class="fill"></span><span class="btn">Disable</span><span class="btn">···</span></div>
+      <p class="dim" style="margin:0">Turn any page into flashcards. Adds a flashcard block and a "Review cards" command.</p>
+      <div class="sec"><span class="mono">What it adds</span>
+        <div class="line"><span class="tag">Block</span> Flashcard deck</div>
+        <div class="line"><span class="tag">Command</span> Review due cards</div></div>
+      <div class="sec"><span class="mono">Permissions</span>
+        <div class="line">Read your pages and subjects<span class="tog"></span></div>
+        <div class="line">See / update how well you know topics<span class="tog off"></span></div></div>
+    </div>
+  </div></div>
+</div>
+
+<div class="grid2">
+  <div class="section">
+    <p class="label">2 · Install dialog (zip from disk)</p>
+    <div class="st"><div class="modal-wrap"><div class="modal">
+      <div class="head"><span class="big" style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#F2B33D,#C98A16)"></span><div><b>Install Pomodoro?</b><br><small>by Ana K. · v0.3.1</small></div></div>
+      <div class="warn">This didn't come from the catalog. Only install files you trust.</div>
+      <span class="mono">This extension wants to</span>
+      <div class="perm">Show reminders</div>
+      <div class="perm">Connect to api.calendar.example.com</div>
+      <div class="acts"><span class="btn">Cancel</span><span class="btn pri">Install</span></div>
+    </div></div></div>
+  </div>
+
+  <div class="section">
+    <p class="label">3 · Uninstall dialog</p>
+    <div class="st"><div class="modal-wrap"><div class="modal">
+      <b>Remove Flashcards?</b>
+      <p class="dim" style="margin:0">It has <b>12 blocks</b> in <b>4 pages</b>. Its saved data (review history) will be deleted.</p>
+      <div class="acts" style="justify-content:space-between"><span class="btn">Cancel</span><span style="display:flex;gap:8px"><span class="btn danger">Remove them</span><span class="btn pri">Keep as plain text</span></span></div>
+    </div></div></div>
+  </div>
+</div>
+
+<div class="section">
+  <p class="label">4 · Ctrl+K quick find</p>
+  <div class="st"><div class="modal-wrap"><div class="qf">
+    <div class="in">rev<span style="color:#4C90F0">|</span></div>
+    <div class="grp mono">Pages</div>
+    <div class="r on"><span class="ic" style="background:#4C90F0"></span>Cell <b>rev</b>iew sheet <small>· Biology / Cells</small><span class="kb">↵</span></div>
+    <div class="grp mono">Commands</div>
+    <div class="r"><span class="ic" style="background:#F0716B"></span><b>Rev</b>iew due cards <small>· Flashcards</small></div>
+    <div class="grp mono">Actions</div>
+    <div class="r"><span class="ic"></span>Open <b>rev</b>iew queue</div>
+    <div class="r" style="border-top:1px solid #232A35"><small class="mono">↑↓ move · ↵ open · esc close</small></div>
+  </div></div></div>
+</div>

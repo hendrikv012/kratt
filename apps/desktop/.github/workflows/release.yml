@@ -1,0 +1,138 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ${{ matrix.platform }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [macos-latest, ubuntu-22.04, windows-latest]
+        
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.0-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+
+      - name: Rust setup
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Sync node version and setup cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Clean npm cache and dependencies
+        shell: bash
+        run: |
+          rm -rf node_modules package-lock.json
+          npm cache clean --force
+
+      - name: Install frontend dependencies
+        run: npm install
+
+      - name: Build the app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          VITE_AUTH_BASE_URL: https://lokusmd.com
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Lokus ${{ github.ref_name }}'
+          releaseBody: |
+            🚀 **Lokus v1.3.3** - Critical Fixes + UI Polish
+
+            ## 🐛 Critical Fixes
+
+            ### Windows Startup Crash FIXED
+            This release addresses the issue where **v1.3.1 would flash briefly in the taskbar then immediately close** on Windows systems.
+
+            **Crash Fixes:**
+            - Fixed WebView2 window cleanup panic causing immediate crashes
+            - Replaced all `.unwrap()` calls with proper error handling
+            - Added panic hooks for non-critical WebView2 cleanup errors
+            - Improved platform initialization error handling
+
+            ### Theme & UI Improvements
+            **NEW: Native Titlebar Theme Sync** 🎨
+            - macOS traffic lights now sync with app theme (dark/light)
+            - Windows titlebar background matches app theme color
+            - Seamless visual experience across light and dark modes
+
+            **Bug Fixes:**
+            - Fixed memory leak in system theme listener
+            - Fixed duplicate initialization on app startup (performance improvement)
+            - Added null checks to prevent theme-related crashes
+            - Improved hex color validation in theme system
+
+            ## 🔧 Technical Improvements
+            - Fixed hardcoded `.env` path resolution for better cross-platform support
+            - Changed OAuth server port from 8080 to 9080 to avoid conflicts
+            - OAuth port now configurable via `OAUTH_PORT` environment variable
+            - Better logging and error messages for debugging
+            - More robust window management with graceful error handling
+            - Added cleanup functions for event listeners (prevents memory leaks)
+
+            ## 📝 What Changed Since v1.3.1
+            v1.3.1 had critical Windows crashes and minor UI glitches. This release includes all fixes plus professional polish for a production-ready experience.
+
+            ---
+
+            ## 📦 Installation
+
+            **🍎 macOS**
+            - Download `Lokus_x64.app.tar.gz` or `.dmg`
+            - Apple Silicon: Universal binary included
+            - **NEW: Traffic lights sync with theme!**
+
+            **🪟 Windows**
+            - Download `.msi` for installer
+            - Or `.exe` for portable version
+            - **This version fixes the immediate crash issue!**
+            - **NEW: Titlebar matches app theme!**
+
+            **🐧 Linux**
+            - Ubuntu/Debian: `.deb`
+            - Fedora/RHEL: `.rpm`
+            - Universal: `.AppImage`
+
+            ---
+
+            ## ⚠️ macOS Users: Remove Quarantine Attribute
+
+            Since this app is unsigned, macOS will block it by default. After downloading, run this command in Terminal:
+
+            ```bash
+            xattr -cr /Applications/Lokus.app
+            ```
+
+            Or if you installed it elsewhere:
+            ```bash
+            xattr -cr /path/to/Lokus.app
+            ```
+
+            ---
+
+            **Full Changelog**: https://github.com/lokus-ai/lokus/compare/v1.3.1...v1.3.3
+          releaseDraft: false
+          prerelease: false

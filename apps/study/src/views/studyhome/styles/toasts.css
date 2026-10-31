@@ -1,0 +1,59 @@
+/* Toasts: short messages at the bottom centre. Solid like the other
+   floating surfaces (menus, quick find) so the text keeps its contrast in
+   every theme. Clicks pass straight through, so a toast never covers
+   something the student is about to press. */
+
+.st-toasts {
+  position: absolute;
+  left: 50%;
+  bottom: var(--sp-5);
+  z-index: 70; /* over dialogs (50) and quick find (60) */
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(440px, calc(100% - 2 * var(--sp-5)));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  pointer-events: none;
+}
+
+.st-toast {
+  max-width: 100%;
+  padding: 8px 14px;
+  border-radius: 3px;
+  background: var(--st-bg);
+  color: var(--st-text);
+  font-size: max(13px, var(--st-min-text));
+  line-height: 1.45;
+  box-shadow: 0 0 0 1px var(--st-line), 0 12px 32px rgb(0 0 0 / 0.45);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  animation: st-toast-in 180ms ease-out both;
+  transition: opacity 180ms ease-out;
+}
+
+.st-toast[data-leaving] { opacity: 0; }
+
+.st-toast-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.st-toast-content > button {
+  flex-shrink: 0;
+}
+
+@keyframes st-toast-in {
+  from { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .st-toast { animation: none; transition: none; }
+}

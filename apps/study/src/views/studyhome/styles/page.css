@@ -1,0 +1,164 @@
+/* Subject, folder and page views, Quick notes, and the embedded editor. */
+
+.st-page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--sp-7) var(--sp-6) 120px;
+  font-family: var(--st-page-font);
+  font-size: calc(16px * var(--st-scale, 1));
+  line-height: 1.6;
+}
+
+.st-page-title {
+  font-size: calc(38px * var(--st-scale, 1));
+  font-weight: 700;
+  letter-spacing: -0.028em;
+  line-height: 1.12;
+  margin: 0 0 12px;
+}
+
+.st-title-input {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  color: var(--st-text);
+  font-family: inherit;
+  padding: 0;
+}
+
+.st-title-input:focus-visible { outline: none; }
+
+.st-page-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: max(13.5px, var(--st-min-text));
+  color: var(--st-text-soft);
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--st-line);
+  font-family: var(--st-sans);
+}
+
+.st-page-meta-places {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: 6px;
+}
+
+.st-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: max(12.5px, var(--st-min-text));
+  padding: 1px 8px;
+  border-radius: 5px;
+  background: var(--st-surface);
+  color: var(--st-text);
+}
+
+.st-chip:hover { background: var(--st-hover); }
+.st-chip-add { color: var(--st-text-soft); background: transparent; box-shadow: inset 0 0 0 1px var(--st-line); }
+
+.st-empty {
+  color: var(--st-text-soft);
+  margin: 8px 0;
+}
+
+/* Contents of a subject or folder */
+
+.st-item-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--st-sans);
+}
+
+.st-item-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 15px;
+}
+
+.st-item-row:hover { background: var(--st-hover); }
+.st-item-row svg { color: var(--st-text-soft); flex: none; }
+
+.st-item-note {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+/* Quick notes */
+
+.st-quick-input textarea,
+.st-quick-list textarea {
+  width: 100%;
+  resize: vertical;
+  background: var(--st-surface);
+  border: 1px solid var(--st-line);
+  border-radius: 8px;
+  color: var(--st-text);
+  font: inherit;
+  font-size: 14px;
+  padding: 9px 11px;
+  margin-bottom: 6px;
+}
+
+/* The hint and Save share one line at every width, so Save never wraps
+   below the fold of a small widget. The hint gives way first, and goes
+   when there is no room for it. */
+.st-quick-input { container-type: inline-size; }
+.st-quick-actions { flex-wrap: nowrap; justify-content: space-between; }
+.st-quick-actions > button { flex: none; margin-left: auto; }
+.st-quick-hint { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@container (max-width: 13rem) {
+  .st-quick-hint { display: none; }
+}
+
+.st-quick-list {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.st-quick-list textarea { background: transparent; border-color: transparent; padding-left: 0; }
+.st-quick-list textarea:hover, .st-quick-list textarea:focus { border-color: var(--st-line); padding-left: 11px; }
+
+/* Lokus's editor inside a page */
+
+.st-editor { margin: 0 -20px; }
+/* The editor takes its font from --editor-font-family; point it at the
+   Page font setting. */
+.st-editor {
+  --editor-font-family: var(--st-page-font);
+  --editor-font-size: calc(16px * var(--st-scale, 1));
+  --editor-text-color: var(--st-text);
+  --editor-heading-color: var(--st-text);
+  --editor-bold-color: var(--st-text);
+  --editor-link-color: var(--st-accent);
+  --editor-link-hover-color: var(--st-accent);
+  /* Tables: a panel-colored header row and hairline borders, in every theme. */
+  --editor-table-header-bg: var(--st-surface);
+  --editor-table-border: var(--st-line);
+}
+.st-editor .ProseMirror { min-height: 50vh; }
+.st-editor .ProseMirror td { background: transparent; }
+
+@media (max-width: 760px) {
+  .st-page { padding: 32px 18px 100px; }
+  .st-page-title { font-size: 30px; }
+  .st-editor { margin: 0; }
+}

@@ -1,0 +1,41 @@
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import { ThemeProvider } from "./hooks/theme.jsx";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
+import "./styles/globals.css";
+import "./styles/kanban.css";
+import "./styles/windows.css";
+
+// Load KaTeX for math rendering
+import katex from "katex";
+import "katex/dist/katex.min.css";
+
+// Make KaTeX globally available for the math extension
+if (typeof globalThis !== 'undefined') {
+  globalThis.katex = katex;
+} else if (typeof window !== 'undefined') {
+  window.katex = katex;
+}
+
+// Make React globally available for plugins
+if (typeof globalThis !== 'undefined') {
+  globalThis.React = React;
+} else if (typeof window !== 'undefined') {
+  window.React = React;
+}
+
+console.log('🚀 Main.jsx starting to render');
+console.log('🚀 Window location:', window.location.href);
+console.log('🚀 DOM root element:', document.getElementById("root"));
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
+  </React.StrictMode>
+);

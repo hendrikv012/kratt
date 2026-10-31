@@ -1,0 +1,231 @@
+/* ---------- Edges: four widget lanes around a free middle ----------
+   Flat at rest. Shadows belong to the lifted (dragged) card only.
+   Placeholders and outlines use the theme radius. */
+
+.study .st-edges-wrap {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.study .st-edges {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  /* The 16px gaps are margins on the lanes that hold something, so an
+     empty lane costs no space at all. */
+  gap: 0;
+  padding: var(--sp-3) var(--sp-5) var(--sp-4);
+}
+
+.study .st-edges-center {
+  grid-area: 2 / 2 / 3 / 3;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.study .st-lane {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  min-height: 0;
+}
+.study .st-lane[data-lane="left"] { grid-area: 1 / 1 / 4 / 2; width: var(--st-lw, 272px); }
+.study .st-lane[data-lane="right"] { grid-area: 1 / 3 / 4 / 4; width: var(--st-rw, 288px); }
+.study .st-lane[data-lane="top"] { grid-area: 1 / 2 / 2 / 3; }
+.study .st-lane[data-lane="bottom"] { grid-area: 3 / 2 / 4 / 3; }
+/* An empty side lane takes no width. */
+.study .st-lane[data-empty]:is([data-lane="left"], [data-lane="right"]) { width: 0; }
+.study .st-lane[data-lane="left"]:not([data-empty]) { margin-right: 16px; }
+.study .st-lane[data-lane="right"]:not([data-empty]) { margin-left: 16px; }
+.study .st-lane[data-lane="top"]:not([data-empty]) { margin-bottom: 16px; }
+.study .st-lane[data-lane="bottom"]:not([data-empty]) { margin-top: 16px; }
+/* The lane a card is lifted from rises, so the card (fixed, inside it) stays
+   above the other lanes while it travels. */
+.study .st-lane[data-lifted] { z-index: 5; }
+
+.study .st-lane-in {
+  display: flex;
+  gap: var(--sp-3);
+  height: 100%;
+  min-height: 0;
+}
+/* Side lanes scroll inside; the padding keeps focus rings and size marks in view. */
+.study .st-lane:is([data-lane="left"], [data-lane="right"]) > .st-lane-in {
+  flex-direction: column;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 3px 3px 8px;
+  margin: -3px;
+}
+.study .st-lane:is([data-lane="left"], [data-lane="right"]) > .st-lane-in::-webkit-scrollbar { display: none; }
+.study .st-lane[data-lane="top"] > .st-lane-in { justify-content: center; align-items: flex-start; flex-wrap: wrap; }
+.study .st-lane[data-lane="bottom"] > .st-lane-in { justify-content: center; align-items: flex-end; flex-wrap: wrap; }
+
+/* ---------- A widget in its slot, by size ---------- */
+
+.study .st-slot {
+  position: relative;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.study .st-slot > .st-wf { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.study .st-slot .st-wf-body { min-height: 0; overflow: auto; }
+.study .st-slot > .st-wf.st-widget { border-radius: var(--st-radius, 3px); }
+.study .st-slot .st-wf-head { user-select: none; }
+
+/* Side lanes: small and medium cap their height, large takes what's left. */
+.study .st-lane:is([data-lane="left"], [data-lane="right"]) .st-slot[data-size="s"] .st-wf-body { max-height: 7.5rem; }
+.study .st-lane:is([data-lane="left"], [data-lane="right"]) .st-slot[data-size="m"] .st-wf-body { max-height: 18rem; }
+.study .st-lane:is([data-lane="left"], [data-lane="right"]) .st-slot[data-size="l"] { flex: 1 0 auto; min-height: 16rem; }
+.study .st-lane:is([data-lane="left"], [data-lane="right"]) .st-slot[data-size="l"] .st-wf-body { flex: 1; }
+
+/* Top and bottom: the size is a width. */
+.study .st-lane:is([data-lane="top"], [data-lane="bottom"]) :is(.st-slot, .st-placeholder) { width: 20rem; max-width: 100%; }
+.study .st-lane:is([data-lane="top"], [data-lane="bottom"]) :is(.st-slot, .st-placeholder)[data-size="s"] { width: 14rem; }
+.study .st-lane:is([data-lane="top"], [data-lane="bottom"]) :is(.st-slot, .st-placeholder)[data-size="l"] { width: 30rem; }
+.study .st-lane:is([data-lane="top"], [data-lane="bottom"]) .st-wf-body { max-height: 11rem; }
+
+/* The local graph keeps a fixed height per size; large fills the slot. */
+.study .st-slot[data-slot="local"] .st-wf-body { max-height: none; overflow: visible; display: flex; flex-direction: column; }
+.study .st-slot[data-slot="local"] .st-local-graph { height: 14rem; margin: 0; }
+.study .st-slot[data-slot="local"][data-size="s"] .st-local-graph { height: 9rem; }
+.study .st-slot[data-slot="local"][data-size="l"] .st-local-graph { height: auto; flex: 1; min-height: 12rem; }
+
+/* ---------- Dragging ---------- */
+
+.study .st-slot[data-dragging] { cursor: grabbing; }
+.study .st-slot[data-dragging] > .st-wf {
+  background: var(--st-surface);
+  border-radius: var(--st-radius, 3px);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--st-accent) 70%, transparent),
+    0 18px 40px -16px rgb(0 0 0 / 0.45);
+}
+.study .st-slot[data-sizing] > .st-wf { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--st-accent) 70%, transparent); }
+
+.study .st-placeholder {
+  flex: none;
+  border-radius: var(--st-radius, 3px);
+  border: 1px solid color-mix(in srgb, var(--st-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--st-accent) 6%, transparent);
+  pointer-events: none;
+}
+
+.study .st-size-bubble {
+  position: fixed;
+  z-index: 70;
+  pointer-events: none;
+  padding: 3px 8px;
+  border-radius: var(--st-radius, 3px);
+  background: var(--st-accent);
+  color: var(--st-bg);
+  font-size: max(12px, var(--st-min-text));
+  font-weight: 500;
+}
+
+/* ---------- Handles ---------- */
+
+/* Pull a card's edge to change its size: the bottom edge in side lanes, the
+   right edge in top and bottom lanes. The mark is a thin square line. */
+.study .st-size-handle { position: absolute; z-index: 2; touch-action: none; }
+.study .st-lane:is([data-lane="left"], [data-lane="right"]) .st-size-handle { left: 20%; right: 20%; bottom: -5px; height: 10px; cursor: ns-resize; }
+.study .st-lane:is([data-lane="top"], [data-lane="bottom"]) .st-size-handle { top: 20%; bottom: 20%; right: -5px; width: 10px; cursor: ew-resize; }
+.study .st-size-handle::after {
+  content: "";
+  position: absolute;
+  background: var(--st-accent);
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.study .st-lane:is([data-lane="left"], [data-lane="right"]) .st-size-handle::after { left: 50%; top: 4px; width: 28px; height: 2px; transform: translateX(-50%); }
+.study .st-lane:is([data-lane="top"], [data-lane="bottom"]) .st-size-handle::after { top: 50%; left: 4px; height: 28px; width: 2px; transform: translateY(-50%); }
+.study .st-slot:hover .st-size-handle::after { opacity: 0.45; }
+.study .st-size-handle:hover::after,
+.study .st-slot[data-sizing] .st-size-handle::after { opacity: 1; }
+
+/* A side lane's inner line sets its width (220 to 440px). */
+.study .st-lane-width {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  z-index: 2;
+  cursor: col-resize;
+  outline: none;
+  touch-action: none;
+}
+.study .st-lane[data-lane="left"] > .st-lane-width { right: -13px; }
+.study .st-lane[data-lane="right"] > .st-lane-width { left: -13px; }
+.study .st-lane-width::after {
+  content: "";
+  position: absolute;
+  top: 30%;
+  bottom: 30%;
+  left: 4.5px;
+  width: 1px;
+  background: var(--st-accent);
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.study .st-lane-width:hover::after,
+.study .st-lane-width:focus-visible::after,
+.study .st-lane-width[data-active]::after { opacity: 1; }
+.study .st-edges[data-resizing] { cursor: col-resize; user-select: none; }
+
+/* ---------- Edit layout ---------- */
+
+.study .st-edges-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: var(--sp-2) var(--sp-5) 0;
+}
+.study .st-edges-bar-hint { margin-right: auto; font-size: max(13px, var(--st-min-text)); color: var(--st-text-faint); }
+
+/* Every handle shows while editing. */
+.study .st-edges-wrap[data-editing] .st-wf .st-wf-chevron { opacity: 1; }
+.study .st-edges-wrap[data-editing] .st-size-handle::after { opacity: 0.45; }
+.study .st-edges-wrap[data-editing] .st-lane-width::after { opacity: 0.45; }
+.study .st-edges-wrap[data-editing] .st-wf.st-widget { --st-widget-line: color-mix(in srgb, var(--st-text) 20%, transparent); }
+
+/* Empty lanes show a quiet drop area while editing or dragging. */
+.study .st-zone {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-2);
+  border: 1px solid color-mix(in srgb, var(--st-text) 14%, transparent);
+  border-radius: var(--st-radius, 3px);
+  background: color-mix(in srgb, var(--st-bg) 70%, transparent);
+  color: var(--st-text-faint);
+  font-size: max(12px, var(--st-min-text));
+  text-align: center;
+  pointer-events: auto;
+}
+.study .st-lane[data-lane="left"] > .st-zone { left: 0; top: 0; bottom: 0; width: 9rem; }
+.study .st-lane[data-lane="right"] > .st-zone { right: 0; top: 0; bottom: 0; width: 9rem; }
+.study .st-lane[data-lane="top"] > .st-zone { left: 0; right: 0; top: 0; height: 3.5rem; }
+.study .st-lane[data-lane="bottom"] > .st-zone { left: 0; right: 0; bottom: 0; height: 3.5rem; }
+/* Beside an empty side lane, the top and bottom areas leave its corner free. */
+.study .st-edges:has(> .st-lane[data-lane="left"] > .st-zone) > .st-lane:is([data-lane="top"], [data-lane="bottom"]) > .st-zone { left: 10rem; }
+.study .st-edges:has(> .st-lane[data-lane="right"] > .st-zone) > .st-lane:is([data-lane="top"], [data-lane="bottom"]) > .st-zone { right: 10rem; }
+
+/* Focus mode leaves only the middle. */
+.study[data-focus] .st-lane { display: none; }
+
+/* ---------- Reduced motion: handles appear at once ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .study .st-edges *, .study .st-edges *::after { transition: none !important; }
+}
+.study[data-reduce-motion] .st-edges *,
+.study[data-reduce-motion] .st-edges *::after { transition: none !important; }

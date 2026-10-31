@@ -34,3 +34,18 @@ coverage/
 
 # Claude Code personal settings
 .claude/settings.local.json
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# editor backups
+*~
+*.save
+
+# Claude Code worktrees (each is its own git repo)
+.claude/worktrees/
+
+# Claude Code worktrees (each is its own git repo)
+.claude/worktrees/

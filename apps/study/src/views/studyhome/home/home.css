@@ -1,0 +1,82 @@
+/* Home: a 6-column snap grid. Tiles span --w columns and --h rows; dense
+   flow fills the gaps, so no layout leaves holes. */
+
+.st-home-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:150px;gap:14px;grid-auto-flow:row dense;padding:28px 32px 36px}
+/* The grid fills the content area, so a right-click below the tiles still
+   reaches its menu. */
+.st-home-grid { box-sizing: border-box; min-height: 100%; align-content: start; }
+
+.study .st-home-tile {
+  grid-column: span var(--w);
+  grid-row: span var(--h);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 16px 18px;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: var(--st-surface);
+  border-radius: 10px;
+}
+
+/* The tile is the card: the frame inside only fills it. */
+.study .st-home-tile > .st-wf,
+.study .st-home-tile .st-widget {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+}
+.study .st-home-tile > .st-wf { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+.study .st-home-tile .st-wf-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.study .st-home-tile .st-widget-title {
+  height: auto;
+  margin: 0;
+  gap: 8px;
+  font-size: max(14px, var(--st-min-text));
+  font-weight: 500;
+  color: var(--st-text-soft);
+}
+
+/* The clock: the time centred in its tile, sized by the tile (ClockWidget). */
+.study .st-home-tile .st-clock { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+.study .st-home-tile .st-clock-time { line-height: 0.8; }
+.study .st-home-tile .st-clock-date { margin: 0; }
+
+/* The graph fills its tile; its readout sits on top. */
+.study .st-graph-tile { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.study .st-graph-tile .st-graph-canvas { flex: 1; min-height: 0; }
+.study .st-graph-tile .st-graph-bar { flex-wrap: nowrap; gap: var(--sp-3); min-height: 32px; }
+.study .st-graph-tile .st-graph-count {
+  font-family: var(--st-sans);
+  font-size: max(14px, var(--st-min-text));
+  letter-spacing: 0;
+  color: var(--st-text-soft);
+  white-space: nowrap;
+}
+
+/* No subjects yet: a sketch of the graph where it will appear. */
+.study .st-graph-tile .st-home-empty { flex: 1; gap: 0; padding: 0; }
+.study .st-graph-tile .st-home-empty-sketch {
+  display: block;
+  width: 154px;
+  height: 84px;
+  margin-bottom: var(--sp-5);
+  overflow: visible;
+}
+.study .st-graph-tile .st-home-empty-sketch line { stroke: color-mix(in srgb, var(--st-text-faint) 45%, var(--st-line)); stroke-width: 1; }
+.study .st-graph-tile .st-home-empty-sketch circle { fill: var(--st-bg); stroke: var(--st-text-faint); stroke-width: 1.2; }
+.study .st-graph-tile .st-home-empty-sketch .st-home-empty-subject { fill: var(--st-accent); stroke: none; }
+.study .st-graph-tile .st-home-empty h2 { margin: 0; font-size: 26px; line-height: 1.15; }
+.study .st-graph-tile .st-home-empty p {
+  max-width: 40ch;
+  text-wrap: balance;
+  margin: var(--sp-2) 0 var(--sp-5);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@media (max-width: 760px) {
+  .st-home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .study .st-home-tile { grid-column: span 2; }
+}

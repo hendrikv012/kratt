@@ -1,0 +1,15 @@
+{"query": "where does the citric acid cycle take place", "relevant": [{"path": "Biology/Krebs.md"}]}
+{"query": "how many NADH does one turn of the Krebs cycle make", "relevant": [{"path": "Biology/Krebs.md", "heading": "Products"}]}
+{"query": "what slows down the citric acid cycle", "relevant": [{"path": "Biology/Krebs.md", "heading": "Regulation"}]}
+{"query": "which enzyme fixes carbon dioxide in the Calvin cycle", "relevant": [{"path": "Biology/Photosynthesis.md", "heading": "Calvin cycle"}]}
+{"query": "why does the lagging strand have Okazaki fragments", "relevant": [{"path": "Biology/DNA.md", "heading": "Synthesis"}]}
+{"query": "what opens the replication fork", "relevant": [{"path": "Biology/DNA.md", "heading": "Unwinding"}]}
+{"query": "how does water cross the cell membrane", "relevant": [{"path": "Biology/Membrane.md", "heading": "Transport"}]}
+{"query": "difference between competitive and noncompetitive inhibitors", "relevant": [{"path": "Biology/Enzymes.md", "heading": "Inhibition"}]}
+{"query": "what is a buffer solution", "relevant": [{"path": "Chemistry/Acids.md", "heading": "Buffers"}]}
+{"query": "how is pH calculated", "relevant": [{"path": "Chemistry/Acids.md", "heading": "pH scale"}]}
+{"query": "why do atoms shrink across a period", "relevant": [{"path": "Chemistry/Periodic.md", "heading": "Atomic radius"}]}
+{"query": "which element has the highest electronegativity", "relevant": [{"path": "Chemistry/Periodic.md", "heading": "Electronegativity"}]}
+{"query": "why do metals conduct electricity", "relevant": [{"path": "Chemistry/Bonding.md", "heading": "Metallic bonds"}]}
+{"query": "how to find the limiting reagent", "relevant": [{"path": "Chemistry/Stoichiometry.md", "heading": "Limiting reagent"}]}
+{"query": "what do catalysts do to activation energy", "relevant": [{"path": "Chemistry/Rates.md", "heading": "Catalysts"}, {"path": "Biology/Enzymes.md"}]}

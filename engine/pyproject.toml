@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "memory-engine"
+version = "0.1.0"
+description = "Local file-based memory and hybrid search for a small (8B) language model"
+requires-python = ">=3.12"
+dependencies = [
+    "sqlite-vec>=0.1.9",
+    "tree-sitter>=0.26",
+    "tree-sitter-python>=0.25",
+    "pyyaml>=6",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "pytest>=9",  # the Doctor runs the workspace's tests
+]
+
+[project.scripts]
+memory-engine = "memory_engine.__main__:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=9"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+memory_engine = ["schema.sql"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

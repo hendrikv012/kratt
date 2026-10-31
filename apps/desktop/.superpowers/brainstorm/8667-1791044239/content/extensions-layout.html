@@ -1,0 +1,105 @@
+<style>
+  .st { background:#10141A; color:#C9D1DC; font:13px Inter,system-ui,sans-serif; border-radius:8px; display:flex; height:300px; overflow:hidden; border:1px solid #232A35; }
+  .st .side { width:150px; background:#171C24; border-right:1px solid #232A35; padding:10px 8px; display:flex; flex-direction:column; gap:2px; }
+  .st .row { padding:4px 8px; border-radius:5px; color:#9AA5B4; white-space:nowrap; }
+  .st .row.on { background:#1F2632; color:#E6ECF3; }
+  .st .row.sub { padding-left:22px; font-size:12px; }
+  .st .lbl { font:10px 'JetBrains Mono',monospace; letter-spacing:.08em; text-transform:uppercase; color:#5D6878; padding:8px 8px 2px; }
+  .st .main { flex:1; padding:14px; display:flex; flex-direction:column; gap:10px; min-width:0; }
+  .st .bar { display:flex; gap:6px; align-items:center; }
+  .st .search { flex:1; background:#171C24; border:1px solid #232A35; border-radius:6px; padding:5px 8px; color:#5D6878; }
+  .st .tab { font:10px 'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.06em; padding:4px 8px; border-radius:5px; color:#7A8696; }
+  .st .tab.on { background:#4C90F0; color:#fff; }
+  .st .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+  .st .card { background:#171C24; border:1px solid #232A35; border-radius:7px; padding:9px; }
+  .st .card b { color:#E6ECF3; font-weight:600; display:block; }
+  .st .card small { color:#7A8696; }
+  .st .btn { float:right; font-size:11px; border:1px solid #4C90F0; color:#4C90F0; border-radius:5px; padding:1px 7px; }
+  .st .btn.in { border-color:#2E3846; color:#5D6878; }
+  .st .list .item { padding:7px 8px; border-radius:6px; border:1px solid transparent; }
+  .st .list .item.on { background:#1F2632; border-color:#2E3846; }
+  .st .detail { flex:1; background:#171C24; border:1px solid #232A35; border-radius:7px; padding:12px; }
+  .st .perm { font-size:12px; color:#9AA5B4; margin-top:6px; }
+  .st .perm::before { content:"• "; color:#4C90F0; }
+</style>
+
+<h2>How should the Extensions tab look?</h2>
+<p class="subtitle">All three put one "Extensions" row in the sidebar. They differ in what you see after clicking it and where installed extensions show up. Click one to select it, then reply in the terminal.</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="st">
+        <div class="side">
+          <div class="row">Home</div><div class="row">Quick notes</div>
+          <div class="lbl">Subjects</div><div class="row">Biology</div><div class="row">Calculus</div>
+          <div class="lbl">Library</div><div class="row">Sources</div><div class="row">AI chats</div>
+          <div class="row on">Extensions</div>
+        </div>
+        <div class="main">
+          <div class="bar"><div class="search">Search extensions…</div><span class="tab on">Browse</span><span class="tab">Installed</span><span class="tab">+ .zip</span></div>
+          <div class="grid">
+            <div class="card"><span class="btn">Get</span><b>Pomodoro</b><small>Home widget · Focus timer</small></div>
+            <div class="card"><span class="btn in">Installed</span><b>Flashcards</b><small>Page block · Spaced repetition</small></div>
+            <div class="card"><span class="btn">Get</span><b>LaTeX math</b><small>Page block</small></div>
+            <div class="card"><span class="btn">Get</span><b>Nord theme</b><small>Theme</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>A: Store page</h3><p>Clicking opens a full page with a card grid and Browse / Installed / Install-from-file tabs. Clicking a card opens its detail and permissions. Simple, like an app store.</p></div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="st">
+        <div class="side">
+          <div class="row">Home</div><div class="row">Quick notes</div>
+          <div class="lbl">Subjects</div><div class="row">Biology</div>
+          <div class="lbl">Library</div><div class="row">Sources</div>
+          <div class="lbl">Extensions</div>
+          <div class="row sub">Quiz mode</div>
+          <div class="row sub">Anki import</div>
+          <div class="row on">+ Get extensions</div>
+        </div>
+        <div class="main">
+          <div class="bar"><div class="search">Search extensions…</div><span class="tab on">Browse</span><span class="tab">Installed</span><span class="tab">+ .zip</span></div>
+          <div class="grid">
+            <div class="card"><span class="btn">Get</span><b>Pomodoro</b><small>Home widget</small></div>
+            <div class="card"><span class="btn">Get</span><b>LaTeX math</b><small>Page block</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>B: Sidebar section</h3><p>"Extensions" is a sidebar section. Extensions that add a tool or view get their own row in it, so you open Quiz mode straight from the sidebar. "+ Get extensions" opens the store page.</p></div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="st">
+        <div class="side">
+          <div class="row">Home</div><div class="row">Quick notes</div>
+          <div class="lbl">Library</div><div class="row">Sources</div>
+          <div class="row on">Extensions</div>
+        </div>
+        <div class="main" style="flex-direction:row">
+          <div class="list" style="width:150px">
+            <div class="search" style="margin-bottom:6px">Search…</div>
+            <div class="item on"><b style="color:#E6ECF3">Flashcards</b><br><small style="color:#7A8696">Installed</small></div>
+            <div class="item">Pomodoro<br><small style="color:#7A8696">Catalog</small></div>
+            <div class="item">LaTeX math<br><small style="color:#7A8696">Catalog</small></div>
+          </div>
+          <div class="detail">
+            <b style="color:#E6ECF3;font-size:15px">Flashcards</b> <span class="btn in">Disable</span>
+            <p style="color:#7A8696;margin:6px 0">Adds a flashcard block and a review queue.</p>
+            <div class="lbl" style="padding-left:0">Permissions</div>
+            <div class="perm">Read your pages</div><div class="perm">Add blocks to pages</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>C: List + detail (VS Code style)</h3><p>A searchable list on the left with the selected extension's details, permissions and enable/disable on the right. Dense and good for managing many extensions, but less friendly for browsing.</p></div>
+  </div>
+
+</div>

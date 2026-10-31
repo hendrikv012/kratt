@@ -1,0 +1,194 @@
+/* Kratt Chat: the panel's body inside .st-ai (shell.css keeps its frame and resize edge). */
+
+.st-chat-title { flex: 1; min-width: 0; font-weight: 500; border-radius: 4px; }
+.st-chat-title-input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-weight: 500;
+  color: var(--st-text);
+  background: var(--st-surface);
+  border: 1px solid var(--st-accent);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+
+.st-chat-ctx {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  color: var(--st-text-soft);
+  font-size: max(14px, var(--st-min-text));
+}
+
+.st-chat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 12px;
+  padding: 3px 10px;
+  font-size: max(14px, var(--st-min-text));
+  color: var(--st-text);
+  background: var(--st-surface);
+}
+.st-chat-pill button { display: inline-flex; color: var(--st-text-soft); border-radius: 4px; }
+.st-chat-pill button:hover { color: var(--st-text); }
+button.st-chat-pill:hover { background: var(--st-hover); }
+.st-chat-picker { max-height: 320px; overflow-y: auto; }
+
+.st-chat-msgs {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.st-chat-empty { margin-top: auto; display: flex; flex-direction: column; gap: 20px; }
+.st-chat-hello { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.st-chat-hi { font-family: var(--st-title, var(--st-sans)); font-size: 20px; font-weight: 500; }
+.st-chat-soft { color: var(--st-text-soft); }
+
+.st-chat-sugg { display: flex; flex-direction: column; gap: 6px; }
+:where(.study) .st-chat-sugg button {
+  border-radius: 8px;
+  background: var(--st-surface);
+  padding: 10px 12px;
+  font-size: max(14px, var(--st-min-text));
+}
+:where(.study) .st-chat-sugg button:hover { background: var(--st-hover); }
+
+.st-chat-me {
+  align-self: flex-end;
+  max-width: 85%;
+  background: var(--st-surface);
+  border-radius: 10px 10px 2px 10px;
+  padding: 9px 13px;
+  font-size: 15px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.st-chat-who {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: max(14px, var(--st-min-text));
+  font-weight: 500;
+  color: var(--st-text-soft);
+  margin-bottom: 6px;
+}
+
+.st-chat-bot { font-size: 15px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.st-chat-cites { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+:where(.study) .st-chat-cite { font-size: max(14px, var(--st-min-text)); color: var(--st-accent); }
+.st-chat-cite:hover { text-decoration: underline; }
+
+.st-chat-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+:where(.study) .st-chat-quiet {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  background: var(--st-hover);
+  color: var(--st-text);
+}
+.st-chat-quiet:disabled { opacity: 0.5; cursor: default; }
+
+.st-chat-earlier { margin: 0; font-size: max(14px, var(--st-min-text)); color: var(--st-text-soft); }
+:where(.study) .st-chat-link { color: var(--st-accent); }
+.st-chat-link:hover { text-decoration: underline; }
+
+.st-chat-warn {
+  background: var(--st-accent-wash, color-mix(in srgb, var(--st-accent) 14%, var(--st-bg)));
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.st-chat-warn-head { display: flex; align-items: center; gap: 12px; font-weight: 500; }
+.st-chat-warn .st-chat-actions { margin-top: 0; }
+
+.st-chat-compose { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+.st-chat-box {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  border-radius: 10px;
+  padding: 8px 8px 8px 14px;
+  background: var(--st-surface);
+  box-shadow: inset 0 0 0 1px var(--st-line);
+}
+.st-chat-box:focus-within { box-shadow: inset 0 0 0 1px var(--st-accent); }
+.st-chat-box textarea {
+  flex: 1;
+  resize: none;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--st-text);
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.45;
+  min-height: 44px;
+}
+.st-chat-box textarea::placeholder { color: var(--st-text-soft); }
+.st-chat-box textarea:disabled { opacity: 0.6; }
+.st-chat-box .st-button:disabled { opacity: 0.5; cursor: default; filter: none; }
+
+.st-chat-status {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: max(14px, var(--st-min-text));
+  color: var(--st-text-soft);
+}
+.st-chat-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--st-accent); }
+.st-chat-dot[data-ok] { background: var(--st-text-soft); }
+
+/* The tab bar's Kratt Chat button. */
+.st-chat-toggle[aria-pressed="true"] { background: var(--st-hover); color: var(--st-text); }
+
+/* The Chats screen, and its rows in the Latest chats widget. */
+.st-chats-search {
+  width: 100%;
+  margin: 0 0 var(--sp-3);
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--st-surface);
+  box-shadow: inset 0 0 0 1px var(--st-line);
+  color: var(--st-text);
+  font: inherit;
+  font-size: 15px;
+}
+.st-chats-search:focus-visible { outline: none; box-shadow: inset 0 0 0 1px var(--st-accent); }
+.st-chats-search::placeholder { color: var(--st-text-soft); }
+.st-chats-row { display: flex; align-items: center; gap: var(--sp-2); }
+.st-chats-row .st-chats-main,
+.st-chats-rename { flex: 1; min-width: 0; }
+.st-list-row.st-chats-main { min-height: 44px; text-align: left; }
+.st-chats-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.st-chats-answer { color: var(--st-text-soft); font-size: max(13px, var(--st-min-text)); }
+.st-chats-time { flex: none; color: var(--st-text-soft); font-size: max(13px, var(--st-min-text)); }
+.st-chats-actions { flex: none; display: flex; gap: 2px; }
+.st-chats-rename {
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--st-surface);
+  box-shadow: inset 0 0 0 1px var(--st-accent);
+  color: var(--st-text);
+  font: inherit;
+  outline: none;
+}
+.st-chats-dialog-actions { display: flex; justify-content: flex-end; gap: var(--sp-2); margin-top: var(--sp-3); }

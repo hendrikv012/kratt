@@ -1,0 +1,46 @@
+/* Extension frames: a borderless, transparent iframe that sits in its slot
+   (widget card, page block, tool view) and takes the app's look from the
+   theme it's sent. The frame matches the app's color-scheme, so its
+   background stays transparent. */
+
+.st-ext-frame {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+}
+
+/* Tools fill the main area; widgets and blocks size to ui.resize. */
+.st-ext-frame[data-kind="tool"] {
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+}
+
+/* Command frames run out of sight. They stay rendered (not display: none)
+   so their scripts keep running normally. */
+.st-ext-frame[data-hidden] {
+  position: absolute;
+  width: 0;
+  height: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* "<name> stopped responding · Reload", in place of the frame. */
+.st-ext-frame-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px var(--st-line);
+  color: var(--st-text-soft);
+  font-size: max(12.5px, var(--st-min-text));
+}
+
+.st-ext-frame-error[data-kind="tool"] {
+  width: fit-content;
+  margin: var(--sp-6) auto;
+}

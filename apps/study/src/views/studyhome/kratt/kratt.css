@@ -1,0 +1,23 @@
+.st-kratt{fill:var(--st-kratt);flex:none}
+.st-kratt .k-lids{opacity:0;animation:k-blink 4.6s steps(1) infinite}
+.st-kratt .k-tl{animation:k-tuft 3.2s steps(1) infinite}
+.st-kratt .k-tr{animation:k-tuft 3.2s steps(1) .25s infinite}
+.st-kratt .k-fork{animation:k-fork 5.4s steps(1) infinite}
+.st-kratt .k-z{display:none}
+.st-kratt[data-mode="think"] .k-fork{animation:k-poke .5s steps(2) infinite}
+.st-kratt[data-mode="think"] .k-tl{animation:k-tuft-fast .5s steps(2) infinite}
+.st-kratt[data-mode="think"] .k-tr{animation:k-tuft-fast .5s steps(2) .25s infinite}
+.st-kratt[data-mode="hop"] .k-hop,.st-hopper:hover .st-kratt .k-hop{animation:k-hop .6s steps(2) infinite}
+.st-kratt[data-mode="sleep"] .k-lids{opacity:1;animation:none}
+.st-kratt[data-mode="sleep"] .k-fork,.st-kratt[data-mode="sleep"] .k-tl,.st-kratt[data-mode="sleep"] .k-tr{animation:none}
+.st-kratt[data-mode="sleep"] .k-fork{transform:translate(2px,6px)}
+.st-kratt[data-mode="sleep"] .k-z{display:inline;animation:k-z 2.4s steps(4) infinite}
+@keyframes k-blink{0%,92%{opacity:0}93%,96%{opacity:1}97%,100%{opacity:0}}
+@keyframes k-tuft{0%,72%{transform:none}76%,84%{transform:translateY(-2px)}88%,100%{transform:none}}
+@keyframes k-tuft-fast{0%{transform:none}50%{transform:translateY(-2px)}}
+@keyframes k-fork{0%,60%{transform:none}64%,74%{transform:translateY(-2px)}78%,100%{transform:none}}
+@keyframes k-poke{0%{transform:none}50%{transform:translateY(-3px)}}
+@keyframes k-hop{0%{transform:none}50%{transform:translateY(-4px)}}
+@keyframes k-z{0%{transform:none;opacity:1}100%{transform:translate(4px,-8px);opacity:0}}
+.study[data-kratt-still] .st-kratt *{animation:none!important}
+@media (prefers-reduced-motion:reduce){.st-kratt *{animation:none!important}}

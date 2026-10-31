@@ -1,0 +1,35 @@
+{
+  "identifier": "default",
+  "description": "Permissions for the main application functionality",
+  "windows": ["*"],
+  "permissions": [
+    "core:path:allow-resolve-directory",
+    "core:path:allow-join",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "core:event:allow-emit",
+    "global-shortcut:allow-register",
+    "global-shortcut:allow-unregister-all",
+    "dialog:allow-save",
+    "dialog:allow-open",
+    "dialog:allow-confirm",
+    "dialog:allow-message",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        { "path": "$DOCUMENT/**" },
+        { "path": "$APP/**" }
+      ]
+    },
+    "fs:allow-read-file",
+    "fs:allow-write-file",
+    "fs:allow-write-text-file",
+    "fs:allow-read-dir",
+    "fs:allow-create",
+    "fs:allow-remove",
+    "fs:allow-rename",
+    "fs:allow-exists",
+    "fs:allow-appdata-write",
+    "fs:allow-appdata-write-recursive"
+  ]
+}

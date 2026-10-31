@@ -1,0 +1,34 @@
+/* The box /Kratt opens under the cursor in a note. */
+.st-ask {
+  position: fixed;
+  z-index: 40;
+  width: min(420px, calc(100vw - 32px));
+  padding: 8px;
+  border-radius: var(--st-radius, 8px);
+  background: var(--st-surface);
+  color: var(--st-text);
+  box-shadow: 0 0 0 1px var(--st-line), 0 12px 32px rgb(0 0 0 / 0.35);
+  font-family: var(--st-sans);
+}
+.st-ask:not([style]) { top: 30%; left: 50%; transform: translateX(-50%); }
+
+.st-ask-row { display: flex; align-items: center; gap: 8px; }
+.st-ask-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--st-line);
+  border-radius: calc(var(--st-radius, 8px) - 2px);
+  background: var(--st-bg);
+  color: var(--st-text);
+  font: inherit;
+  outline: none;
+}
+.st-ask-input:focus { border-color: var(--st-accent); }
+.st-ask-input::placeholder { color: var(--st-text-faint); }
+.st-ask-note { flex: 1; color: var(--st-text-soft); }
+
+.st-ask-status { margin: 6px 0 0 28px; color: var(--st-text-soft); font-size: max(13px, var(--st-min-text)); }
+.st-ask-error { color: #e5675f; }
+
+.st-ask-actions { display: flex; justify-content: flex-end; gap: 4px; margin-top: 6px; }

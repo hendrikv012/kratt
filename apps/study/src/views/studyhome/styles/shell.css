@@ -1,0 +1,207 @@
+/* ---------- Sidebar ---------- */
+
+.st-sidebar {
+  width: 248px;
+  flex: none;
+  background: var(--st-sidebar);
+  display: flex;
+  flex-direction: column;
+  padding: 8px 6px 10px;
+  overflow-y: auto;
+}
+
+.st-sidebar[data-floating] {
+  position: absolute;
+  z-index: 20;
+  top: 8px;
+  bottom: 8px;
+  left: 0;
+  border-radius: 0 10px 10px 0;
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.55), 0 0 0 1px var(--st-line);
+}
+
+.st-sidebar[data-floating][data-side="right"] {
+  left: auto;
+  right: 0;
+  border-radius: 10px 0 0 10px;
+}
+
+.st-edge {
+  position: absolute;
+  z-index: 19;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+}
+
+.st-edge[data-side="right"] { left: auto; right: 0; }
+
+/* A pinned sidebar on the right sits after the content and the AI panel. */
+.study[data-side="right"] > .st-sidebar:not([data-floating]) { order: 1; }
+
+.st-side-head { cursor: grab; }
+.st-side-head button { cursor: pointer; }
+
+.st-side-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 2px 10px 8px;
+}
+
+.st-workspace {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.st-side-section {
+  margin: 16px 0 4px;
+  padding: 0 10px;
+  font-size: max(12px, var(--st-min-text));
+  font-weight: 500;
+  color: var(--st-text-faint);
+}
+
+.st-side-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
+  color: var(--st-text-soft);
+}
+
+.st-side-row:hover { background: var(--st-hover); color: var(--st-text); }
+
+.st-side-row[aria-current="page"] {
+  background: var(--st-hover);
+  color: var(--st-text);
+  font-weight: 500;
+}
+
+.st-side-chevron {
+  width: 14px;
+  display: inline-flex;
+  justify-content: center;
+  color: var(--st-text-faint);
+  flex: none;
+}
+
+/* ---------- Main ---------- */
+
+.st-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.st-crumbs {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.st-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* ---------- Kratt Chat (chats/ChatPanel.jsx) ---------- */
+
+.st-ai {
+  position: relative;
+  flex: none;
+  overflow: hidden;
+  background: var(--st-sidebar);
+  border-left: 1px solid transparent;
+  transition: width 380ms var(--st-spring);
+}
+
+.st-ai[data-open] { border-left-color: var(--st-line); }
+.st-ai[data-resizing] { transition: none; user-select: none; }
+
+.st-ai-inner {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Drag handle along the panel's left edge. */
+.st-ai-resize {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  z-index: 1;
+  cursor: col-resize;
+}
+
+.st-ai-resize:hover,
+.st-ai[data-resizing] .st-ai-resize { background: color-mix(in srgb, var(--st-accent) 45%, transparent); }
+
+.st-ai-head {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  padding: 0 6px 0 16px;
+  border-bottom: 1px solid var(--st-line);
+}
+
+@media (max-width: 760px) {
+  .study > .st-sidebar:not([data-floating]) { display: none; }
+}
+
+.st-crumb { display: inline-flex; align-items: center; gap: 8px; }
+.st-crumb button { border-radius: 4px; padding: 0 3px; }
+.st-crumb button:hover { background: var(--st-hover); color: var(--st-text); }
+
+/* ---------- Fluid motion ---------- */
+
+@keyframes st-slide-in-left { from { transform: translateX(-16px); opacity: 0; } }
+@keyframes st-slide-in-right { from { transform: translateX(16px); opacity: 0; } }
+
+/* The sidebar springs in when it appears, pinned or peeking. */
+.study > .st-sidebar { animation: st-slide-in-left 320ms var(--st-spring) both; }
+.study[data-intro] > .st-sidebar { animation-name: st-intro-from-left; }
+.study > .st-sidebar[data-side="right"] { animation-name: st-slide-in-right; }
+.study[data-intro] > .st-sidebar[data-side="right"] { animation-name: st-intro-from-right; }
+
+/* The tab bar in "Show near the edge" mode slides in over the content. It
+   stays reachable by keyboard while away, and focus brings it back. The
+   Reduce motion setting turns the transition off with every other one. */
+.st-tabbar[data-auto] { transition: transform 150ms ease-out, opacity 150ms ease-out; }
+.st-tabbar[data-auto][data-shown="false"] { opacity: 0; pointer-events: none; transform: translateY(-100%); }
+.st-tabbar[data-auto][data-at="bottom"][data-shown="false"] { transform: translateY(100%); }
+/* "Hide while working" folds a fixed bar away so the page gets its room. */
+.st-tabbar:not([data-auto]) { transition: height 150ms ease-out, opacity 150ms ease-out; }
+.st-tabbar[data-tucked] { height: 0; opacity: 0; overflow: hidden; pointer-events: none; border-width: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .st-tabbar[data-auto], .st-tabbar:not([data-auto]) { transition: none; }
+}
+.study[data-reduce-motion] .st-tabbar { transition: none; }
+
+.st-main { transition: padding 300ms var(--st-spring); }
+/* Room for an auto tab bar held out while the layout is edited (h-11). */
+.st-main[data-bar-room="top"] { padding-top: 2.75rem; }
+.st-main[data-bar-room="bottom"] { padding-bottom: 2.75rem; }
+
+.st-topbar-clock {
+  font-family: var(--st-mono);
+  font-size: max(12px, var(--st-min-text));
+  letter-spacing: 0.02em;
+  color: var(--st-text-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Path above a page or folder title. */
+.st-crumbs-page { margin-bottom: 12px; font-size: max(12.5px, var(--st-min-text)); color: var(--st-text-soft); }

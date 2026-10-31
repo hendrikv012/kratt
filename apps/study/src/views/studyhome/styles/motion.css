@@ -1,0 +1,102 @@
+/* Motion: entrance animations and hover nudges, plus the label type rules.
+   Reduce motion switches every animation and transition off, both from
+   the OS setting and from Settings (base.css, data-reduce-motion). */
+
+/* ---------- Motion on every card ---------- */
+
+@keyframes st-fx-card-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+}
+
+@keyframes st-fx-row-in {
+  from { opacity: 0; transform: translateX(-6px); }
+}
+
+@keyframes st-fx-pop {
+  from { opacity: 0; transform: scale(0.96); }
+}
+
+@keyframes st-fx-page-in {
+  from { opacity: 0; transform: translateY(8px); }
+}
+
+/* Widgets come in when a screen opens (EdgesLayout drops data-settled on
+   .st-edges after the first change, so a moved card doesn't replay it).
+   --i is the card's place in its lane. */
+.study .st-edges:not([data-settled]) .st-slot {
+  animation: st-fx-card-in 520ms var(--st-spring) both;
+  animation-delay: calc(80ms + var(--i, 0) * 70ms);
+}
+
+/* During the opening, cards wait for their lane to glide in. */
+.study[data-intro] .st-edges:not([data-settled]) .st-slot { animation-delay: calc(1450ms + var(--i, 0) * 70ms); }
+
+.study .st-widget {
+  transition: transform 260ms var(--st-spring), box-shadow 260ms ease;
+}
+
+/* Pointing at a card lifts it and brightens its hairline . */
+.study .st-widget:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 0 0 1px var(--st-widget-line-hover, var(--st-line));
+}
+
+.study .st-fx-row {
+  animation: st-fx-row-in 360ms ease-out both;
+  animation-delay: calc(var(--i, 0) * 35ms);
+}
+
+.study .st-item-row,
+.study .st-list-row,
+.study .st-tree-row,
+.study .st-side-row,
+.study .st-chip {
+  transition: background 160ms ease, transform 180ms ease, box-shadow 180ms ease;
+}
+
+.study .st-item-row:hover,
+.study .st-list-row:hover { transform: translateX(3px); }
+
+.study .st-page { animation: st-fx-page-in 380ms var(--st-spring) both; }
+.study .st-dialog { animation: st-fx-pop 220ms var(--st-spring) both; }
+.study .st-menu { animation: st-fx-pop 140ms ease-out both; transform-origin: top right; }
+
+/* ---------- Labels ----------
+   Headers are quiet sentence case in Archivo. Monospace is kept for
+   numbers and codes (times, counts, dates, shortcuts, paths), where its
+   even widths help. */
+
+.study .st-widget-title,
+.study .st-side-section,
+.study .st-set-group-title {
+  font-family: var(--st-sans);
+  font-size: max(12px, var(--st-min-text));
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  text-transform: none;
+}
+
+.study .st-item-note,
+.study .st-list-row .st-small,
+.study .st-kbd,
+.study .st-path,
+.study .st-graph-count {
+  font-family: var(--st-mono);
+  font-size: max(11.5px, var(--st-min-text));
+  letter-spacing: 0.01em;
+}
+
+.study .st-clock-time,
+.study .st-date strong {
+  font-family: var(--st-mono);
+  letter-spacing: -0.01em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .study *,
+  .study *::before {
+    transition: none !important;
+    animation: none !important;
+  }
+}

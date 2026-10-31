@@ -1,0 +1,305 @@
+/* Widget frame: flat at rest. Shadows belong to lifted or dragged items only. */
+
+.study .st-wf { position: relative; }
+
+.study .st-wf-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: grab;
+  border-radius: var(--st-radius, 3px);
+}
+.study .st-wf-head .st-widget-title { margin-bottom: var(--sp-3); }
+.study .st-wf-head:focus-visible,
+.study .st-wf[data-bare]:focus-visible { outline: 2px solid var(--st-accent); outline-offset: 2px; }
+
+.study .st-wf-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin: 0 0 var(--sp-3);
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--st-text-faint);
+  cursor: pointer;
+}
+/* On a framed card the chevron shows on hover, on focus, or while its menu is open.
+   Opacity (not display) keeps it in the Tab order. */
+.study .st-wf:not([data-bare]) .st-wf-chevron { opacity: 0; }
+.study .st-wf:not([data-bare]):hover .st-wf-chevron,
+.study .st-wf:not([data-bare]):focus-within .st-wf-chevron,
+.study .st-wf:not([data-bare]) .st-wf-chevron[data-state="open"] { opacity: 1; }
+.study .st-wf-chevron:hover { color: var(--st-text); background: color-mix(in srgb, var(--st-text) 8%, transparent); }
+
+/* A bare widget has no header, so its chevron sits in the corner and shows on hover or focus. */
+.study .st-wf[data-bare] { cursor: grab; }
+.study .st-wf[data-bare] .st-wf-chevron {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  margin: 0;
+  opacity: 0;
+}
+.study .st-wf[data-bare]:hover .st-wf-chevron,
+.study .st-wf[data-bare]:focus-within .st-wf-chevron { opacity: 1; }
+
+.study .st-wf-head .st-widget-title { flex: 1; min-width: 0; }
+
+.study .st-legend { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4); font-size: max(12.5px, var(--st-min-text)); color: var(--st-text-soft); }
+.study .st-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+
+.study .st-outline li { padding: 4px 0; font-size: max(13px, var(--st-min-text)); }
+
+/* The widget cards no longer lift on hover while framed. */
+.study .st-wf.st-widget:hover { transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .study .st-wf, .study .st-wf * { transition: none !important; animation: none !important; }
+}
+.study[data-reduce-motion] .st-wf, .study[data-reduce-motion] .st-wf * { transition: none !important; animation: none !important; }
+
+.study .st-local-graph-head[data-end] { justify-content: flex-end; }
+
+/* ---------- Widget cards and contents (from the old Home screen) ---------- */
+
+/* One hairline for every card, a step brighter when pointed at. */
+.study {
+  --st-widget-line: var(--st-line);
+  --st-widget-line-hover: color-mix(in srgb, var(--st-text-faint) 45%, var(--st-line));
+}
+
+/* A widget is one quiet card: a hairline, a small title, its contents. */
+.st-widget {
+  background: var(--st-surface);
+  border-radius: var(--st-radius, 3px);
+  padding: var(--sp-3) var(--sp-4) var(--sp-4);
+  box-shadow: inset 0 0 0 1px var(--st-widget-line);
+}
+
+.st-widget-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 20px;
+  margin: 0 0 var(--sp-3);
+  font-size: max(12px, var(--st-min-text));
+  font-weight: 600;
+  color: var(--st-text-soft);
+}
+
+.st-widget-title svg { color: var(--st-text-faint); flex: none; }
+
+.st-link-title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.st-link-title:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.st-steps {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.st-steps li {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--st-line);
+}
+
+.st-steps li[data-done="true"] { background: var(--st-accent); }
+.st-steps li[data-current="true"] { background: color-mix(in srgb, var(--st-accent) 45%, var(--st-line)); }
+
+/* Rows reach the card's padding on hover, so their text lines up with the
+   title above. */
+.st-list {
+  list-style: none;
+  margin: 0 -8px;
+  padding: 0;
+}
+
+.st-list-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 30px;
+  padding: 0 8px;
+  border-radius: 4px;
+  font-size: max(13.5px, var(--st-min-text));
+}
+
+.st-list-row:hover { background: var(--st-hover); }
+
+.st-list-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.st-list-icon { flex: none; opacity: 0.85; }
+
+.st-widget-foot { margin: var(--sp-2) -8px -4px; }
+
+.st-deadline { align-items: flex-start; }
+
+.st-date {
+  width: 36px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: max(11.5px, var(--st-min-text));
+  color: var(--st-text-faint);
+  line-height: 1.2;
+}
+
+.st-date strong {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--st-text);
+}
+
+.st-ready {
+  display: block;
+  height: 3px;
+  margin-top: 7px;
+  background: var(--st-line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.st-ready > span {
+  display: block;
+  height: 100%;
+}
+
+/* ---------- Widget contents ---------- */
+
+.st-quick-note {
+  width: 100%;
+  resize: vertical;
+  background: transparent;
+  border: 0;
+  color: var(--st-text);
+  font: inherit;
+  padding: 0;
+}
+
+.st-quick-note:focus-visible { outline: none; }
+.st-quick-note::placeholder { color: var(--st-text-faint); }
+
+/* The note field inside a widget: a soft well instead of a second box
+   drawn inside the card. */
+.st-widget .st-quick-input textarea {
+  display: block;
+  min-height: 60px;
+  margin: 0 0 var(--sp-2);
+  padding: 8px 10px;
+  border: 0;
+  background: color-mix(in srgb, var(--st-text) 4%, transparent);
+  font-size: max(13.5px, var(--st-min-text));
+  line-height: 1.45;
+  transition: background 160ms ease;
+}
+
+.st-widget .st-quick-input textarea:hover { background: color-mix(in srgb, var(--st-text) 6%, transparent); }
+.st-widget .st-quick-input textarea::placeholder { color: var(--st-text-faint); }
+
+.study .st-widget .st-quick-input textarea:focus-visible {
+  outline: 1px solid color-mix(in srgb, var(--st-accent) 70%, transparent);
+  outline-offset: 0;
+  box-shadow: none;
+}
+
+.st-widget .st-quick-input .st-small { font-size: max(12px, var(--st-min-text)); }
+
+/* Nothing to save yet: a quiet grey button, not a faded blue one. */
+.study .st-widget .st-button:disabled {
+  opacity: 1;
+  background: color-mix(in srgb, var(--st-text) 6%, transparent);
+  color: var(--st-text-faint);
+  box-shadow: none;
+}
+
+.st-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  height: 64px;
+}
+
+.st-week-day {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+}
+
+.st-week-day span {
+  width: 100%;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--st-accent) 45%, var(--st-line));
+}
+
+.st-week-day[data-today] span { background: var(--st-accent); }
+
+.st-week-day small {
+  font-size: max(11px, var(--st-min-text));
+  color: var(--st-text-faint);
+}
+
+
+.st-widget-empty {
+  margin: 0;
+  font-size: max(13.5px, var(--st-min-text));
+  color: var(--st-text-faint);
+}
+
+.st-list.st-quick-preview { margin: var(--sp-3) 0 0; }
+
+.st-quick-preview li {
+  padding: 7px 0;
+  border-top: 1px solid var(--st-line);
+  font-size: max(13px, var(--st-min-text));
+  color: var(--st-text-soft);
+}
+
+.st-button-small { padding: 4px 10px; font-size: max(12.5px, var(--st-min-text)); }
+.st-button:disabled { opacity: 0.45; cursor: default; filter: none; }
+
+/* Clock widget. The time speaks for itself, so it has no title. */
+
+.st-clock { padding-top: var(--sp-4); }
+
+.study .st-widget .st-clock-time {
+  margin: 0;
+  font-family: var(--st-font-numeric, var(--st-sans));
+  font-size: 40px;
+  font-weight: 300;
+  font-stretch: 90%;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--st-text);
+}
+
+.st-clock-date { margin: var(--sp-2) 0 0; font-size: max(13px, var(--st-min-text)); color: var(--st-text-soft); }
+.st-clock-face { display: block; width: 104px; height: 104px; margin: 0 auto; }
+.st-clock-rim { fill: none; stroke: var(--st-line); stroke-width: 1.5; }
+.st-clock-tick { stroke: var(--st-text-faint); stroke-width: 1.4; stroke-linecap: round; }
+.st-clock-hand { stroke: var(--st-text); }
+.st-clock-second { stroke: var(--st-accent); }
+.st-clock-pin { fill: var(--st-accent); }
+.st-clock[data-style="analog"] .st-clock-date { text-align: center; margin-top: var(--sp-3); }
+
+/* Kratt beside an empty tile's words (Home's empty states). */
+.study .st-kratt-empty { display: flex; align-items: center; gap: 14px; margin: auto 0; color: var(--st-text-soft); }

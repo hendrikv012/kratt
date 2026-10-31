@@ -1,0 +1,20 @@
+#!/usr/bin/env fish
+
+set BASEN_ROOT (dirname (status --current-filename))
+
+echo "Starting Open Notebook..."
+cd $BASEN_ROOT/open-notebook
+make start-all > /tmp/basen-opennotebook.log 2>&1 &
+set ON_PID $last_pid
+
+echo "Waiting for Open Notebook to come up..."
+sleep 8
+
+echo "Starting Lokus..."
+cd $BASEN_ROOT/lokus
+npm run tauri dev
+
+# When Lokus window is closed, kill Open Notebook too
+kill $ON_PID 2>/dev/null
+
+

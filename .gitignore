@@ -49,3 +49,6 @@ __pycache__/
 
 # Claude Code worktrees (each is its own git repo)
 .claude/worktrees/
+
+# Claude Code worktrees (each is its own git repo)
+.claude/worktrees/

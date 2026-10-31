@@ -4,9 +4,10 @@ Status values: `todo` · `doing` · `done` · `blocked`. Pull the top `todo` in 
 
 ## Restructure (added 2026-10-31)
 
-### T-01 · Architect · doing
+### T-01 · Architect · done
 **Land the real workspace in this repo.** Copy `apps/study/`, `engine/`, `scripts/` and any still-useful docs from the local workspace into this repo, commit, push.
 - Done when: the real code is in this repo and the app runs from the repo.
+- **Landed 2026-10-31.** Pitfalls fixed on the way: five nested repos committed as pointers (de-submoduled), 11 Claude Code worktree pointers unstaged, node_modules pointer removed, `.gitignore` extended (worktrees, Python junk). Cost: the five folders' pre-monorepo git histories are gone (backup failed); worktree checkouts deleted from disk. See `logs/2026-10-31.md`.
 
 ### T-02 · Architect · todo
 **Reconcile docs with the real code.** Walk `apps/study/` and `engine/`, remove every *(unverified)* marker in `02_Architecture.md`, and rewrite the M1 tickets below so they match reality (some may already be done — mark them so).
@@ -17,7 +18,7 @@ Status values: `todo` · `doing` · `done` · `blocked`. Pull the top `todo` in 
 - Done when: decision recorded in `04_Decisions.md` and executed or ticketed.
 
 ## Milestone 1 — Core loop
-Note → AI review → score update, visible in a simple mastery view. Validate these tickets against reality in T-02 first.
+Note: ticket statuses below predate the landing of the real code. Re-validate in T-02 before working them.
 
 ### A-01 · Architect · todo
 **Confirm base and frontend.** Confirm the Lokus/OpenNB fork base and whether the UI is the fork's or Lovable-generated. Write the decision in `02_Architecture.md` and the log.

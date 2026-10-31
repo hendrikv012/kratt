@@ -1,20 +1,31 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Kratt (formerly BaseN) — a study app that helps students genuinely learn instead of letting AI do the work for them. This repository is the monorepo root: planning docs, design assets, and (once ticket T-01 lands) the real code.
 
-## What this folder is (read first)
+## Read first
 
-`~/Kratt` (this folder) is **not** the live Kratt codebase. Don't confuse it with `~/Downloads/KRATT`. The project was renamed BaseN → KRATT and restructured on 2026-10-19. The real workspace is `~/Downloads/KRATT` (`apps/study`, `engine/`, `docs/`, `scripts/`), which has its own CLAUDE.md. Do study app work there.
+1. `docs/00_README.md` — agent rules. Every agent session starts there.
+2. `docs/04_Decisions.md` — why things are the way they are.
+3. Current status: newest file in `docs/logs/`.
 
-This folder holds:
-- `kratt/`: a stock shadcn/ui Next.js template (its own git repo, one commit, no remote). It contains no product code yet.
-- `claude/`: the original planning set (agent rules, roadmap M1–M5, architecture, backlog). It predates the Lokus/Open Notebook/`apps/study` work. Every backlog ticket is still `todo`, and the `logs/` folder that `00_README.md` requires does not exist. Use it for product intent (mastery map, append-only `score_events`, time-decayed mastery, local-first via Ollama). Do not use it for current status.
-- `kratt_four_colors_dark_and_light.svg`, `kratt_animated.svg`: source art for the Kratt mascot (pixel sprite; animation states are idle blink, thinking, hop and asleep). `apps/study` uses them.
-- `.ember-preview/project/`: the Ember redesign design boards (`*.dc.html`, versions v1–v5, laid out by `canvas.json`). They are reference only.
+## Layout
 
-Current status lives in the Obsidian note `~/Documents/Dev/Kratt/Kratt.md` under "Now".
+- `apps/study/` — the study app, web + Tauri desktop *(lands via ticket T-01)*
+- `engine/` — memory-engine and kratt-service *(lands via ticket T-01)*
+- `scripts/` *(lands via ticket T-01)*
+- `docs/` — agent rules, roadmap, architecture, backlog, decisions, daily logs
+- `design/` — Kratt mascot art (pixel sprite; animation states: idle blink, thinking, hop, asleep)
+- `.ember-preview/` — Ember redesign boards (`*.dc.html`, v1–v5, laid out by `canvas.json`). Reference only.
+- `kratt/` — stock shadcn/ui Next.js template with no product code. Fate undecided: ticket T-03.
+- `kratt-study`, `kratt-engine` (separate GitHub repos) — empty, abandoned in favour of the monorepo (decision 2026-10-31). Safe to archive or delete.
 
-## kratt template
+## Repo conventions
+
+- Docs are the source of truth; code follows them, and they are updated when reality changes.
+- One ticket at a time from `docs/03_Backlog.md`; update its status there.
+- Architecture changes need a reason in `docs/04_Decisions.md` plus an entry in `docs/logs/YYYY-MM-DD.md`.
+
+## kratt/ template notes (unchanged by the 2026-10-31 restructure)
 
 Run all commands from `kratt/`:
 

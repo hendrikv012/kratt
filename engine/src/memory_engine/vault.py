@@ -5,12 +5,16 @@ folders. Writes are atomic. A write based on an old version keeps both texts. De
 moves into .study/trash/, and .study/layout.json holds what files can't (order, colors).
 """
 
+import errno
 import hashlib
 import json
 import os
 import re
+import secrets
+import shutil
+import threading
 import uuid
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from datetime import date, datetime
 from pathlib import Path, PurePosixPath
 
@@ -22,11 +26,22 @@ STUDY_DIR = ".study"
 LAYOUT = f"{STUDY_DIR}/layout.json"
 TRASH = f"{STUDY_DIR}/trash"
 UPLOADS = ("Sources", "files")
+MAX_UPLOAD = 50 * 1000**3  # 50 GB, matching upload panel and disk-space messages
+_ACTIVE_UPLOADS: set[Path] = set()
+_NAMING = threading.Lock()  # two uploads finishing at once mustn't pick the same free name
 _BAD_NAME = re.compile(r'[/\\:*?"<>|\x00-\x1f\x7f]')
 MAX_NAME_BYTES = 200  # file systems allow 255; this leaves room for " (2)", " (from disk …)" and ".md"
 
 
 class VaultError(ValueError):
+    pass
+
+
+class UploadTooLarge(VaultError):
+    pass
+
+
+class NotEnoughSpace(VaultError):
     pass
 
 
@@ -54,6 +69,17 @@ def _jsonable(value):
 class Vault:
     def __init__(self, root: Path):
         self.root = Path(root)
+        # Only our recognizable temporary uploads; completed originals are never swept.
+        uploads = self.root / "Sources" / "files"
+        if uploads.exists() and not uploads.is_symlink():
+            for folder, dirs, files in os.walk(uploads):
+                dirs[:] = [d for d in dirs if not (Path(folder) / d).is_symlink()]
+                for name in files:
+                    if re.fullmatch(r"\.kratt-upload-[0-9a-f]{24}\.part", name):
+                        path = Path(folder) / name
+                        with _NAMING:
+                            if path not in _ACTIVE_UPLOADS:
+                                path.unlink(missing_ok=True)
 
     # ---------- paths
 
@@ -91,7 +117,10 @@ class Vault:
     def walk(self) -> Iterator[tuple[Path, list[str], list[str]]]:
         """os.walk over the folder without hidden folders and files (.study, temp files of writes)."""
         for folder, dirnames, filenames in os.walk(self.root):
-            dirnames[:] = sorted(d for d in dirnames if not d.startswith("."))
+            # Originals are opaque attachments, even .md/.txt. Never rewrite their
+            # headers, load huge text originals, index them or treat folders as subjects.
+            dirnames[:] = sorted(d for d in dirnames if not d.startswith(".") and not (Path(folder) / d).is_symlink()
+                                and (Path(folder) / d).relative_to(self.root).parts[:2] != UPLOADS)
             yield Path(folder), dirnames, sorted(f for f in filenames if not f.startswith("."))
 
     def snapshot(self) -> dict:
@@ -186,13 +215,68 @@ class Vault:
         os.rename(source, target)
         return self._rel(target)
 
-    def upload(self, rel: str, data: bytes) -> str:
+    def check_upload(self, rel: str, size: int) -> Path:
+        """Where an upload of `size` bytes to `rel` would go; raises if it can't be taken."""
         relative = PurePosixPath(rel)
         if relative.parts[:2] != UPLOADS or len(relative.parts) < 3:
             raise VaultError("uploads only go into Sources/files/")
-        path = self._free(self.resolve(rel))
-        path.parent.mkdir(parents=True, exist_ok=True)
-        atomic_write_bytes(path, data)
+        target = self.resolve(rel)
+        if any(p.is_symlink() for p in [target, *target.parents] if p.is_relative_to(self.root)):
+            raise VaultError("uploads cannot follow symbolic links")
+        if not isinstance(size, int) or isinstance(size, bool) or size < 0:
+            raise VaultError("size must be a non-negative number of bytes")
+        if size > MAX_UPLOAD:
+            raise UploadTooLarge("files can be at most 50 GB")
+        if shutil.disk_usage(self.root).free < size:
+            raise self._no_space(size)
+        return target
+
+    def _no_space(self, size: int) -> NotEnoughSpace:
+        free = shutil.disk_usage(self.root).free
+        return NotEnoughSpace(f"Not enough space on disk (needs {size / 1e9:.1f} GB, {free / 1e9:.1f} GB free)")
+
+    def upload(self, rel: str, chunks: Iterable[bytes], size: int) -> str:
+        """Write `size` bytes from `chunks` into Sources/files/. They go to a hidden .part file
+        first and only take the real name once all of them are on disk, so a stopped upload
+        leaves nothing behind."""
+        target = self.check_upload(rel, size)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        # Its own .part per upload, so two uploads of one name never write into the same file.
+        part = target.parent / f".kratt-upload-{secrets.token_hex(12)}.part"
+        with _NAMING:
+            _ACTIVE_UPLOADS.add(part)
+        try:
+            with open(part, "wb") as handle:
+                total = 0
+                for chunk in chunks:
+                    total += len(chunk)
+                    if total > size:
+                        raise VaultError("the upload is longer than its size")
+                    handle.write(chunk)
+                if total != size:
+                    raise VaultError("upload ended early")
+                handle.flush()
+                os.fsync(handle.fileno())
+            with _NAMING:
+                while True:
+                    path = self._free(target)
+                    try:
+                        os.link(part, path)  # atomic publication, without replacing an external file
+                        part.unlink()
+                        break
+                    except FileExistsError:
+                        continue
+        except OSError as err:
+            part.unlink(missing_ok=True)
+            if err.errno == errno.ENOSPC:  # the disk filled up while writing (other programs write too)
+                raise self._no_space(size) from err
+            raise
+        except BaseException:
+            part.unlink(missing_ok=True)
+            raise
+        finally:
+            with _NAMING:
+                _ACTIVE_UPLOADS.discard(part)
         return self._rel(path)
 
     # ---------- layout

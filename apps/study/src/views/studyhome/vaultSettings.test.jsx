@@ -34,7 +34,7 @@ async function renderAddSourceWithProvider(client) {
   render(<StudyPreview client={client} />);
   const sidebar = await screen.findByRole("navigation", { name: "Sidebar" });
   fireEvent.click(within(sidebar).getByText("Sources"));
-  fireEvent.click(screen.getByRole("button", { name: /New source/ }));
+  fireEvent.click(screen.getByRole("button", { name: "Upload files" }));
   const dialog = screen.getByRole("dialog", { name: "Add source" });
   fireEvent.click(within(dialog).getByRole("tab", { name: /Upload file/ }));
 }

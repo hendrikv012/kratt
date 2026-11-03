@@ -340,6 +340,39 @@ describe("a source's subjects", () => {
     expect(state.sources[0].subjects).toEqual(["Biology"]);
   });
 
+  describe("upload status", () => {
+    const withUpload = (upload) => ({
+      ...snapshot,
+      files: snapshot.files.map((f) => (f.id === "s1" ? { ...f, meta: { ...f.meta, upload } } : f)),
+    });
+    const textOf = (state, paths) => sourceWrites(planSync(state, mutations.updateSource(state, "s1", { title: "T" }), paths).ops)[0].text;
+
+    it("round-trips and is absent when undefined", () => {
+      const { state, paths } = stateFromSnapshot(snapshot);
+      expect(textOf(state, paths)).not.toMatch(/upload:/);
+      const set = mutations.updateSource(state, "s1", { upload: "not-saved" });
+      const [write] = sourceWrites(planSync(state, set, paths).ops);
+      expect(write.text).toContain("\nupload: not-saved\n");
+      expect(stateFromSnapshot(withUpload("not-saved")).state.sources[0].upload).toBe("not-saved");
+    });
+
+    it("a stale uploading source loads as not-saved", () => {
+      expect(stateFromSnapshot(withUpload("uploading")).state.sources[0].upload).toBe("not-saved");
+    });
+
+    it("is not copied into extra keys", () => {
+      const { state, paths } = stateFromSnapshot(withUpload("not-saved"));
+      expect(state.sources[0].extraMeta).toBeUndefined();
+      expect(textOf(state, paths).match(/\nupload:/g)).toHaveLength(1);
+    });
+
+    it("a not-saved source isn't rewritten when a page is edited", () => {
+      const { state, paths } = stateFromSnapshot(withUpload("not-saved"));
+      const { ops } = planSync(state, mutations.setContent(state, "p1", "<p>x</p>"), paths);
+      expect(ops.filter((o) => o.id === "s1")).toEqual([]);
+    });
+  });
+
   describe("other header keys", () => {
     const withExtra = (meta) => ({
       ...snapshot,
@@ -452,4 +485,15 @@ describe("artifacts", () => {
     expect(state.artifacts).toEqual([]);
     expect(state.nodes.a3).toBeUndefined();
   });
+});
+
+it("persists original filename and size for duplicate detection after restart", () => {
+  const initial = stateFromSnapshot({ folders: ["Sources"], files: [], layout: {} });
+  const state = mutations.addSources(initial.state, [{ id: "file", title: "Photo", type: "file", fileName: "photo.png", fileSize: 1234, upload: "uploading" }]);
+  const write = planSync(initial.state, state, initial.paths).ops.find((op) => op.id === "file");
+  expect(write.text).toContain("file_name: photo.png"); expect(write.text).toContain("file_size: 1234");
+  const snapshot = { folders: ["Sources"], files: [{ id: "file", path: write.path, body: "", meta: { id: "file", title: "Photo", type: "file", file_name: "photo.png", file_size: 1234, upload: "uploading" } }], layout: {} };
+  const loaded = stateFromSnapshot(snapshot);
+  expect(loaded.state.sources[0]).toMatchObject({ fileName: "photo.png", fileSize: 1234, upload: "not-saved" });
+  expect(planSync(loaded.state, { ...loaded.state }, loaded.paths).ops).toEqual([]);
 });

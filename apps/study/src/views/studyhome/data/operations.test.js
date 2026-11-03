@@ -197,6 +197,12 @@ describe("unsorted", () => {
 });
 
 describe("sources", () => {
+  it("adds a source to existing subjects only, without duplicates", () => {
+    const { s, bio, cells } = sample();
+    const next = op.addSources(s, [{ title: "Lecture", type: "text", subjects: [bio, bio, cells, "deleted"] }]);
+    expect(next.sources[0].subjects).toEqual([bio]);
+    expect(op.addSources(op.EMPTY_STATE, [{ title: "Loose", subjects: [bio] }]).sources[0].subjects).toEqual([]);
+  });
   it("adds several at once, newest first, all ticked; untick, edit and delete", () => {
     let s = op.addSources(op.EMPTY_STATE, [{ type: "link", url: "https://a.org", title: "a.org" }]);
     s = op.addSources(s, [
@@ -404,6 +410,20 @@ describe("source subjects", () => {
     const s = op.addSources(base.s, [{ type: "link", title: "L" }]);
     return { ...base, s, id: s.sources[0].id };
   }
+
+  it("addSources keeps given ids, subjects and upload", () => {
+    const { s, bio } = withSource();
+    const next = op.addSources(s, [
+      { type: "file", title: "a", id: "keep-1", subjects: [bio, "nope"], upload: "uploading" },
+      { type: "file", title: "b" },
+    ]);
+    const [a, b] = next.sources;
+    expect(a).toMatchObject({ id: "keep-1", subjects: [bio], upload: "uploading", use: true });
+    expect(b.id).toBeTruthy();
+    expect(b.id).not.toBe("keep-1");
+    expect(b.subjects).toEqual([]);
+    expect(b.upload).toBeUndefined();
+  });
 
   it("new sources start with no subjects", () => {
     const { s } = withSource();

@@ -72,7 +72,7 @@ function clean(object) {
 }
 
 // Header keys a source's fields are read from; any others are kept as `extraMeta`.
-const SOURCE_KEYS = ["id", "title", "type", "url", "file", "use", "created", "updated", "pages", "read_pages", "truncated", "subjects"];
+const SOURCE_KEYS = ["id", "title", "type", "url", "file", "use", "created", "updated", "pages", "read_pages", "truncated", "subjects", "upload", "file_name", "file_size"];
 
 // `isSubject` says whether a name in the header is a subject folder; others are dropped.
 // A single hand-written `subjects: Biology` counts as a list of one.
@@ -87,7 +87,8 @@ function sourceFrom(file, isSubject) {
     title: String(meta.title ?? stem(file.path)),
     url: meta.url,
     file: meta.file,
-    fileName: meta.file ? basename(String(meta.file)) : undefined,
+    fileName: meta.file_name ?? (meta.file ? basename(String(meta.file)) : undefined),
+    fileSize: Number.isSafeInteger(meta.file_size) && meta.file_size >= 0 ? meta.file_size : undefined,
     subjects: [...new Set(subjects)],
     content: (file.body ?? "").replace(/\n$/, ""),
     use: meta.use !== false,
@@ -96,6 +97,8 @@ function sourceFrom(file, isSubject) {
     pageCount: meta.pages,
     readPages: meta.read_pages,
     truncated: meta.truncated,
+    // A source still "uploading" at load lost its upload with the app: its original isn't saved.
+    upload: meta.upload === "uploading" || meta.upload === "not-saved" ? "not-saved" : undefined,
     extraMeta: extra.length ? Object.fromEntries(extra) : undefined,
   });
 }
@@ -339,7 +342,10 @@ export function fileText(state, id, now = Date.now(), pathOf = (x) => x, parents
       type: source.type,
       url: source.url,
       file: source.file,
+      file_name: source.fileName,
+      file_size: source.fileSize,
       subjects: subjects.length ? subjects : undefined,
+      upload: source.upload,
       use: source.use !== false,
       created: iso(source.createdAt || now),
       updated: iso(source.updatedAt || now),

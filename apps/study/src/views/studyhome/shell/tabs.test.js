@@ -98,3 +98,12 @@ describe("artifact tabs", () => {
     expect(sanitizeTabs(tabs, state)).toEqual({ list: ["home", "artifact:a1"], active: "home" });
   });
 });
+
+it("opens independent subject source tabs, restores them and removes only deleted subjects", () => {
+  const a = { view: "subject-sources", id: "Biology" };
+  expect(routeOf(tabIdOf(a))).toEqual(a);
+  const tabs = { list: ["home", "sources", "subject-sources:Biology", "subject-sources:Chemistry"], active: "subject-sources:Biology" };
+  const state = { nodes: {}, sources: [], subjects: ["Biology", "Chemistry"] };
+  expect(sanitizeTabs(tabs, state)).toBe(tabs);
+  expect(sanitizeTabs(tabs, { ...state, subjects: ["Chemistry"] })).toEqual({ list: ["home", "sources", "subject-sources:Chemistry"], active: "home" });
+});

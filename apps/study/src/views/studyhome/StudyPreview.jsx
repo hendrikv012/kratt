@@ -22,6 +22,8 @@ import QuickNotesView from "./views/QuickNotesView";
 import ArtifactView from "./artifacts/ArtifactView";
 import ChatsView from "./chats/ChatsView";
 import ArtifactsView from "./artifacts/ArtifactsView";
+import { UploadsProvider } from "./sources/UploadsProvider";
+import UploadPanel from "./sources/UploadPanel";
 import SourcesView from "./sources/SourcesView";
 import SourceView from "./sources/SourceView";
 import GraphTab from "./graph/GraphTab";
@@ -130,7 +132,8 @@ function centerOf(route, state) {
   }
   if (route.view === "quick-notes") return <QuickNotesView />;
   if (route.view === "graph") return <GraphTab />;
-  if (route.view === "sources") return <SourcesView />;
+  if (route.view === "sources") return <SourcesView key="sources" />;
+  if (route.view === "subject-sources" && state.subjects.includes(route.id)) return <SourcesView key={route.id} subjectId={route.id} />;
   if (route.view === "source" && state.sources.some((s) => s.id === route.id)) return <SourceView id={route.id} />;
   if (route.view === "extensions") return <ExtensionsView />;
   if (route.view === "chats") return <ChatsView />;
@@ -340,6 +343,8 @@ function Shell({ settingsState, splashDone }) {
     () => ({
       intro,
       palette: SUBJECT_COLORS,
+      sourcesLayout: settings.layout.sources,
+      setSourcesLayout: (patch) => set("layout", (layout) => ({ sources: { ...layout.sources, ...patch } })),
       graph: settings.graphView,
       setGraph: (patch) => set("graphView", patch),
       ai,
@@ -402,6 +407,7 @@ function Shell({ settingsState, splashDone }) {
   const labelOf = (id) => {
     const { view, id: target } = routeOf(id);
     if (view === "node") return state.nodes[target]?.name || "Untitled";
+    if (view === "subject-sources") return `${state.nodes[target]?.name || "Subject"} sources`;
     if (view === "source") return titleOf(state.sources.find((x) => x.id === target) ?? {});
     if (view === "artifact") return state.artifacts?.find((a) => a.id === target)?.title || "Untitled";
     return VIEW_TITLES[view] ?? id;
@@ -462,6 +468,7 @@ function Shell({ settingsState, splashDone }) {
 
   return (
     <ShellContext.Provider value={shell}>
+      <UploadsProvider>
       <div
         className="study"
         data-st-scheme={scheme}
@@ -548,8 +555,10 @@ function Shell({ settingsState, splashDone }) {
           />
         )}
 
+        <UploadPanel />
         {!settingsSection && <Toasts items={toasts} />}
       </div>
+          </UploadsProvider>
     </ShellContext.Provider>
   );
 }

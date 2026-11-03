@@ -15,6 +15,7 @@ export function createVaultClient({
   baseUrl,
   fetchImpl = (...args) => fetch(...args),
   EventSourceImpl = globalThis.EventSource,
+  XMLHttpRequestImpl = globalThis.XMLHttpRequest,
 } = {}) {
   const url = () => baseUrl ?? connection()?.baseUrl ?? DEFAULT_VAULT_URL;
   const token = () => baseUrl ? null : connection()?.token;
@@ -42,6 +43,40 @@ export function createVaultClient({
 
   const query = (path) => encodeURIComponent(path);
 
+  // fetch can't report upload progress, so uploads go through XMLHttpRequest.
+  function upload(path, blob, { onProgress, signal } = {}) {
+    return new Promise((resolve, reject) => {
+      const abortError = () => Object.assign(new Error("Upload cancelled"), { name: "AbortError" });
+      if (signal?.aborted) return reject(abortError());
+      const xhr = new XMLHttpRequestImpl();
+      const onAbort = () => xhr.abort();
+      const done = (finish, value) => {
+        signal?.removeEventListener("abort", onAbort);
+        finish(value);
+      };
+      xhr.open("POST", `${url()}/upload?path=${query(path)}`);
+      if (token()) xhr.setRequestHeader("Authorization", `Bearer ${token()}`);
+      if (onProgress) xhr.upload.onprogress = (event) => onProgress(event.loaded, event.total);
+      xhr.onload = () => {
+        let data = {};
+        try {
+          data = JSON.parse(xhr.responseText);
+        } catch {
+          data = {};
+        }
+        if (xhr.status >= 200 && xhr.status < 300) {
+          if (typeof data.path !== "string" || !data.path.startsWith("Sources/files/")) done(reject, new Error("The upload reply did not include the saved original"));
+          else done(resolve, data);
+        }
+        else done(reject, new Error(data.error || `The Study folder service answered ${xhr.status}`));
+      };
+      xhr.onerror = () => done(reject, new VaultOffline());
+      xhr.onabort = () => done(reject, abortError());
+      signal?.addEventListener("abort", onAbort);
+      xhr.send(blob);
+    });
+  }
+
   return {
     aiSettings: () => call("GET", "/ai/settings"),
     saveAiSettings: (settings) => call("PUT", "/ai/settings", settings),
@@ -65,7 +100,8 @@ export function createVaultClient({
     move: (from, to) => call("POST", "/move", { from, to }),
     trash: (path) => call("POST", "/trash", { path }),
     writeLayout: (layout) => call("PUT", "/layout", { layout }),
-    upload: (path, blob) => call("POST", `/upload?path=${query(path)}`, blob),
+    upload,
+    uploadCheck: (path, size) => call("GET", `/upload/check?path=${query(path)}&size=${size}`),
     folder: () => call("GET", "/setting/folder"),
     setFolder: (path) => call("PUT", "/setting/folder", { path }),
     // Open Notebook, through the service's bridge. Failures are "ai-unavailable" or "ai-auth".

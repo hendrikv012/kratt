@@ -12,6 +12,7 @@ import hmac
 import os
 import queue
 import threading
+from collections.abc import Iterator
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from socketserver import TCPServer
@@ -21,12 +22,13 @@ from memory_engine import local_ai, notebook_bridge
 from memory_engine.ai_providers import OnlineAi
 from memory_engine.ai_http import ProviderError
 from memory_engine.frontmatter import atomic_write
-from memory_engine.vault import Vault, VaultError
+from memory_engine.vault import NotEnoughSpace, UploadTooLarge, Vault, VaultError
 from memory_engine.vault_search import VaultSearch
 
 ALLOWED_ORIGINS = {"http://localhost:1420", "tauri://localhost", "http://tauri.localhost"}
 DEFAULT_PORT = 5057
 KEEPALIVE_SECONDS = 15
+UPLOAD_CHUNK = 1024 * 1024
 CONFIG_LOCK = threading.RLock()
 
 
@@ -177,6 +179,31 @@ def _local_ask(request: "_Handler", query: dict) -> dict:
     return {"output": local_ai.ask(request.server.ollama, load_local_ai()["model"], prompt)}
 
 
+def _check_upload(request: "_Handler", query: dict) -> dict:
+    """The upload's checks before any bytes are sent: the app asks this first, because an
+    answer sent while it is still sending the body can reach it as a dropped connection."""
+    size = query.get("size", "")
+    if not size.isascii() or not size.isdigit():
+        raise VaultError("size must be a number of bytes")
+    request.vault.check_upload(query.get("path", ""), int(size))
+    return {"ok": True}
+
+
+def _upload(request: "_Handler", query: dict) -> dict:
+    if request.headers.get("Transfer-Encoding") or not request.headers.get("Content-Length", "").isascii() or not request.headers.get("Content-Length", "").isdigit():
+        raise VaultError("Uploads require a numeric Content-Length")
+    request.connection.settimeout(120)
+    chunks = request.body_chunks()
+    try:
+        return {"path": request.vault.upload(query.get("path", ""), chunks, request.length())}
+    except NotEnoughSpace:
+        # Read the rest of the body first, so the app gets the 507 and not a reset connection.
+        # It is at most 50 GB: the size limit is checked before the space.
+        for _ in chunks:
+            pass
+        raise
+
+
 # (method, path) -> route(request, query): the answer as JSON, or None when the route answered itself.
 def _preferences(request, query):
     preferences = request.json().get("preferences")
@@ -224,7 +251,8 @@ ROUTES = {
     ("POST", "/folder"): lambda request, query: {"path": request.vault.mkdir(*request.fields("path"))},
     ("POST", "/move"): lambda request, query: {"path": request.vault.move(*request.fields("from", "to"))},
     ("POST", "/trash"): lambda request, query: {"path": request.vault.trash(*request.fields("path"))},
-    ("POST", "/upload"): lambda request, query: {"path": request.vault.upload(query.get("path", ""), request.body())},
+    ("GET", "/upload/check"): _check_upload,
+    ("POST", "/upload"): _upload,
     ("POST", "/notebook/ask"): _notebook_ask,
     ("GET", "/notebook/status"): _notebook_status,
     # The password is never sent back; the app can only ask whether one is set.
@@ -269,12 +297,36 @@ class _Handler(BaseHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Vary", "Origin")
         self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.wfile.write(body)
+        except (BrokenPipeError, ConnectionResetError):
+            pass  # A cancelled upload has already cleaned its temporary file.
 
     # ---------- the request, for routes
 
+    def length(self) -> int:
+        """The body's size in bytes, from Content-Length."""
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except ValueError:
+            raise VaultError("Content-Length must be a number") from None
+        if length < 0:
+            raise VaultError("Content-Length must be a number")
+        return length
+
     def body(self) -> bytes:
-        return self.rfile.read(int(self.headers.get("Content-Length") or 0))
+        return self.rfile.read(self.length())
+
+    def body_chunks(self, chunk_size: int = UPLOAD_CHUNK) -> Iterator[bytes]:
+        """The body in pieces of at most `chunk_size`, for bodies too big to hold in memory.
+        Stops early when the app closes the connection."""
+        remaining = self.length()
+        while remaining:
+            chunk = self.rfile.read(min(chunk_size, remaining))
+            if not chunk:
+                return
+            remaining -= len(chunk)
+            yield chunk
 
     def json(self) -> dict:
         try:
@@ -320,6 +372,10 @@ class _Handler(BaseHTTPRequestHandler):
             self._send(err.status, {"error": str(err), "code": "provider"}, origin)
         except (notebook_bridge.NotebookError, local_ai.LocalAiError) as err:
             self._send(err.status, {"error": str(err)}, origin)
+        except UploadTooLarge as err:
+            self._send(413, {"error": str(err)}, origin)
+        except NotEnoughSpace as err:
+            self._send(507, {"error": str(err)}, origin)
         except VaultError as err:
             self._send(400, {"error": str(err)}, origin)
         except FileNotFoundError as err:

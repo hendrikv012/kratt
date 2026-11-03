@@ -17,7 +17,7 @@ function arrange(list, pinned) {
 }
 
 export function tabIdOf(route) {
-  if (route.view === "node" || route.view === "source" || route.view === "artifact") return `${route.view}:${route.id}`;
+  if (route.view === "node" || route.view === "source" || route.view === "artifact" || route.view === "subject-sources") return `${route.view}:${route.id}`;
   return route.view;
 }
 
@@ -72,6 +72,7 @@ function exists(id, state) {
   if (FIXED.includes(id)) return true;
   const { view, id: target } = routeOf(id);
   if (view === "node") return Boolean(state.nodes[target]);
+  if (view === "subject-sources") return state.subjects.includes(target);
   if (view === "source") return state.sources.some((s) => s.id === target);
   if (view === "artifact") return Boolean(state.artifacts?.some((a) => a.id === target));
   return false;

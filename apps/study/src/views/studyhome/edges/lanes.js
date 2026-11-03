@@ -53,8 +53,9 @@ export function allowedIn(def, lane) {
 
 export function kindOfTab(tabId, state) {
   const id = typeof tabId === "string" ? tabId : "";
-  if (id === "home" || id === "graph" || id === "sources" || id === "quick-notes" || id === "extensions" || id === "chats") return id;
+  if (id === "home" || id === "graph" || id === "sources" || id === "quick-notes" || id === "extensions" || id === "chats" || id === "artifacts") return id;
   if (id.startsWith("source:")) return "source";
+  if (id.startsWith("artifact:")) return "artifact";
   if (id.startsWith("node:")) {
     const node = state?.nodes?.[id.slice(5)];
     if (!state) return "page";

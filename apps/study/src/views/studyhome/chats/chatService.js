@@ -35,9 +35,10 @@ export const CHAT_MESSAGES = {
 
 const encoder = new TextEncoder();
 const bytes = (s) => encoder.encode(s).length;
+export const byteLength = bytes;
 
 // The first `limit` bytes of a text, without splitting a character.
-function cutToBytes(text, limit) {
+export function cutToBytes(text, limit) {
   const encoded = encoder.encode(text);
   if (encoded.length <= limit) return text;
   return new TextDecoder().decode(encoded.slice(0, limit)).replace(/�+$/, "");
@@ -129,22 +130,28 @@ export function citationsIn(answer, state) {
 // address() returns the Open Notebook address from settings and local() whether the AI runs on
 // this computer (then Ollama answers, through the service), both read at each ask.
 export function createChatService({ client, address, local = () => false }) {
+  // One prompt in, the output text back; every way a send can fail becomes a ChatError.
+  async function send(prompt) {
+    const onComputer = local();
+    try {
+      const { output } = onComputer ? await client.localAsk(prompt) : await client.notebookAsk(address(), prompt);
+      return output;
+    } catch (error) {
+      if (error instanceof VaultOffline) throw new ChatError("offline", CHAT_MESSAGES.offline);
+      if (onComputer) {
+        const code = isLocalError(error?.message) ? error.message : "ollama-unavailable";
+        throw new ChatError(code, LOCAL_MESSAGES[code]);
+      }
+      if (error?.message === "ai-auth") throw new ChatError("ai-auth", CHAT_MESSAGES["ai-auth"]);
+      throw new ChatError("ai-unavailable", CHAT_MESSAGES["ai-unavailable"](address()));
+    }
+  }
+
   return {
+    send,
     async ask({ question, context, turns, memory }) {
       const { prompt, sentFrom } = buildPrompt({ question, context, turns, memory });
-      const onComputer = local();
-      try {
-        const { output } = onComputer ? await client.localAsk(prompt) : await client.notebookAsk(address(), prompt);
-        return { answer: output, sentFrom };
-      } catch (error) {
-        if (error instanceof VaultOffline) throw new ChatError("offline", CHAT_MESSAGES.offline);
-        if (onComputer) {
-          const code = isLocalError(error?.message) ? error.message : "ollama-unavailable";
-          throw new ChatError(code, LOCAL_MESSAGES[code]);
-        }
-        if (error?.message === "ai-auth") throw new ChatError("ai-auth", CHAT_MESSAGES["ai-auth"]);
-        throw new ChatError("ai-unavailable", CHAT_MESSAGES["ai-unavailable"](address()));
-      }
+      return { answer: await send(prompt), sentFrom };
     },
   };
 }

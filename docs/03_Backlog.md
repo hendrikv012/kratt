@@ -61,3 +61,9 @@ Note: ticket statuses below predate the landing of the real code. Re-validate in
 
 ## Milestone 3 — later
 - B-20 fuzzy/semantic topic matching · B-21 source import (PDF first) · B-22 OCR for test photos · B-23 vector DB
+
+
+## Requested feature — Artifacts
+
+### F-12 · Frontend · done
+**Complete study artifacts from the surviving `feat/artifacts` branch.** Flashcards, slides and quizzes, generation from chat/notes/slash menu/Artifacts view, full-screen viewers, Markdown storage and links, Quick Find, and complete input splitting are implemented on `codex/finish-artifacts`. See `logs/2026-11-03.md` and `apps/study/docs/artifacts-verification.md` for validation and limits. Mastery and engine code are unchanged.

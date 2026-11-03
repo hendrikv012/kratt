@@ -12,6 +12,7 @@
 import yaml from "js-yaml";
 import { noteFileToHtml, noteHtmlToMarkdown } from "../../../core/markdown/noteFile.js";
 import { formatTurns, parseTurns } from "../chats/format";
+import { ARTIFACT_TYPES, formatArtifact, parseArtifact } from "../artifacts/format";
 import { EMPTY_STATE, SUBJECT_COLORS } from "./operations";
 import { isContainer, parentIndex, UNSORTED } from "./tree";
 
@@ -19,7 +20,8 @@ export const UNSORTED_DIR = "Unsorted";
 export const QUICK_NOTES_DIR = "Quick notes";
 export const SOURCES_DIR = "Sources";
 export const CHATS_DIR = "Chats";
-const SPECIAL_DIRS = new Set([UNSORTED_DIR, QUICK_NOTES_DIR, SOURCES_DIR, CHATS_DIR]);
+export const ARTIFACTS_DIR = "Artifacts";
+const SPECIAL_DIRS = new Set([UNSORTED_DIR, QUICK_NOTES_DIR, SOURCES_DIR, CHATS_DIR, ARTIFACTS_DIR]);
 
 // The same rule as memory-engine's sanitize_name: names every file system accepts, at most
 // 200 bytes (room left for " (2)" and ".md" under the usual 255).
@@ -111,6 +113,34 @@ function chatFrom(file) {
   };
 }
 
+// Header keys an artifact's fields are read from; any others are kept as `extraMeta`.
+const ARTIFACT_META_KEYS = ["id", "title", "type", "made_from", "made_in", "created", "updated", "last_score", "parts", "source_bytes"];
+
+// A hand-edited header can say anything: an unknown type loads as flashcards, a malformed
+// made_in or last_score as none.
+function artifactFrom(file) {
+  const meta = file.meta ?? {};
+  const created = msOf(meta.created);
+  const type = ARTIFACT_TYPES.includes(meta.type) ? meta.type : "flashcards";
+  const madeIn = meta.made_in;
+  const score = meta.last_score;
+  const extra = Object.entries(meta).filter(([key]) => !ARTIFACT_META_KEYS.includes(key));
+  return {
+    id: file.id,
+    title: String(meta.title ?? stem(file.path)),
+    type,
+    madeFrom: Array.isArray(meta.made_from) ? meta.made_from.map(String) : [],
+    madeIn: madeIn && (madeIn.kind === "chat" || madeIn.kind === "page") && madeIn.id !== undefined && madeIn.id !== null && madeIn.id !== "" ? { kind: madeIn.kind, id: String(madeIn.id) } : null,
+    created,
+    updated: msOf(meta.updated) || created,
+    lastScore: score && Number.isFinite(score.right) && Number.isFinite(score.of) ? { right: score.right, of: score.of, at: msOf(score.at) } : null,
+    parts: Number.isFinite(meta.parts) ? meta.parts : 1,
+    sourceBytes: Number.isFinite(meta.source_bytes) ? meta.source_bytes : 0,
+    items: parseArtifact(type, file.body ?? ""),
+    extraMeta: extra.length ? Object.fromEntries(extra) : undefined,
+  };
+}
+
 // Each page's HTML by the Markdown it came from, kept from the last snapshot: a refresh only
 // converts files whose text changed.
 let htmlByMarkdown = new Map();
@@ -129,6 +159,7 @@ export function stateFromSnapshot(snapshot) {
   const quickNotes = [];
   const sources = [];
   const chats = [];
+  const artifacts = [];
   const isSpecial = (path) => SPECIAL_DIRS.has(path.split("/")[0]);
 
   const dirs = (snapshot.folders ?? []).filter((path) => !isSpecial(path));
@@ -157,6 +188,13 @@ export function stateFromSnapshot(snapshot) {
     if (parts[0] === CHATS_DIR) {
       if (parts.length === 2) {
         chats.push(chatFrom(file));
+        paths[file.id] = file.path;
+      }
+      continue;
+    }
+    if (parts[0] === ARTIFACTS_DIR) {
+      if (parts.length === 2) {
+        artifacts.push(artifactFrom(file));
         paths[file.id] = file.path;
       }
       continue;
@@ -202,7 +240,8 @@ export function stateFromSnapshot(snapshot) {
   quickNotes.sort((a, b) => b.createdAt - a.createdAt);
   sources.sort((a, b) => b.createdAt - a.createdAt);
   chats.sort((a, b) => b.updated - a.updated);
-  return { state: { nodes, subjects, quickNotes, sources, chats, recent, pinned, expanded }, paths, versions };
+  artifacts.sort((a, b) => b.updated - a.updated);
+  return { state: { nodes, subjects, quickNotes, sources, chats, artifacts, recent, pinned, expanded }, paths, versions };
 }
 
 // The snapshot as it will be once `ops` (saves kept from an earlier session) have run, so the
@@ -281,7 +320,7 @@ function pageHeader(state, parents, id, pathOf, stamps = {}) {
 const subjectPaths = (state, source, pathOf) =>
   (source.subjects ?? []).filter((id) => state.nodes[id]?.type === "subject").map(pathOf);
 
-// The Markdown file for a page, quick note, source or chat in `state`. `pathOf` gives folder paths
+// The Markdown file for a page, quick note, source, chat or artifact in `state`. `pathOf` gives folder paths
 // (for a page's also_in and a source's subjects).
 export function fileText(state, id, now = Date.now(), pathOf = (x) => x, parents = parentIndex(state)) {
   const stamp = iso(now);
@@ -319,7 +358,27 @@ export function fileText(state, id, now = Date.now(), pathOf = (x) => x, parents
     const meta = { id, title: chat.title, created: iso(chat.created || now), updated: iso(chat.updated || now), context: chat.context ?? [] };
     return withHeader(meta, formatTurns(chat.turns));
   }
-  throw new Error(`No page, quick note, source or chat has the id ${id}`);
+  const artifact = (state.artifacts ?? []).find((a) => a.id === id);
+  if (artifact) {
+    const meta = clean({
+      id,
+      title: artifact.title,
+      type: artifact.type,
+      made_from: artifact.madeFrom ?? [],
+      made_in: artifact.madeIn,
+      created: iso(artifact.created || now),
+      updated: iso(artifact.updated || now),
+      last_score: artifact.lastScore ? { ...artifact.lastScore, at: iso(artifact.lastScore.at) } : undefined,
+      parts: artifact.parts,
+      source_bytes: artifact.sourceBytes,
+    });
+    // Keys the app doesn't know follow its own, as for sources.
+    Object.entries(artifact.extraMeta ?? {}).forEach(([key, value]) => {
+      if (!(key in meta) && !ARTIFACT_META_KEYS.includes(key)) meta[key] = value;
+    });
+    return withHeader(meta, formatArtifact(artifact.type, artifact.items ?? []));
+  }
+  throw new Error(`No page, quick note, source, chat or artifact has the id ${id}`);
 }
 
 // ---------- state changes → file operations
@@ -431,7 +490,7 @@ export function planSync(prev, next, paths, versions = {}) {
     delete current[id];
   }
 
-  // Quick notes, sources and chats: written when their file would say something else. An item
+  // Quick notes, sources, chats and artifacts: written when their file would say something else. An item
   // that is the same object can still need writing when `moved` says so (a source whose subject
   // was renamed).
   const prevPath = (id) => paths[id];
@@ -461,6 +520,7 @@ export function planSync(prev, next, paths, versions = {}) {
     subjectPaths(prev, source, prevPath).join("\u0000") !== subjectPaths(next, source, pathAfter).join("\u0000");
   listOps(prev.sources, next.sources, (source) => `${SOURCES_DIR}/${sanitizeName(source.title)}.md`, subjectMoved);
   listOps(prev.chats ?? [], next.chats ?? [], (chat) => `${CHATS_DIR}/${stampName(chat.created || Date.now())} ${sanitizeName(chat.title)}.md`);
+  listOps(prev.artifacts ?? [], next.artifacts ?? [], (a) => `${ARTIFACTS_DIR}/${stampName(a.created || Date.now())} ${sanitizeName(a.title)}.md`);
 
   const ops = [...mkdirs, ...moves, ...writes, ...trashes];
   const before = layoutOf(prev, (id) => paths[id] ?? id);

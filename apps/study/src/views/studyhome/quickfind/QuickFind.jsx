@@ -53,7 +53,7 @@ function Box({ onClose, providers, recentIds }) {
             aria-controls={`${base}-list`}
             aria-activedescendant={flat.length ? optionId(current) : undefined}
             aria-label="Search"
-            placeholder="Search pages, subjects and actions"
+            placeholder="Search notes, artifacts and actions"
             autoComplete="off"
             spellCheck={false}
             value={query}

@@ -1,0 +1,197 @@
+/* Artifact viewers: flashcards now; slides and quiz share these. */
+.st-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  color: var(--st-text);
+  font-family: var(--st-sans);
+  outline: none;
+}
+.st-viewer-bar { display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.st-viewer-count { color: var(--st-text-soft); font-size: max(13px, var(--st-min-text)); }
+.st-viewer-summary { text-align: center; }
+
+.st-flashcard {
+  position: relative;
+  width: min(100%, 520px);
+  min-height: 220px;
+  padding: 0;
+  display: block;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  perspective: 1000px;
+}
+.st-flashcard:focus-visible .st-flashcard-face { outline: 2px solid var(--st-accent); outline-offset: 2px; }
+.st-flashcard-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: auto;
+  background: var(--st-surface);
+  border: 1px solid var(--st-line);
+  border-radius: 10px;
+  backface-visibility: hidden;
+}
+.st-flashcard-face > :first-child { margin-top: 0; }
+.st-flashcard-face > :last-child { margin-bottom: 0; }
+
+.st-flashcard[data-motion="flip"] .st-flashcard-face {
+  transition: transform 0.35s var(--st-spring, ease);
+}
+.st-flashcard[data-motion="flip"] .st-flashcard-back { transform: rotateY(180deg); }
+.st-flashcard[data-motion="flip"][data-flipped="true"] .st-flashcard-front { transform: rotateY(-180deg); }
+.st-flashcard[data-motion="flip"][data-flipped="true"] .st-flashcard-back { transform: rotateY(0); }
+
+.st-flashcard[data-motion="fade"] .st-flashcard-face { transition: opacity 0.15s linear; }
+.st-flashcard[data-motion="fade"] .st-flashcard-back { opacity: 0; }
+.st-flashcard[data-motion="fade"][data-flipped="true"] .st-flashcard-front { opacity: 0; }
+.st-flashcard[data-motion="fade"][data-flipped="true"] .st-flashcard-back { opacity: 1; }
+
+/* Slides */
+/* The stage fills the space the viewer gives it (container-type: size needs a
+   real height, so it flexes with min-height; the tab view caps it through
+   --st-slides-stage-max, which the full-screen overlay sets to none). The
+   frame is the largest 16:9 box that fits the stage in both directions. */
+.st-slides { width: 100%; box-sizing: border-box; }
+.st-slides-stage {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 240px;
+  max-height: var(--st-slides-stage-max, 420px);
+  display: grid;
+  place-items: center;
+  container-type: size;
+}
+.st-slide {
+  box-sizing: border-box;
+  width: min(100cqw, calc(100cqh * 16 / 9));
+  aspect-ratio: 16 / 9;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px 32px;
+  overflow: auto;
+  background: var(--st-surface);
+  border: 1px solid var(--st-line);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.st-slide:focus-visible { outline: 2px solid var(--st-accent); outline-offset: 2px; }
+.st-slide-title { margin: 0 0 12px; font-size: 1.5em; line-height: 1.2; }
+.st-slide-body > :first-child { margin-top: 0; }
+.st-slide-body > :last-child { margin-bottom: 0; }
+.st-slide-inner[data-motion="slide"] { animation: st-slide-in 0.25s ease-out; }
+@keyframes st-slide-in {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Quiz */
+.st-quiz { width: 100%; box-sizing: border-box; }
+.st-quiz-question { width: min(100%, 560px); font-size: 1.1em; }
+.st-quiz-question > :first-child, .st-quiz-why > div > :first-child { margin-top: 0; }
+.st-quiz-question > :last-child, .st-quiz-why > div > :last-child { margin-bottom: 0; }
+.st-quiz-choices { display: flex; flex-direction: column; gap: 8px; width: min(100%, 560px); }
+.st-quiz-choice {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 10px 14px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  background: var(--st-surface);
+  border: 1px solid var(--st-line);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.st-quiz-choice:focus-visible { outline: 2px solid var(--st-accent); outline-offset: 2px; }
+.st-quiz-choice[aria-disabled="true"] { cursor: default; }
+.st-quiz-key { color: var(--st-text-soft); font-size: max(13px, var(--st-min-text)); }
+.st-quiz-text { flex: 1 1 auto; }
+.st-quiz-mark { font-size: max(13px, var(--st-min-text)); font-weight: 600; white-space: nowrap; }
+.st-quiz-choice[data-state="right"] { border: 2px solid var(--st-accent); }
+.st-quiz-choice[data-state="wrong"] { border-style: dashed; border-width: 2px; }
+.st-quiz-why {
+  width: min(100%, 560px);
+  box-sizing: border-box;
+  padding: 10px 14px;
+  background: var(--st-surface);
+  border: 1px solid var(--st-line);
+  border-radius: 10px;
+}
+.st-quiz-rest { margin-top: 8px; color: var(--st-text-soft); }
+.st-quiz [data-motion="pop"] { animation: st-quiz-pop 0.2s ease-out; }
+@keyframes st-quiz-pop {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Artifact tab */
+.st-artifact { display: flex; flex-direction: column; gap: 12px; }
+.st-artifact-head { display: flex; flex-direction: column; gap: 8px; }
+.st-artifact-type { color: var(--st-text-soft); font-size: max(13px, var(--st-min-text)); }
+.st-artifact-meta { margin: 0; color: var(--st-text-soft); font-size: max(13px, var(--st-min-text)); }
+.st-artifact-chips, .st-artifact-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.st-artifact-chip {
+  padding: 2px 10px;
+  color: inherit;
+  font: inherit;
+  font-size: max(13px, var(--st-min-text));
+  background: var(--st-surface);
+  border: 1px solid var(--st-line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.st-artifact-chip[data-kind="missing"] { color: var(--st-text-soft); border-style: dashed; cursor: default; }
+.st-artifact-chip:focus-visible { outline: 2px solid var(--st-accent); outline-offset: 2px; }
+.st-artifact-notice { margin: 0; color: var(--st-text-soft); }
+.st-artifact-raw { margin: 0; padding: 12px; overflow: auto; white-space: pre-wrap; background: var(--st-surface); border: 1px solid var(--st-line); border-radius: 10px; }
+.st-artifact-error { margin: 0; }
+.st-make-progress { display: flex; gap: 10px; align-items: center; color: var(--st-text); }
+
+/* Full mode: a full-viewport column (slim bar, then the viewer, which takes the rest). The
+   slides stage loses its cap so it fills the height. */
+.st-fullmode {
+  --st-slides-stage-max: none;
+  position: fixed;
+  inset: 0;
+  z-index: 55; /* over dialogs (50), under quick find (60) and toasts (70) */
+  display: flex;
+  flex-direction: column;
+  background: var(--st-bg);
+  color: var(--st-text);
+  font-family: var(--st-sans);
+  outline: none;
+}
+.st-fullmode-bar { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 8px 16px; border-bottom: 1px solid var(--st-line); }
+.st-fullmode-title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st-fullmode-body { display: flex; flex-direction: column; }
+.st-fullmode > .st-fullmode-body { flex: 1 1 auto; min-height: 0; overflow: auto; }
+.st-fullmode > .st-fullmode-body > .st-viewer { flex: 1 1 auto; min-height: 0; justify-content: center; }
+.st-fullmode-inline { display: contents; }
+
+/* The Artifacts screen: its search and filters, and the empty state. */
+.st-artifacts-bar { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.st-artifacts-bar .st-chats-search { flex: 1 1 160px; width: auto; }
+.st-artifacts-empty { display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); text-align: center; }
+
+.st-newart-types { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.st-newart-type[data-on] { background: var(--st-hover); color: var(--st-text); }
+.st-newart-actions { display: flex; gap: var(--sp-2); justify-content: flex-end; margin-top: 6px; }
+
+.st-artifact-card {
+  display: flex; align-items: center; gap: 8px; margin-top: 8px; padding: 8px 10px;
+  border: 1px solid var(--st-line); border-radius: 8px; background: var(--st-surface);
+}
+.st-artifact-card .st-truncate { flex: 1; min-width: 0; }

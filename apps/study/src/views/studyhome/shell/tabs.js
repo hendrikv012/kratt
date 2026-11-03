@@ -1,10 +1,10 @@
 // Open tabs. A tab is a string id: "home", "graph", "sources", "quick-notes",
-// "extensions", "chats", "node:<id>" or "source:<id>". The set is
+// "extensions", "chats", "artifacts", "node:<id>", "source:<id>" or "artifact:<id>". The set is
 // { list: string[], active: string, pinned?: string[] } and every function
 // returns a new set. Pinned tabs come right after Home, can't be closed and
 // stay open; `pinned` is left out until something is pinned.
 
-const FIXED = ["home", "graph", "sources", "quick-notes", "extensions", "chats"];
+const FIXED = ["home", "graph", "sources", "quick-notes", "extensions", "chats", "artifacts"];
 const HOME = "home";
 
 const pinnedOf = (tabs) => tabs.pinned ?? [];
@@ -17,7 +17,7 @@ function arrange(list, pinned) {
 }
 
 export function tabIdOf(route) {
-  if (route.view === "node" || route.view === "source") return `${route.view}:${route.id}`;
+  if (route.view === "node" || route.view === "source" || route.view === "artifact") return `${route.view}:${route.id}`;
   return route.view;
 }
 
@@ -73,6 +73,7 @@ function exists(id, state) {
   const { view, id: target } = routeOf(id);
   if (view === "node") return Boolean(state.nodes[target]);
   if (view === "source") return state.sources.some((s) => s.id === target);
+  if (view === "artifact") return Boolean(state.artifacts?.some((a) => a.id === target));
   return false;
 }
 

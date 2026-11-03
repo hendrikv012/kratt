@@ -33,3 +33,11 @@ npm run build                                # production build into dist/
 - The extension features call Tauri (`invoke`, `convertFileSrc`) only when `isTauri()` is true; in the browser they use their fallbacks.
 - **Editor popups and plugin views.** Anything that registers a ProseMirror plugin from React (Tiptap's `BubbleMenu` with `options`/`shouldShow`) must get the same values every render: re-registering rebuilds every plugin view and closes an open "/" menu (`TableBubbleMenu.jsx` keeps `options` in a constant). Popups that should follow the person's theme go inside `.study` (`rootFor` in `editor/lib/slash-command.jsx`), since the theme's variables are set there, not on `body`.
 - **/Kratt** in the "/" menu sends a `kratt:ask` window event with the editor; `PageView` answers it with `AskKratt` (`views/AskKratt.jsx`), which asks through `chatService` with the page as context. `shell.chat` carries `address` and `memory` (Settings > AI) for it.
+
+## Artifacts
+
+- `Artifacts/` is a special Study folder, like `Chats/`. Files hold flashcards, slides or quizzes, source IDs, origin, coverage metadata, and artifact-only scores.
+- Create through `useMakeArtifact` → `createArtifactMaker` → `chatService.send`, which respects the selected local/online model. `gatherFull` reads complete stored notes and sources; `splitIntoParts` sends every piece within Chat memory, including retry overhead. Never use chat's truncated context for artifacts.
+- Save only after all parts succeed. Cancel, close and unmount discard late replies. Source-text coverage is not a guarantee that an AI answer contains every fact.
+- Links are `[[artifact:<id>|<Type> · <Title>]]`; preserve them through the existing wiki-link Markdown conversion. Scores never update mastery.
+- Note slash commands, chat, and the Artifacts screen share the same maker. Quick Find registers artifacts in both its provider and its group order.

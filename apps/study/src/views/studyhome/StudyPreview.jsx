@@ -19,7 +19,9 @@ import { useWidgetDefs } from "./widgets/registry";
 import ContainerView from "./views/ContainerView";
 import PageView from "./views/PageView";
 import QuickNotesView from "./views/QuickNotesView";
+import ArtifactView from "./artifacts/ArtifactView";
 import ChatsView from "./chats/ChatsView";
+import ArtifactsView from "./artifacts/ArtifactsView";
 import SourcesView from "./sources/SourcesView";
 import SourceView from "./sources/SourceView";
 import GraphTab from "./graph/GraphTab";
@@ -78,6 +80,7 @@ const VIEW_TITLES = {
   sources: "Sources",
   extensions: "Extensions",
   chats: "Chats",
+  artifacts: "Artifacts",
 };
 
 const INTRO_LENGTH = 2300;
@@ -131,6 +134,8 @@ function centerOf(route, state) {
   if (route.view === "source" && state.sources.some((s) => s.id === route.id)) return <SourceView id={route.id} />;
   if (route.view === "extensions") return <ExtensionsView />;
   if (route.view === "chats") return <ChatsView />;
+  if (route.view === "artifacts") return <ArtifactsView />;
+  if (route.view === "artifact" && state.artifacts?.some((a) => a.id === route.id)) return <ArtifactView key={route.id} id={route.id} />;
   return null;
 }
 
@@ -231,6 +236,7 @@ function Shell({ settingsState, splashDone }) {
     // Settings > AI, for asking Kratt outside the panel (/Kratt in a note).
     address: settings.ai.onUrl,
     memory: settings.ai.chatMemory,
+    local: settings.ai.model === "local",
     open: (id) => {
       setChat((c) => ({ id, session: c.session + 1 }));
       showChat(true);
@@ -397,6 +403,7 @@ function Shell({ settingsState, splashDone }) {
     const { view, id: target } = routeOf(id);
     if (view === "node") return state.nodes[target]?.name || "Untitled";
     if (view === "source") return titleOf(state.sources.find((x) => x.id === target) ?? {});
+    if (view === "artifact") return state.artifacts?.find((a) => a.id === target)?.title || "Untitled";
     return VIEW_TITLES[view] ?? id;
   };
 

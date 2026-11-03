@@ -4,6 +4,7 @@
 
 import { contains, foldersInside, homeOf, isContainer, parentIndex, resolveWikiHref, UNSORTED, UNSORTED_COLOR } from "./tree";
 import { turnText } from "../chats/format";
+import { TYPE_LABELS } from "../artifacts/format";
 
 export const SUBJECT_COLORS = ["#5bb98c", "#4fb7b3", "#e0a35a", "#9b8cf2", "#e07a8b", "#6aa6e8", "#d4c45a", "#c48ad9"];
 
@@ -13,6 +14,7 @@ export const EMPTY_STATE = {
   quickNotes: [],
   sources: [],
   chats: [],
+  artifacts: [],
   recent: [],
   pinned: [],
   expanded: {},
@@ -392,6 +394,33 @@ export const setChatContext = (state, id, context) => ({
 
 export const deleteChat = (state, id) => ({ ...state, chats: state.chats.filter((c) => c.id !== id) });
 
+// ---------- Artifacts ----------
+// Flashcards, slides and quizzes Kratt made from notes, each saved as a file in Artifacts/:
+//   { id, title, type, madeFrom: [page or source ids], madeIn: { kind: "chat" | "page", id } | null,
+//     created, updated, lastScore: { right, of, at } | null, parts, sourceBytes, items, extraMeta? }
+// Times are milliseconds. The list is kept newest first, by `updated`. Scoring a quiz
+// doesn't change `updated`, so it doesn't move the quiz up the list.
+
+export function addArtifact(
+  state,
+  { id = newId(), title, type, madeFrom, madeIn = null, items, parts = 1, sourceBytes = 0, now = Date.now() }
+) {
+  const artifact = { id, title, type, madeFrom: [...madeFrom], madeIn, created: now, updated: now, lastScore: null, parts, sourceBytes, items };
+  return { state: { ...state, artifacts: newestFirst([artifact, ...state.artifacts]) }, id };
+}
+
+export const renameArtifact = (state, id, title) => ({
+  ...state,
+  artifacts: state.artifacts.map((a) => (a.id === id ? { ...a, title: title.trim() || `Untitled ${TYPE_LABELS[a.type]}` } : a)),
+});
+
+export const recordScore = (state, id, { right, of, now = Date.now() }) => ({
+  ...state,
+  artifacts: state.artifacts.map((a) => (a.id === id ? { ...a, lastScore: { right, of, at: now } } : a)),
+});
+
+export const deleteArtifact = (state, id) => ({ ...state, artifacts: state.artifacts.filter((a) => a.id !== id) });
+
 // The changes components may make, as one list for the store to wrap.
 export const mutations = {
   addSubject,
@@ -430,4 +459,8 @@ export const mutations = {
   renameChat,
   setChatContext,
   deleteChat,
+  addArtifact,
+  renameArtifact,
+  recordScore,
+  deleteArtifact,
 };

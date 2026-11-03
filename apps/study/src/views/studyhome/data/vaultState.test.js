@@ -368,3 +368,88 @@ describe("a source's subjects", () => {
     });
   });
 });
+
+describe("artifacts", () => {
+  const AT = "2026-10-27T10:30:00Z";
+  const quizBody = "### Which cycle?\n- [ ] Calvin\n- [x] Krebs\n> It is the Krebs cycle.\n";
+  const artifactFile = {
+    path: "Artifacts/2026-10-27 10-00 Krebs.md",
+    id: "a1",
+    meta: { id: "a1", title: "Krebs", type: "quiz", made_from: ["p1"], made_in: { kind: "chat", id: "c1" }, created: "2026-10-27T10:00:00Z", updated: "2026-10-27T10:00:00Z", last_score: { right: 3, of: 5, at: AT }, parts: 2, source_bytes: 900, tags: ["x"] },
+    body: quizBody,
+    version: "v1",
+  };
+  const load = (files = [artifactFile], folders = ["Artifacts"]) => stateFromSnapshot({ folders, files, layout: {} });
+
+  it("loads artifacts", () => {
+    const { state, paths } = load();
+    expect(state.artifacts).toHaveLength(1);
+    expect(state.artifacts[0]).toMatchObject({ id: "a1", type: "quiz", madeFrom: ["p1"], madeIn: { kind: "chat", id: "c1" }, lastScore: { right: 3, of: 5 }, parts: 2, sourceBytes: 900 });
+    expect(state.artifacts[0].lastScore.at).toBe(Date.parse(AT));
+    expect(state.artifacts[0].items).toHaveLength(1);
+    expect(paths.a1).toBe("Artifacts/2026-10-27 10-00 Krebs.md");
+    expect(state.nodes.Artifacts).toBeUndefined();
+  });
+
+  it("a hand-edited artifact with junk still loads", () => {
+    const { state } = load([{ path: "Artifacts/x.md", id: "a2", meta: { id: "a2", type: "poster" }, body: "### Front\nBack\n", version: "v2" }]);
+    expect(state.artifacts[0]).toMatchObject({ id: "a2", type: "flashcards", madeFrom: [], madeIn: null, lastScore: null, title: "x" });
+    expect(state.artifacts[0].items).toEqual([{ front: "Front", back: "Back" }]);
+    for (const id of [null, "", undefined]) {
+      const loaded = load([{ path: "Artifacts/y.md", id: "a4", meta: { id: "a4", made_in: { kind: "chat", id } }, body: "", version: "v4" }]);
+      expect(loaded.state.artifacts[0].madeIn).toBeNull();
+    }
+  });
+
+  it("a new artifact is written to Artifacts/", () => {
+    const { state, paths } = stateFromSnapshot(snapshot);
+    const now = Date.parse("2026-10-27T10:00:00Z");
+    const { state: next, id } = mutations.addArtifact(state, { id: "a9", title: "Krebs: quiz", type: "quiz", madeFrom: ["p1"], items: [{ question: "Q?", choices: [{ text: "A", right: true }, { text: "B", right: false }], why: "", rest: "" }], now });
+    expect(id).toBe("a9");
+    const writes = planSync(state, next, paths).ops.filter((o) => o.op === "write");
+    expect(writes).toHaveLength(1);
+    expect(writes[0]).toMatchObject({ id: "a9", create: true });
+    expect(writes[0].path).toMatch(/^Artifacts\/\d{4}-\d{2}-\d{2} \d{2}-\d{2} Krebs- quiz\.md$/);
+    expect(writes[0].text).toMatch(/^---\nid: a9\ntitle: 'Krebs: quiz'\ntype: quiz\nmade_from:\n\s*- p1\ncreated: '?2026-10-27T10:00:00\.000Z'?\nupdated: '?2026-10-27T10:00:00\.000Z'?\nparts: 1\nsource_bytes: 0\n---\n### Q\?/);
+    expect(writes[0].text).not.toContain("made_in");
+    expect(writes[0].text).not.toContain("last_score");
+    const back = stateFromSnapshot(applyOps(snapshot, planSync(state, next, paths).ops));
+    expect(back.state.artifacts.find((a) => a.id === "a9")).toEqual(next.artifacts.find((a) => a.id === "a9"));
+  });
+
+  it("made_in and last_score are written when set", () => {
+    const { state, paths } = stateFromSnapshot(snapshot);
+    let { state: next } = mutations.addArtifact(state, { id: "a9", title: "K", type: "flashcards", madeFrom: [], madeIn: { kind: "page", id: "p1" }, items: [], now: 1000 });
+    next = mutations.recordScore(next, "a9", { right: 1, of: 2, now: 2000 });
+    const text = planSync(state, next, paths).ops.find((o) => o.op === "write").text;
+    expect(text).toContain("made_in:");
+    expect(text).toContain("last_score:");
+  });
+
+  it("scoring rewrites only that file", () => {
+    const { state, paths, versions } = load();
+    const scored = mutations.recordScore(state, "a1", { right: 4, of: 5, now: Date.parse(AT) });
+    const { ops } = planSync(state, scored, paths, { a1: versions["Artifacts/2026-10-27 10-00 Krebs.md"] });
+    expect(ops).toHaveLength(1);
+    expect(ops[0]).toMatchObject({ op: "write", id: "a1", path: "Artifacts/2026-10-27 10-00 Krebs.md", create: false, base: "v1" });
+  });
+
+  it("deleting trashes it", () => {
+    const { state, paths } = load();
+    expect(planSync(state, mutations.deleteArtifact(state, "a1"), paths).ops).toEqual([{ op: "trash", id: "a1", path: "Artifacts/2026-10-27 10-00 Krebs.md" }]);
+  });
+
+  it("unknown header keys are written back", () => {
+    const { state, paths } = load();
+    const renamed = mutations.renameArtifact(state, "a1", "Krebs 2");
+    const text = planSync(state, renamed, paths).ops[0].text;
+    expect(text).toContain("tags:");
+    expect(text).toContain("title: Krebs 2");
+  });
+
+  it("nothing nested", () => {
+    const { state } = load([{ path: "Artifacts/sub/x.md", id: "a3", meta: { id: "a3", title: "Nested" }, body: "### F\nB\n", version: "v3" }], ["Artifacts", "Artifacts/sub"]);
+    expect(state.artifacts).toEqual([]);
+    expect(state.nodes.a3).toBeUndefined();
+  });
+});

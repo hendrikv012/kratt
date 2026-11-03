@@ -86,3 +86,15 @@ describe("tabs", () => {
     expect(sanitizeTabs({ list: ["home", "graph"], active: 7 }, st)).toEqual({ list: ["home", "graph"], active: "home" });
   });
 });
+
+describe("artifact tabs", () => {
+  it("has an id of its own", () => {
+    expect(tabIdOf({ view: "artifact", id: "a1" })).toBe("artifact:a1");
+    expect(routeOf("artifact:a1")).toEqual({ view: "artifact", id: "a1" });
+  });
+  it("drops the tab of a deleted artifact", () => {
+    const state = { nodes: {}, sources: [], artifacts: [{ id: "a1" }] };
+    const tabs = { list: ["home", "artifact:a1", "artifact:gone"], active: "artifact:gone" };
+    expect(sanitizeTabs(tabs, state)).toEqual({ list: ["home", "artifact:a1"], active: "home" });
+  });
+});

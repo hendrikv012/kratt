@@ -113,6 +113,7 @@ describe("lanes model", () => {
     expect(kindOfTab("quick-notes")).toBe("quick-notes");
     expect(kindOfTab("extensions")).toBe("extensions");
     expect(kindOfTab("chats")).toBe("chats");
+    expect(kindOfTab("artifacts")).toBe("artifacts");
     expect(kindOfTab("node:a")).toBe("page");
     expect(kindOfTab("node:a", { nodes: { a: { type: "page" } } })).toBe("page");
     expect(kindOfTab("node:a", { nodes: { a: { type: "subject" } } })).toBe("container");

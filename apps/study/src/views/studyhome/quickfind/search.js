@@ -1,7 +1,7 @@
 // Quick find ranking. Pure: no React, no app state.
 // A FindItem is { id, group, title, subtitle?, color?, keywords?, text?, run }.
 
-export const GROUPS = ["Pages", "Subjects", "Folders", "Tools", "Commands", "Actions"];
+export const GROUPS = ["Pages", "Subjects", "Folders", "Artifacts", "Tools", "Commands", "Actions"];
 export const GROUP_LIMIT = 6;
 
 // 0 for no match; otherwise higher is better:

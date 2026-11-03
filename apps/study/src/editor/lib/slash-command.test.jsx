@@ -1,4 +1,4 @@
-import { it, expect, vi, afterEach } from "vitest";
+import { it, expect, vi, beforeAll, afterAll, afterEach } from "vitest";
 import { render, act, waitFor, fireEvent } from "@testing-library/react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { Editor } from "@tiptap/core";
@@ -7,6 +7,20 @@ import MathExtensions from "../extensions/Math.js";
 import SlashCommand, { SLASH_SUGGESTION_KEY } from "./SlashCommand.js";
 import slashCommand from "./slash-command.jsx";
 import TableBubbleMenu from "../components/TableBubbleMenu.jsx";
+
+// jsdom has no Range layout; ProseMirror uses it when focus scrolls the selection.
+const rangeRects = Range.prototype.getClientRects;
+const rangeBounds = Range.prototype.getBoundingClientRect;
+beforeAll(() => {
+  Range.prototype.getClientRects = () => [];
+  Range.prototype.getBoundingClientRect = () => new DOMRect();
+});
+afterAll(() => {
+  if (rangeRects) Range.prototype.getClientRects = rangeRects;
+  else delete Range.prototype.getClientRects;
+  if (rangeBounds) Range.prototype.getBoundingClientRect = rangeBounds;
+  else delete Range.prototype.getBoundingClientRect;
+});
 
 // An editor like the page's: the slash menu plus the table bubble menu, inside the app's root.
 let editor;
@@ -135,4 +149,17 @@ it("Block Math leaves the cursor after the formula, so typing doesn't replace it
   editor.commands.insertContent("after");
   expect(editor.getHTML()).toContain('data-type="math-block"');
   expect(editor.getText()).toContain("after");
+});
+
+
+it.each([["Flashcards", "flashcards"], ["Slides", "slides"], ["Quiz", "quiz"]])("/%s opens artifact creation for the page", async (title, make) => {
+  const handler = vi.fn();
+  window.addEventListener("kratt:ask", handler);
+  try {
+    await openMenu(render(<Host tick={0} />));
+    fireEvent.click(document.querySelector(`[cmdk-item][data-value="${title}"]`));
+    await waitFor(() => expect(handler).toHaveBeenCalled());
+    expect(handler.mock.calls[0][0].detail).toEqual({ editor, make });
+    expect(editor.getText()).not.toContain("/");
+  } finally { window.removeEventListener("kratt:ask", handler); }
 });

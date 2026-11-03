@@ -158,3 +158,17 @@ it("copying pages to a new folder takes what was typed while asking", async () =
   await waitFor(() => expect(client.snapshotNow().files.find((f) => f.id === "p1")?.body).toContain("Typed while asking."), { timeout: 3000 });
   expect(client.folderPath).toBe("/home/me/Exams");
 });
+
+it("a folder with only an empty Artifacts/ still counts as empty, so browser data is imported", async () => {
+  localStorage.setItem("study-app-data-v1", JSON.stringify(legacyStateWithOnePage("Old page", "<p>Old text.</p>")));
+  const client = fakeClient({ folders: ["Artifacts"], files: [], layout: {} });
+  await renderAndGetStudy(client);
+  await waitFor(() => expect(client.calls.some((c) => c.method === "write" && c.text.includes("Old text."))).toBe(true));
+});
+
+it("a folder holding only an artifact offers to copy it when switching to an empty folder", async () => {
+  const file = { path: "Artifacts/2026-10-27 10-00 Krebs.md", id: "a1", meta: { id: "a1", title: "Krebs", type: "quiz" }, body: "### Q\n- [x] A\n", version: "v1" };
+  const client = fakeClient({ folders: ["Artifacts"], files: [file], layout: {} }, { folder: "/home/me/Study" });
+  const { store } = await renderAndGetStudy(client);
+  await act(async () => expect((await store.vault.switchFolder("/home/me/Exams")).empty).toBe(true));
+});

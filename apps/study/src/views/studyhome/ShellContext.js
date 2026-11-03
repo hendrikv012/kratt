@@ -7,7 +7,7 @@ import { createContext, useContext } from "react";
 //   ai                the AI behind extensions' ai.ask: { ask(extensionId, prompt) },
 //                     sent to Open Notebook through the Study folder service (ai/onClient.js)
 //   route:            { view: "home" } | { view: "node", id, via } |
-//                     { view: "quick-notes" } | { view: "sources" } | { view: "chats" }
+//                     { view: "quick-notes" } | { view: "sources" } | { view: "chats" } | { view: "artifact", id }
 //   open(route)       go somewhere; opening a page records it as recent
 //   renamingId        the tree item whose name is being edited
 //   startRename(id)   / stopRename()

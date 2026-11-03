@@ -135,6 +135,9 @@ export default function LayoutSection({ value, set, settings, setGroup }) {
         <Row label="Chats">
           <Toggle label="Chats" checked={sidebar.chats} onChange={(chats) => setSidebar({ chats })} />
         </Row>
+        <Row label="Artifacts">
+          <Toggle label="Artifacts" checked={sidebar.artifacts !== false} onChange={(artifacts) => setSidebar({ artifacts })} />
+        </Row>
         <Row label="Due for review">
           <Toggle label="Due for review" checked={sidebar.review} onChange={(review) => setSidebar({ review })} />
         </Row>

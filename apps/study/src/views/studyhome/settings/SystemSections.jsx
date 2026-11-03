@@ -1,3 +1,4 @@
+import packageInfo from "../../../../package.json";
 import { useRef, useEffect, useState } from "react";
 import { useStudy } from "../data/StudyProvider";
 import { Group, Kbd, Row, Section, Segmented, Toggle } from "./controls";
@@ -281,7 +282,7 @@ export function AboutSection() {
     <Section title="About">
       <Group>
         <Row label="Version">
-          <span className="st-faint">0.1 design preview</span>
+          <span className="st-faint">{packageInfo.version}</span>
         </Row>
       </Group>
     </Section>

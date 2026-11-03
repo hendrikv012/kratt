@@ -10,7 +10,7 @@ import { createVaultSync } from "./vaultSync";
 // operations (vaultState.planSync) and sent through a queue that never loses typing
 // (vaultSync). Changes made on disk (by hand, or by the local AI) come back as events.
 
-export const OFFLINE_MESSAGE = "Study folder not connected. Start it with: memory-engine serve";
+export const OFFLINE_MESSAGE = "Study folder not connected. Reconnect the local engine or reopen Kratt.";
 const LEGACY_KEY = "study-app-data-v1";
 const LEGACY_DONE_KEY = "study-app-data-v1-imported";
 const REFRESH_DELAY = 300;

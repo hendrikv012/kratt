@@ -1,3 +1,4 @@
+import { connection } from "../../../desktop/runtime";
 // Talks to `memory-engine serve`, the Study folder service on this computer.
 // One method per route; a service that can't be reached throws VaultOffline.
 
@@ -11,17 +12,19 @@ export class VaultOffline extends Error {
 export const DEFAULT_VAULT_URL = "http://127.0.0.1:5057";
 
 export function createVaultClient({
-  baseUrl = DEFAULT_VAULT_URL,
+  baseUrl,
   fetchImpl = (...args) => fetch(...args),
   EventSourceImpl = globalThis.EventSource,
 } = {}) {
+  const url = () => baseUrl ?? connection()?.baseUrl ?? DEFAULT_VAULT_URL;
+  const token = () => baseUrl ? null : connection()?.token;
   async function call(method, path, body) {
     const isBytes = body instanceof Blob || body instanceof ArrayBuffer;
     let reply;
     try {
-      reply = await fetchImpl(`${baseUrl}${path}`, {
+      reply = await fetchImpl(`${url()}${path}`, {
         method,
-        headers: body === undefined || isBytes ? undefined : { "Content-Type": "application/json" },
+        headers: token() ? { Authorization: `Bearer ${token()}`, ...(body !== undefined && !isBytes ? { "Content-Type": "application/json" } : {}) } : body === undefined || isBytes ? undefined : { "Content-Type": "application/json" },
         body: body === undefined ? undefined : isBytes ? body : JSON.stringify(body),
       });
     } catch {
@@ -40,6 +43,12 @@ export function createVaultClient({
   const query = (path) => encodeURIComponent(path);
 
   return {
+    health: () => call("GET", "/health"),
+    preferences: () => call("GET", "/setting/preferences"),
+    setPreferences: (preferences) => call("PUT", "/setting/preferences", { preferences }),
+    search: (q) => call("GET", `/search?q=${query(q)}`),
+    pullModel: (model) => call("POST", "/local/pull", { model }),
+    pullStatus: () => call("GET", "/local/pull"),
     snapshot: () => call("GET", "/vault"),
     read: (path) => call("GET", `/file?path=${query(path)}`),
     write: ({ path, text, version, create }) => call("PUT", "/file", { path, text, version, create }),
@@ -62,7 +71,10 @@ export function createVaultClient({
     // Calls onEvent({ type, path }) for every change in the folder; returns a function that stops listening.
     subscribe(onEvent, onError) {
       if (!EventSourceImpl) return () => {};
-      const source = new EventSourceImpl(`${baseUrl}/events`);
+      let source;
+      const connect = () => {
+      source?.close();
+      source = new EventSourceImpl(`${url()}/events${token() ? `?token=${query(token())}` : ""}`);
       source.onmessage = (message) => {
         try {
           onEvent(JSON.parse(message.data));
@@ -71,7 +83,10 @@ export function createVaultClient({
         }
       };
       if (onError) source.onerror = onError;
-      return () => source.close();
+      };
+      connect();
+      globalThis.addEventListener?.("kratt-engine-ready", connect);
+      return () => { source.close(); globalThis.removeEventListener?.("kratt-engine-ready", connect); };
     },
   };
 }

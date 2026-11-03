@@ -46,7 +46,7 @@ it("keeps typing safe while the service is away, then saves it", async () => {
   client.fail = true;
   act(() => actions.setContent("p1", "<p>Offline typing.</p>"));
   await act(() => vi.advanceTimersByTimeAsync(31000));
-  expect(screen.getByText("Study folder not connected. Start it with: memory-engine serve")).toBeInTheDocument();
+  expect(screen.getByText("Study folder not connected. Reconnect the local engine or reopen Kratt.")).toBeInTheDocument();
   expect(JSON.parse(localStorage.getItem("study-vault-pending-v1"))[0].text).toContain("Offline typing.");
   client.fail = false;
   await act(() => vi.advanceTimersByTimeAsync(10000));

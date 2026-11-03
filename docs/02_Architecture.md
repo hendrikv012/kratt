@@ -1,54 +1,35 @@
 # 02 — Architecture
 
-Status: draft for the prototype, rewritten 2026-10-31 for the monorepo. Items marked *(unverified)* describe the real workspace that currently lives only on the local machine (see ticket T-01) and must be confirmed once that code lands in this repo (ticket T-02).
+Verified against the monorepo source on 2026-11-03. This replaces the unverified FastAPI/Express and relational-note prototype proposal. See `desktop-product-spec.md` for the product flow and `desktop-release.md` for packaging.
 
-## Repository layout (decided 2026-10-31, see 04_Decisions.md)
-- `apps/study/` — the study app (web + Tauri desktop) *(unverified)*
-- `engine/` — memory-engine and kratt-service *(unverified)*
-- `scripts/` — helper scripts *(unverified)*
-- `docs/` — this planning set and `logs/`
-- `design/` — mascot art; `.ember-preview/` — redesign boards, reference only
-- `kratt/` — unused stock Next.js template, fate in ticket T-03
+## Repository
 
-## Stack
-- App base: forks of **Lokus** and **OpenNB** (supersedes the earlier Obsidian/Logseq base-shell idea; final confirmation is ticket A-01)
-- Local LLM and vision: **Ollama**
-- Storage: **SQLite**
-- Glue service: **FastAPI or Express** (pick one in B-01)
-- Dev tools: Claude Code / Vibe, GitHub
-- Deferred until M3: Chroma (vector DB), Tesseract.js OCR, LlamaIndex/LangChain
+- `apps/study/src/`: React/Vite study workspace, Tiptap editor, file synchronization, chats and study artifacts.
+- `apps/study/src/desktop/`: native startup/recovery gate and model setup. Browser development bypasses this gate.
+- `apps/study/src-tauri/`: Rust Tauri shell, owned engine lifecycle, extension package handling, capabilities and bundle configuration. There is one Tauri project, not a second root-level shell.
+- `engine/src/memory_engine/`: Python file service, local Ollama integration and the existing advanced memory-engine CLI.
+- `scripts/`: frozen-engine smoke testing, package verification/collection and AppImage compatibility repair.
+- `site/`: marketing website only; `.github/workflows/` builds native packages and deploys that site.
+- `docs/`, `design/`: product specification, decisions, validation records and mascot artwork. `kratt/` remains the unrelated unused starter.
 
-## Principles
-1. **Local-first.** Everything runs on the student's machine by default.
-2. **Pluggable models.** A model interface so external models (e.g. Claude) can sit beside the local one.
-3. **Append-only score events.** Mastery is computed from a log, never overwritten.
-4. **Prototype scope discipline.** Validate the note → review → score loop before adding infrastructure.
+## Runtime
 
-## Data model (proposed)
-```
-topics(id, name, normalized_name, created_at)
-score_events(id, topic_id, delta, reason, source_note_id, created_at)   -- append-only
-notes(id, title, body_md, created_at, updated_at)
-note_links(from_note_id, to_note_id)                                    -- wikilinks
-reviews(id, note_id, model, prompt_version, result_json, created_at)
-```
-- A review produces zero or more `score_events` (e.g. a mistake in "simplifying n!" → negative delta on that topic).
-- Confirm against the real schema in `engine/` during T-02.
+Tauri embeds production React assets and an OS-native PyInstaller engine executable. Rust allocates platform app-data folders, locks ownership, spawns the engine, verifies health, and shuts it down. The Python stdlib HTTP server binds to a dynamically assigned loopback port. Requests require the app's session token and allowed Host/Origin. Standalone developer `memory-engine serve` remains on 5057 without the desktop session token.
 
-## Mastery calculation (proposed)
-Time-decayed weighted aggregate, not a flat sum:
-```
-mastery(topic) = clamp( sum( delta_i * exp(-age_days_i / tau) ) , 0, 100 )
-```
-`tau` is tunable per subject. Keep it in config, not in code.
+Ollama is external and local. Kratt discovers or starts it, supports installed-model selection and explicit model downloads, and stops only an Ollama process it started. Missing AI does not prevent note use. Desktop online notebook routes are disabled; extension networking remains opt-in under existing permissions.
 
-## Known risks
-- **Topic fragmentation:** "simplify n!" vs "simplifying n!" would split a topic. Prototype: normalise names; M3: fuzzy/semantic matching.
-- **Subject fit:** delta-per-topic suits math and science; essays and languages need a different feedback model (M4).
-- **Estonian quality:** local open models are weaker in Estonian, hence the hybrid option in M4.
+## Persistence
 
-## API surface (proposed, prototype)
-- `POST /notes`, `GET /notes/:id`
-- `POST /notes/:id/review` → runs the model, writes score events
-- `GET /mastery` → per-topic scores
-- `POST /topics/merge` (later)
+The Study folder is authoritative. Pages, quick notes, sources, chats and artifacts are Markdown with YAML metadata. Layout lives in `.study/layout.json`; deletion moves files to `.study/trash`; conflicting writes retain both versions. A polling watcher streams changes to the UI. Desktop preferences and selected model/folder live in `config.json` in the standard per-user Kratt data directory.
+
+The local desktop full-text index mirrors Markdown/text files in `.study/search.sqlite3`, updates from disk on search, and can be rebuilt. The advanced CLI retains its existing SQLite/vector/code indexing modules; it is not the desktop runtime's dependency chain. Browser state holds caches and pending writes, not the authoritative saved notes.
+
+## Distribution
+
+App version uses MAJOR.MINOR.PATCH, currently inherited as 1.3.3. Native runners build Linux x86_64 AppImage/deb/tar, macOS arm64/x86_64 DMG, and Windows x64 EXE/MSI. Package verification checks actual contents and executes the extracted engine. Checksums, metadata, install guidance and generated notes accompany draft releases. Per the owner's latest instruction, signing/notarization is deferred and all builds are labelled unsigned previews.
+
+GitHub Pages receives only `site/`. Download links resolve real versioned assets in GitHub Releases, with explicit empty/error states. No app or installer is deployed to Pages.
+
+## Deferred product work
+
+The old roadmap's proposed mastery schema and time-decay scoring are not implemented by the desktop shell. Existing study features remain as implemented. Do not infer backend endpoints or production platform validation from draft roadmap tickets.

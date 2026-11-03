@@ -67,3 +67,8 @@ Note: ticket statuses below predate the landing of the real code. Re-validate in
 
 ### F-12 · Frontend · done
 **Complete study artifacts from the surviving `feat/artifacts` branch.** Flashcards, slides and quizzes, generation from chat/notes/slash menu/Artifacts view, full-screen viewers, Markdown storage and links, Quick Find, and complete input splitting are implemented on `codex/finish-artifacts`. See `logs/2026-11-03.md` and `apps/study/docs/artifacts-verification.md` for validation and limits. Mastery and engine code are unchanged.
+
+## Requested product — Desktop distribution
+
+### D-01 · Cross-cutting (owner-authorized) · doing
+**Ship the native study app, managed bundled engine, local file storage, product site and signed release pipeline.** Recover the old prototype, validate actual artifacts, and publish only after platform and signing gates pass. Signing credentials are not configured as of 2026-11-03. The owner’s explicit shipping request authorizes changes across the frontend/backend/documentation lanes.

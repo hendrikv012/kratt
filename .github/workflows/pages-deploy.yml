@@ -1,0 +1,34 @@
+name: Deploy product site
+on:
+  push:
+    branches: [main, codex/desktop-release]
+    paths: ['site/**', '.github/workflows/pages-deploy.yml']
+  release:
+    types: [published]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure only the marketing site is deployed
+        run: |
+          test -f site/index.html
+          test -z "$(find site -type f \( -iname '*.exe' -o -iname '*.msi' -o -iname '*.dmg' -o -iname '*.AppImage' -o -iname '*.deb' \))"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -17,6 +17,7 @@ import http.client
 import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 import tempfile
@@ -95,6 +96,8 @@ def installed_models(url: str, timeout: float = CHECK_TIMEOUT) -> list[dict] | N
 def can_chat(model: dict) -> bool:
     """Whether a model from /api/tags can answer questions. Ollama 0.6+ lists capabilities; for
     older versions an embedding model is recognised by its name or family."""
+    if model.get("remote_host") or model.get("remote_model") or str(model.get("name", "")).endswith(("-cloud", ":cloud")):
+        return False
     capabilities = model.get("capabilities")
     if isinstance(capabilities, list):
         return "completion" in capabilities
@@ -112,7 +115,7 @@ def _same_model(wanted: str, name: str) -> bool:
 
 
 def _log_path() -> Path:
-    return Path(tempfile.gettempdir()) / "kratt-logs" / "ollama.log"
+    return Path(os.environ.get("KRATT_LOG_DIR", str(Path(tempfile.gettempdir()) / "kratt-logs"))) / "ollama.log"
 
 
 def _start_options() -> dict:
@@ -137,6 +140,8 @@ class OllamaKeeper:
         self._lock = threading.Lock()
         self._process: subprocess.Popen | None = None  # the Ollama this keeper started
         self._failure = ""
+        self._pull = {"state": "idle"}
+        self._pull_lock = threading.Lock()
 
     @property
     def started_here(self) -> bool:
@@ -188,6 +193,46 @@ class OllamaKeeper:
         errors = [line for line in lines if line.startswith("Error")]  # Ollama's reason for giving up
         return errors[-1] if errors else "\n".join(lines[-LOG_LINES:])
 
+    def pull_status(self) -> dict:
+        with self._pull_lock:
+            return dict(self._pull)
+
+    def pull(self, model: str) -> dict:
+        if not isinstance(model, str) or not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_./:-]{0,150}", model):
+            raise LocalAiError("invalid-model", 400)
+        if model.endswith(("-cloud", ":cloud")):
+            raise LocalAiError("model-remote", 400)
+        if self.ensure()["state"] not in ("running", "started"):
+            raise LocalAiError("ollama-unavailable")
+        with self._pull_lock:
+            if self._pull["state"] == "downloading":
+                return dict(self._pull)
+            self._pull = {"state": "downloading", "model": model, "detail": "Starting download…"}
+        threading.Thread(target=self._download, args=(model,), daemon=True).start()
+        return self.pull_status()
+
+    def _download(self, model: str) -> None:
+        request = urllib.request.Request(f"{self.url.rstrip('/')}/api/pull",
+            data=json.dumps({"model": model, "stream": True}).encode(), headers={"Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(request, timeout=ASK_TIMEOUT) as response:
+                success = False
+                for line in response:
+                    data = json.loads(line)
+                    if data.get("error"):
+                        raise ValueError(str(data["error"]))
+                    success = data.get("status") == "success"
+                    with self._pull_lock:
+                        self._pull = {"state": "downloading", "model": model, "detail": data.get("status", "Downloading…"),
+                                      "completed": data.get("completed", 0), "total": data.get("total", 0)}
+                if not success:
+                    raise ValueError("Download ended before completion; retry to resume")
+            result = {"state": "done", "model": model}
+        except (OSError, ValueError, http.client.HTTPException) as error:
+            result = {"state": "failed", "model": model, "detail": str(error)}
+        with self._pull_lock:
+            self._pull = result
+
     def stop(self) -> None:
         """Stop Ollama if this keeper started it; one that was already running is left alone."""
         with self._lock:
@@ -222,6 +267,8 @@ def ask(keeper: OllamaKeeper, model: str | None, prompt: str) -> str:
     found = next((m for m in tags if isinstance(m, dict) and _same_model(model, str(m.get("name")))), None)
     if found is None:
         raise LocalAiError("model-missing", status=400)
+    if not can_chat(found):
+        raise LocalAiError("model-remote", status=400)
     payload: dict = {"model": model, "messages": [{"role": "user", "content": prompt}], "stream": False,
                      "options": {"num_ctx": context_size(prompt)}}
     if "thinking" in (found.get("capabilities") or []):

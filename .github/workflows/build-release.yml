@@ -1,0 +1,132 @@
+name: Build desktop release
+on:
+  push:
+    tags: ['v*']
+    branches: [codex/desktop-release]
+    paths-ignore: ['site/**', 'docs/**', '**/*.md']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/study/package-lock.json
+      - run: npm ci
+        working-directory: apps/study
+      - name: Test study app
+        working-directory: apps/study
+        run: npm test -- --maxWorkers=2 --testTimeout=30000
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check release version
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os, re, tomllib
+          from pathlib import Path
+          version = json.loads(Path('apps/study/package.json').read_text())['version']
+          assert re.fullmatch(r'\d+\.\d+\.\d+', version), 'Use MAJOR.MINOR.PATCH'
+          assert tomllib.loads(Path('apps/study/src-tauri/Cargo.toml').read_text())['package']['version'] == version
+          ref = os.environ['GITHUB_REF']
+          if ref.startswith('refs/tags/'):
+              assert ref == f'refs/tags/v{version}', 'Tag and app version differ'
+          PY
+  build:
+    needs: verify
+    name: ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { platform: linux-x86_64, os: ubuntu-22.04, triple: x86_64-unknown-linux-gnu, bundles: 'deb,appimage', extension: '' }
+          - { platform: macos-arm64, os: macos-latest, triple: aarch64-apple-darwin, bundles: 'dmg', extension: '' }
+          - { platform: macos-x86_64, os: macos-15-intel, triple: x86_64-apple-darwin, bundles: 'dmg', extension: '' }
+          - { platform: windows-x64, os: windows-latest, triple: x86_64-pc-windows-msvc, bundles: 'nsis,msi', extension: '.exe' }
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Linux packaging dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/study/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/study/src-tauri -> target
+      - name: Test engine source
+        run: |
+          python -m pip install -e 'engine[dev]'
+          python -m pytest engine/tests/test_desktop.py engine/tests/test_desktop_product.py engine/tests/test_serve.py engine/tests/test_local_ai.py -q
+      - name: Freeze Python engine
+        run: |
+          python -m pip install -r engine/requirements-desktop.txt
+          python engine/tools/build_service.py
+          python scripts/smoke_engine.py apps/study/src-tauri/binaries/kratt-engine-${{ matrix.triple }}${{ matrix.extension }}
+      - run: npm ci
+        working-directory: apps/study
+      # Intentionally unsigned at the owner's request. No signing secrets are read.
+      # Apple Silicon still receives the toolchain's ad-hoc signature; it is not a Developer ID signature.
+      - name: Build native packages (unsigned preview)
+        working-directory: apps/study
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: '1'
+          NO_STRIP: '1'
+        run: npm run tauri:build -- --bundles ${{ matrix.bundles }} --ci
+      - name: Fix AppImage Wayland compatibility
+        if: runner.os == 'Linux'
+        run: python scripts/fix_appimage.py
+      - name: Verify bundled engine and collect packages
+        run: python scripts/package_release.py --platform ${{ matrix.platform }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Kratt-${{ matrix.platform }}-unsigned
+          path: release/${{ matrix.platform }}/
+          if-no-files-found: error
+          retention-days: 30
+  draft-release:
+    # Branch/manual builds only produce downloadable CI artifacts. Tags create a reviewable draft.
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: Kratt-*-unsigned
+          merge-multiple: true
+          path: release/assets
+      - name: Verify checksums and prepare release
+        run: |
+          cd release/assets
+          for checksums in SHA256SUMS-*.txt; do sha256sum -c "$checksums"; done
+          cat SHA256SUMS-*.txt > SHA256SUMS.txt
+      - name: Create unsigned draft prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$RELEASE_TAG" release/assets/* --verify-tag --draft --prerelease --title "Kratt $RELEASE_TAG — unsigned preview" --notes-file docs/RELEASE_NOTES.md --generate-notes

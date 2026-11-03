@@ -1,4 +1,5 @@
 import React from "react";
+import DesktopGate from "./desktop/DesktopGate";
 import ReactDOM from "react-dom/client";
 import { ThemeProvider } from "./hooks/theme.jsx";
 import StudyPreview from "./views/studyhome/StudyPreview";
@@ -27,7 +28,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <div className="app-root">
         <div className="app-titlebar" data-tauri-drag-region></div>
         <div className="app-content">
-          <StudyPreview />
+          <DesktopGate><StudyPreview /></DesktopGate>
         </div>
       </div>
     </ThemeProvider>

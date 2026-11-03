@@ -1,0 +1,15 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "The main window: core APIs, plus plugin-fs limited to the app data folder (the editor's config.json and themes)",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "fs:allow-exists",
+    "fs:allow-mkdir",
+    "fs:allow-read-dir",
+    "fs:allow-read-text-file",
+    "fs:allow-write-text-file",
+    "fs:scope-appdata-recursive"
+  ]
+}

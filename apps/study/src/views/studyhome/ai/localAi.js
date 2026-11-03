@@ -2,7 +2,8 @@
 // which starts Ollama when it isn't running. These are its error codes as people read them.
 
 export const LOCAL_MESSAGES = {
-  "ollama-missing": "Ollama isn't installed, so Kratt can't answer on this computer. Install it from ollama.com, or pick Online service in Settings > AI.",
+  "model-remote": "Choose a downloaded local chat model in Settings > AI. This build does not use cloud models.",
+  "ollama-missing": "Ollama isn't installed, so Kratt can't answer on this computer. Open Settings > AI to install it from ollama.com.",
   "ollama-failed": "Ollama didn't start. Settings > AI shows why.",
   "no-model": "Pick a model in Settings > AI first.",
   "model-missing": "The model picked in Settings > AI isn't installed in Ollama any more. Pick another one there.",

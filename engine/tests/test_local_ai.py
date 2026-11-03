@@ -199,7 +199,8 @@ def test_a_real_process_is_started_and_stopped(tmp_path, monkeypatch):
     program = tmp_path / "ollama"
     program.write_text(f"""#!{sys.executable}
 import json, sys
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler
+from socketserver import TCPServer
 assert sys.argv[1:] == ["serve"]
 class H(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -207,10 +208,11 @@ class H(BaseHTTPRequestHandler):
         self.send_response(200); self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
     def log_message(self, *a): pass
 print("listening", flush=True)
-HTTPServer(("127.0.0.1", {url.rsplit(":", 1)[1]}), H).serve_forever()
+TCPServer(("127.0.0.1", {url.rsplit(":", 1)[1]}), H).serve_forever()
 """)
     program.chmod(0o755)
-    keeper = OllamaKeeper(url, find=lambda: str(program), log_path=tmp_path / "ollama.log")
+    keeper = OllamaKeeper(url, find=lambda: str(program), log_path=tmp_path / "ollama.log",
+                         start=lambda command, **options: subprocess.Popen([sys.executable, *command], **options))
     assert keeper.ensure() == {"state": "started", "detail": "", "models": ["llama3.2:1b"]}
     process = keeper._process
     keeper.stop()
@@ -355,3 +357,38 @@ m.serve_forever(Server())
     assert process.stdout.readline().strip() == "up"
     process.terminate()
     assert process.communicate(timeout=10)[0].strip() == "closed"
+
+
+def test_desktop_local_requests_do_not_use_an_environment_proxy(ollama, monkeypatch):
+    monkeypatch.setenv("KRATT_DESKTOP", "1")
+    monkeypatch.setenv("HTTP_PROXY", "http://127.0.0.1:1")
+    monkeypatch.setenv("http_proxy", "http://127.0.0.1:1")
+    monkeypatch.setenv("NO_PROXY", "")
+    monkeypatch.setenv("no_proxy", "")
+    assert local_ai.installed_models(ollama.url) == ollama.models
+
+
+def test_remote_model_alias_is_rejected_before_sending_a_prompt(ollama):
+    ollama.models = [{"name": "alias", "remote_model": "cloud-model", "remote_host": "https://ollama.com"}]
+    with pytest.raises(LocalAiError, match="model-remote"):
+        local_ai.ask(OllamaKeeper(ollama.url), "alias", "private note")
+    assert not ollama.chats
+
+
+@pytest.mark.parametrize("payload, expected", [
+    (b'{"status":"downloading","completed":5,"total":10}\n{"status":"success"}\n', "done"),
+    (b'{"status":"downloading","completed":5,"total":10}\n', "failed"),
+    (b'{"error":"model not found"}\n', "failed"),
+    (b'[]\n', "failed"),
+])
+def test_model_download_requires_a_final_success(payload, expected, monkeypatch):
+    import io
+    requests = []
+    def response(request, timeout):
+        requests.append(json.loads(request.data))
+        return io.BytesIO(payload)
+    monkeypatch.setattr(local_ai, "_open", response)
+    keeper = OllamaKeeper("http://127.0.0.1:11434")
+    keeper._download("local:3b")
+    assert requests == [{"model": "local:3b", "stream": True}]
+    assert keeper.pull_status()["state"] == expected

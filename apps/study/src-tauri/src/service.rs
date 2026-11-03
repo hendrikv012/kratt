@@ -64,7 +64,7 @@ impl Runtime {
             self.lock = Some(lock);
         }
         let token = uuid::Uuid::new_v4().to_string();
-        let descriptor = dir.join("temp").join(format!("engine-{token}.json"));
+        let descriptor = dir.join("temp").join(format!("engine-{}.json", uuid::Uuid::new_v4()));
         self.descriptor = Some(descriptor.clone());
         let executable = std::env::current_exe().map_err(|e| e.to_string())?;
         let sidecar = executable.parent().ok_or("Can't locate the Kratt application")?

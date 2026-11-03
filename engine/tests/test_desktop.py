@@ -23,11 +23,13 @@ def desktop_service(request, tmp_path):
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env, text=True,
     )
     port = None
+    output = []
     found = threading.Event()
 
     def read_port():
         nonlocal port
         for line in proc.stdout:
+            output.append(line)
             match = re.search(r"Listening on http://127\.0\.0\.1:(\d+)", line)
             if match:
                 port = int(match.group(1))
@@ -35,11 +37,13 @@ def desktop_service(request, tmp_path):
         found.set()
 
     threading.Thread(target=read_port, daemon=True).start()
-    assert found.wait(10) and port, "the service never said it was listening"
-    yield proc, port
-    if proc.poll() is None:
-        proc.kill()
-        proc.wait()
+    try:
+        assert found.wait(45) and port, "the service never said it was listening: " + "".join(output)
+        yield proc, port
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+            proc.wait()
 
 
 def status_for(port, origin):

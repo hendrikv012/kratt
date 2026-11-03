@@ -8,7 +8,6 @@ output and time are all limited.
 """
 
 import os
-import resource
 import shutil
 import subprocess
 import sys
@@ -51,7 +50,7 @@ def _user_tasks() -> int:
 
 def run_sandboxed(argv: list[str], workdir: Path, timeout: float, read_only: tuple[Path, ...] = ()) -> SandboxResult:
     """Run `argv` in a sandboxed copy of `workdir`; `read_only` folders are made visible unchanged."""
-    if shutil.which("bwrap") is None:
+    if sys.platform != "linux" or shutil.which("bwrap") is None:
         raise SandboxUnavailable("Python files can't be checked without a sandbox: install bubblewrap (the bwrap command)")
     tiny = ["--size", str(1024 * 1024)]
     args = ["--ro-bind", "/", "/",
@@ -66,6 +65,8 @@ def run_sandboxed(argv: list[str], workdir: Path, timeout: float, read_only: tup
     setup = (f'mkdir {SANDBOX_DIR} && cp -a {SOURCE_DIR}/. {SANDBOX_DIR} '
              f'|| {{ echo "{_SETUP_FAILED}" >&2; exit 125; }}; cd {SANDBOX_DIR} && exec "$@"')
     processes = _user_tasks() + NPROC_EXTRA
+    import resource  # Unix-only; imported after the fail-closed platform/sandbox check.
+
     _, hard_processes = resource.getrlimit(resource.RLIMIT_NPROC)
     if hard_processes != resource.RLIM_INFINITY:
         processes = min(processes, hard_processes)

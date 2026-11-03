@@ -27,7 +27,7 @@ Desktop study preferences persist through the engine to `config.json`. Browser l
 
 ## Local AI and privacy
 
-The desktop engine binds only to `127.0.0.1`, verifies Host and Origin, and requires the per-session token (Authorization header; query token for SSE). The session token is never written to logs. Desktop Ollama uses loopback, and online notebook bridge routes are disabled. Downloads and explicitly installed extensions can use the network; the core desktop UI has no remotely loaded fonts, scripts or analytics.
+The desktop engine binds only to `127.0.0.1`, verifies Host and Origin, and requires the per-session token (Authorization header; query token for SSE). The session token is never written to logs. Desktop Ollama uses loopback without environment proxies or redirects, rejects remote model aliases, and online notebook bridge routes are disabled. Downloads and explicitly installed extensions can use the network; the core desktop UI has no remotely loaded fonts, scripts or analytics.
 
 The GUI can request a model download and report progress, failure or completion. Notes stay usable while AI is missing. Model choice and settings are saved on disk. Generated artifacts split selected note input rather than truncating it; this guarantees input delivery, not perfect semantic coverage by the model.
 

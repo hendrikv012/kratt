@@ -14,6 +14,7 @@ import queue
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from socketserver import TCPServer
 from urllib.parse import parse_qs, urlparse
 
 from memory_engine import local_ai, notebook_bridge
@@ -287,7 +288,7 @@ class _Handler(BaseHTTPRequestHandler):
         # EventSource has no custom headers; its token is confined to the local event URL.
         if url.path == "/events" and not supplied:
             supplied = query.get("token", "")
-        if token and not hmac.compare_digest(token, supplied):
+        if token and not hmac.compare_digest(token.encode(), supplied.encode()):
             self._send(401, {"error": "Kratt connection expired; restart the app"}, origin)
             return
         if os.environ.get("KRATT_DESKTOP") == "1" and (url.path.startswith("/notebook/") or url.path == "/setting/notebook-password"):
@@ -357,6 +358,13 @@ class _Handler(BaseHTTPRequestHandler):
 
 class StudyServer(ThreadingHTTPServer):
     daemon_threads = True
+
+    def server_bind(self):
+        # Loopback needs no reverse DNS. HTTPServer's getfqdn can stall desktop startup
+        # on systems whose hostname/DNS is unavailable (including macOS CI runners).
+        TCPServer.server_bind(self)
+        self.server_name = "localhost"
+        self.server_port = self.server_address[1]
 
     def __init__(self, folder: Path, port: int, ollama: local_ai.OllamaKeeper | None = None):
         super().__init__(("127.0.0.1", port), _Handler)

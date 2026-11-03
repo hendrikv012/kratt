@@ -45,7 +45,17 @@ def main():
             engine_in(temporary / "squashfs-root")
             copies.append((appimage, prefix + ".AppImage"))
             deb = exactly_one("deb/*.deb")
-            subprocess.run(["dpkg-deb", "-x", str(deb), str(temporary / "deb")], check=True)
+            if shutil.which("dpkg-deb"):
+                subprocess.run(["dpkg-deb", "-x", str(deb), str(temporary / "deb")], check=True)
+            else:
+                # Arch build hosts have binutils, but need not have Debian's package tools.
+                members = subprocess.check_output(["ar", "t", str(deb)], text=True).splitlines()
+                member = next(name for name in members if name.startswith("data.tar"))
+                archive_path = temporary / member
+                with archive_path.open("wb") as data:
+                    subprocess.run(["ar", "p", str(deb), member], stdout=data, check=True)
+                with tarfile.open(archive_path) as data:
+                    data.extractall(temporary / "deb", filter="data")
             engine_in(temporary / "deb")
             copies.append((deb, prefix + ".deb"))
             # A portable fallback includes the full AppDir and its AppRun launcher.

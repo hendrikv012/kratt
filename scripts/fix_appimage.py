@@ -22,8 +22,12 @@ def main():
     if not tool.exists():
         urllib.request.urlretrieve("https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage", tool)
     assert hashlib.sha256(tool.read_bytes()).hexdigest() == TOOL_SHA256, "appimagetool checksum mismatch"
+    runtime = tool.parent / "runtime-x86_64"
+    if not runtime.exists():
+        urllib.request.urlretrieve("https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-x86_64", runtime)
+    assert hashlib.sha256(runtime.read_bytes()).hexdigest() == "617aa77314d57c8b8e4fae9c3f0b35af7b30d5529cb69e98f64f92510ed98a46", "AppImage runtime checksum changed; review before updating the pin"
     tool.chmod(0o755)
-    subprocess.run([str(tool), "--appimage-extract-and-run", "--no-appstream", str(appdir), str(images[0])],
+    subprocess.run([str(tool), "--appimage-extract-and-run", "--no-appstream", "--runtime-file", str(runtime), str(appdir), str(images[0])],
                    env={**os.environ, "ARCH": "x86_64"}, check=True)
 
 

@@ -83,10 +83,22 @@ def find_ollama(system: str | None = None, env: dict | None = None, exists: Call
     return next((place for place in places if exists(place)), None)
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def _open(request, timeout):
+    if os.environ.get("KRATT_DESKTOP") == "1":
+        # Local notes must not be forwarded through a corporate proxy or an HTTP redirect.
+        return urllib.request.build_opener(urllib.request.ProxyHandler({}), _NoRedirect()).open(request, timeout=timeout)
+    return urllib.request.urlopen(request, timeout=timeout)
+
+
 def installed_models(url: str, timeout: float = CHECK_TIMEOUT) -> list[dict] | None:
     """What `GET /api/tags` lists, or None when nothing answers there like Ollama does."""
     try:
-        with urllib.request.urlopen(f"{url.rstrip('/')}/api/tags", timeout=timeout) as reply:
+        with _open(f"{url.rstrip('/')}/api/tags", timeout=timeout) as reply:
             models = json.loads(reply.read())["models"]
     except (OSError, http.client.HTTPException, ValueError, KeyError, TypeError):
         return None
@@ -215,10 +227,12 @@ class OllamaKeeper:
         request = urllib.request.Request(f"{self.url.rstrip('/')}/api/pull",
             data=json.dumps({"model": model, "stream": True}).encode(), headers={"Content-Type": "application/json"})
         try:
-            with urllib.request.urlopen(request, timeout=ASK_TIMEOUT) as response:
+            with _open(request, timeout=ASK_TIMEOUT) as response:
                 success = False
                 for line in response:
                     data = json.loads(line)
+                    if not isinstance(data, dict):
+                        raise ValueError("Ollama returned an invalid download status")
                     if data.get("error"):
                         raise ValueError(str(data["error"]))
                     success = data.get("status") == "success"
@@ -276,7 +290,7 @@ def ask(keeper: OllamaKeeper, model: str | None, prompt: str) -> str:
     request = urllib.request.Request(f"{keeper.url.rstrip('/')}/api/chat", data=json.dumps(payload).encode("utf-8"),
                                      headers={"Content-Type": "application/json"}, method="POST")
     try:
-        with urllib.request.urlopen(request, timeout=ASK_TIMEOUT) as reply:
+        with _open(request, timeout=ASK_TIMEOUT) as reply:
             answer = json.loads(reply.read())
         content = answer["message"]["content"]
     except urllib.error.HTTPError as err:

@@ -8,7 +8,7 @@ from memory_engine.vault import Vault
 from memory_engine.vault_search import VaultSearch
 
 
-def test_session_token_health_cors_and_local_only(tmp_path, monkeypatch):
+def test_session_token_health_cors_and_explicit_online_selection(tmp_path, monkeypatch):
     monkeypatch.setenv("KRATT_ENGINE_TOKEN", "secret-session")
     monkeypatch.setenv("KRATT_DESKTOP", "1")
     monkeypatch.setenv("MEMORY_ENGINE_CONFIG", str(tmp_path / "config.json"))
@@ -27,7 +27,19 @@ def test_session_token_health_cors_and_local_only(tmp_path, monkeypatch):
         assert request("/vault", token="wrong")[0] == 401
         assert request("/vault", origin="https://evil.example")[0] == 403
         assert request("/notebook/status")[0] == 403
-        assert request("/setting/local-ai", method="PUT", body={"local": False})[0] == 400
+        calls = []
+        monkeypatch.setattr(server.online_ai, "ask", lambda prompt: calls.append(prompt) or "Provider answer")
+        assert request("/ai/settings", token="wrong")[0] == 401
+        assert request("/ai/settings", origin="https://evil.example")[0] == 403
+        assert request("/ai/ask", method="POST", body={"prompt": "private note"})[0] == 400
+        assert not calls
+        saved = request("/ai/settings", method="PUT", body={"provider": "openai", "key": "test-private-key", "model": "test-model"})
+        assert saved[0] == 200 and saved[1]["profiles"]["openai"]["keySet"]
+        assert "test-private-key" not in json.dumps(request("/ai/settings")[1])
+        assert request("/setting/local-ai", method="PUT", body={"local": False})[0] == 200
+        assert request("/ai/ask", method="POST", body={"prompt": "selected test text"}) == (200, {"output": "Provider answer"})
+        assert calls == ["selected test text"]
+        assert request("/ai/chatgpt/cancel", method="POST")[1]["pending"] is False
         assert request("/setting/preferences", method="PUT", body={"preferences": {"appearance": {"themeId": "chalk"}}})[0] == 200
         assert json.loads((tmp_path / "config.json").read_text())["preferences"]["appearance"]["themeId"] == "chalk"
     finally:

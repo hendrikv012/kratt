@@ -58,9 +58,9 @@ export function Segmented({ value, options, onChange, label, size = "default" })
   );
 }
 
-export function Select({ id, value, options, onChange }) {
+export function Select({ id, value, options, onChange, disabled = false }) {
   return (
-    <select id={id} className="st-select" value={value} onChange={(e) => onChange(e.target.value)}>
+    <select id={id} className="st-select" disabled={disabled} value={value} onChange={(e) => onChange(e.target.value)}>
       {options.map((o) => (
         <option key={o.value} value={o.value}>
           {o.label}

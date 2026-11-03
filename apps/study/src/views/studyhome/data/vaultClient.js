@@ -1,4 +1,4 @@
-import { connection } from "../../../desktop/runtime";
+import { connection, isDesktop } from "../../../desktop/runtime";
 // Talks to `memory-engine serve`, the Study folder service on this computer.
 // One method per route; a service that can't be reached throws VaultOffline.
 
@@ -36,13 +36,22 @@ export function createVaultClient({
     } catch {
       data = {};
     }
-    if (!reply.ok) throw new Error(data.error || `The Study folder service answered ${reply.status}`);
+    if (!reply.ok) throw Object.assign(new Error(data.error || `The Study folder service answered ${reply.status}`), { code: data.code });
     return data;
   }
 
   const query = (path) => encodeURIComponent(path);
 
   return {
+    aiSettings: () => call("GET", "/ai/settings"),
+    saveAiSettings: (settings) => call("PUT", "/ai/settings", settings),
+    aiModels: () => call("GET", "/ai/models"),
+    chatgptLogin: (account) => call("POST", "/ai/chatgpt/login", { account }),
+    chatgptSelect: (account) => call("POST", "/ai/chatgpt/select", { account }),
+    chatgptLogout: () => call("POST", "/ai/chatgpt/logout", {}),
+    chatgptCancel: () => call("POST", "/ai/chatgpt/cancel", {}),
+    claudeStatus: () => call("GET", "/ai/claude/status"),
+    claudeLogin: () => call("POST", "/ai/claude/login", {}),
     health: () => call("GET", "/health"),
     preferences: () => call("GET", "/setting/preferences"),
     setPreferences: (preferences) => call("PUT", "/setting/preferences", { preferences }),
@@ -60,7 +69,7 @@ export function createVaultClient({
     folder: () => call("GET", "/setting/folder"),
     setFolder: (path) => call("PUT", "/setting/folder", { path }),
     // Open Notebook, through the service's bridge. Failures are "ai-unavailable" or "ai-auth".
-    notebookAsk: (address, prompt) => call("POST", "/notebook/ask", { base_url: address, prompt }),
+    notebookAsk: (address, prompt) => isDesktop() ? call("POST", "/ai/ask", { prompt }) : call("POST", "/notebook/ask", { base_url: address, prompt }),
     notebookStatus: (address) => call("GET", `/notebook/status?base_url=${query(address)}`),
     hasNotebookPassword: () => call("GET", "/setting/notebook-password"),
     setNotebookPassword: (password) => call("PUT", "/setting/notebook-password", { password: password || null }),

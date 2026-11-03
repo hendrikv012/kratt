@@ -65,7 +65,7 @@ function readChanges() {
 
 const loadChanges = () => {
   const changes = upgradeSettings(readChanges());
-  return isDesktop() ? { ...changes, ai: { ...changes.ai, model: "local", apiKey: "" } } : changes;
+  return isDesktop() ? { ...changes, ai: { ...changes.ai, apiKey: "" } } : changes;
 };
 let preferenceWrite = Promise.resolve();
 

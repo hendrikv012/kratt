@@ -137,10 +137,21 @@ pub async fn desktop_start(app: tauri::AppHandle) -> Result<Connection, String> 
 #[tauri::command]
 pub fn desktop_open(app: tauri::AppHandle, target: String) -> Result<(), String> {
     let path = match target.as_str() {
+        "claude" => return open::that("https://code.claude.com/docs/en/setup").map_err(|e| e.to_string()),
+        "chatgpt-usage" => return open::that("https://chatgpt.com/#settings/Usage").map_err(|e| e.to_string()),
         "ollama" => return open::that("https://ollama.com/download").map_err(|e| e.to_string()),
         "logs" => data_dir(&app)?.join("logs"),
         "data" => data_dir(&app)?,
         _ => return Err("Unknown destination".into()),
     };
     open::that(path).map_err(|e| e.to_string())
+}
+
+
+#[tauri::command]
+pub fn desktop_open_auth(url: String) -> Result<(), String> {
+    if !url.starts_with("https://auth.openai.com/api/accounts/authorize?") {
+        return Err("Unexpected sign-in address".into());
+    }
+    open::that(url).map_err(|e| e.to_string())
 }

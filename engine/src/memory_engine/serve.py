@@ -18,6 +18,8 @@ from socketserver import TCPServer
 from urllib.parse import parse_qs, urlparse
 
 from memory_engine import local_ai, notebook_bridge
+from memory_engine.ai_providers import OnlineAi
+from memory_engine.ai_http import ProviderError
 from memory_engine.frontmatter import atomic_write
 from memory_engine.vault import Vault, VaultError
 from memory_engine.vault_search import VaultSearch
@@ -155,8 +157,6 @@ def _local_status(request: "_Handler", query: dict) -> dict:
 def _set_local_ai(request: "_Handler", query: dict) -> dict:
     data = request.json()
     changes = {}
-    if os.environ.get("KRATT_DESKTOP") == "1" and data.get("local") is False:
-        raise VaultError("This desktop build uses local AI only")
     if "local" in data:
         if not isinstance(data["local"], bool):
             raise VaultError("local must be true or false")
@@ -186,12 +186,28 @@ def _preferences(request, query):
     return {}
 
 
+def _ai_ask(request, query):
+    if load_local_ai()["local"]:
+        raise ProviderError("Select Online service in Settings > AI before sending a request online.")
+    return {"output": request.server.online_ai.ask(request.json().get("prompt"))}
+
+
 def _pull_model(request, query):
     model = request.json().get("model")
     return request.server.ollama.pull(model)
 
 
 ROUTES = {
+    ("GET", "/ai/settings"): lambda request, query: request.server.online_ai.settings(),
+    ("PUT", "/ai/settings"): lambda request, query: request.server.online_ai.store.save(request.json()),
+    ("GET", "/ai/models"): lambda request, query: request.server.online_ai.models(),
+    ("POST", "/ai/ask"): _ai_ask,
+    ("POST", "/ai/chatgpt/login"): lambda request, query: request.server.online_ai.auth.start(request.json().get("account")),
+    ("POST", "/ai/chatgpt/select"): lambda request, query: request.server.online_ai.auth.select(request.json().get("account")),
+    ("POST", "/ai/chatgpt/logout"): lambda request, query: request.server.online_ai.auth.sign_out(),
+    ("POST", "/ai/chatgpt/cancel"): lambda request, query: request.server.online_ai.auth.cancel(),
+    ("GET", "/ai/claude/status"): lambda request, query: request.server.online_ai.claude_status(),
+    ("POST", "/ai/claude/login"): lambda request, query: request.server.online_ai.claude_login(),
     ("GET", "/health"): lambda request, query: {"ok": True, "service": "kratt-engine", "protocol": 1},
     ("GET", "/search"): lambda request, query: {"hits": request.server.search.search(query.get("q", ""))},
     ("GET", "/setting/preferences"): lambda request, query: {"preferences": _load_config().get("preferences")},
@@ -292,7 +308,7 @@ class _Handler(BaseHTTPRequestHandler):
             self._send(401, {"error": "Kratt connection expired; restart the app"}, origin)
             return
         if os.environ.get("KRATT_DESKTOP") == "1" and (url.path.startswith("/notebook/") or url.path == "/setting/notebook-password"):
-            self._send(403, {"error": "This desktop build uses local AI only"}, origin)
+            self._send(403, {"error": "The legacy Open Notebook bridge is unavailable in the desktop app. Choose a provider in Settings > AI."}, origin)
             return
         route = ROUTES.get((self.command, url.path))
         if route is None:
@@ -300,6 +316,8 @@ class _Handler(BaseHTTPRequestHandler):
             return
         try:
             result = route(self, query)
+        except ProviderError as err:
+            self._send(err.status, {"error": str(err), "code": "provider"}, origin)
         except (notebook_bridge.NotebookError, local_ai.LocalAiError) as err:
             self._send(err.status, {"error": str(err)}, origin)
         except VaultError as err:
@@ -370,6 +388,7 @@ class StudyServer(ThreadingHTTPServer):
         super().__init__(("127.0.0.1", port), _Handler)
         self.token = os.environ.get("KRATT_ENGINE_TOKEN", "")
         self.ollama = ollama or local_ai.OllamaKeeper()
+        self.online_ai = OnlineAi(config_path().parent)
         self.stopping = threading.Event()
         self._lock = threading.Lock()
         self._subscribers: list[queue.Queue] = []
@@ -418,6 +437,7 @@ class StudyServer(ThreadingHTTPServer):
     def server_close(self) -> None:
         super().server_close()
         self.ollama.stop()  # only an Ollama this service started
+        self.online_ai.close()
 
 
 def make_server(folder: Path, port: int = DEFAULT_PORT, ollama: local_ai.OllamaKeeper | None = None) -> StudyServer:

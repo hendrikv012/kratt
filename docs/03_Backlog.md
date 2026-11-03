@@ -88,3 +88,6 @@ Note: ticket statuses below predate the landing of the real code. Re-validate in
 
 ### F-13 · Frontend / brand (owner-authorized) · done
 **Carry the app's Ember design into the product site, GitHub presentation and unthemed desktop surfaces.** Use the existing palette/type/mascot, review responsive screenshots, preserve release links and app theme choices. The owner explicitly requested this across the site, repository presentation and frontend.
+
+### D-03 · AI providers (owner-authorized) · done
+**Restore online AI choices in the desktop app.** Add direct OpenAI/Claude and compatible APIs, supported subscription authentication, protected local credential storage, and provider-aware startup/chat/artifacts. The owner's request supersedes D-01's local-only AI restriction; local files remain authoritative and remote requests require an explicit online-provider choice.

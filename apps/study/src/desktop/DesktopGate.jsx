@@ -27,7 +27,8 @@ export default function DesktopGate({ children }) {
       if (opened) { setPhase("ready"); return; }
       const { preferences } = await client.preferences();
       connection().preferences = preferences;
-      await checkAi();
+      if (preferences?.ai?.model === "cloud") enter();
+      else await checkAi();
     } catch (e) { setError(String(e.message || e)); setPhase("failed"); }
   };
   useEffect(() => { if (desktop) start(); }, []); // startup is deduplicated across StrictMode mounts
@@ -57,7 +58,7 @@ export default function DesktopGate({ children }) {
         {error && <p role="alert">{error}</p>}
         {phase === "failed" && <div className="kratt-startup-actions"><button className="kratt-startup-primary" onClick={start}>Retry</button><button onClick={() => open("logs")}>Open logs</button></div>}
         {phase === "setup" && <>
-          <p>Your notes live in <strong>{connection()?.studyDir}</strong>. You can study without AI, or connect Ollama to make flashcards, slides and quizzes locally.</p>
+          <p>Your notes live in <strong>{connection()?.studyDir}</strong>. Continue to notes to choose an online AI in Settings → AI, or connect Ollama here to work locally.</p>
           {ai?.state === "not-installed" ? <><p>Ollama is not installed. Open its download page, install it, then come back to Kratt.</p><button onClick={() => open("ollama")}>Install Ollama</button></> : ai?.state === "failed" ? <p role="alert">Ollama could not start. {ai.detail}</p> : <>
             {!!ai?.models?.length && <label>Choose an installed model <select aria-label="Installed model" defaultValue="" onChange={async (e) => { try { await client.setLocalAi({ local: true, model: e.target.value }); await checkAi(); } catch (e) { setError(e.message); } }}>
               <option value="" disabled>Choose a model</option>{ai.models.map((name) => <option key={name}>{name}</option>)}

@@ -11,3 +11,8 @@ Why things are the way they are. Newest first. Any change to `02_Architecture.md
 | 2026-10-31 | `kratt/` template left untouched; its fate deferred (T-03) | Owner decision; the template has no product code and its fix-spec is pending — nothing is blocked by keeping it |
 | 2026-10-19 | BaseN → KRATT rename; real workspace moved to a local folder (`apps/study`, `engine/`, `docs/`, `scripts/`) | Recorded from the previous root CLAUDE.md |
 | earlier | Lokus/OpenNB forks supersede the Obsidian/Logseq base idea; glue service FastAPI vs Express left open (B-01) | Final confirmation pending (A-01) |
+
+
+## 2026-11-03: optional online AI and subscriptions
+
+The owner explicitly requested restoring local/online AI selection, APIs and supported subscription plans. This supersedes the earlier local-only product boundary. Keep local Ollama as the default, add direct provider transport inside the authenticated engine, and preserve file-based notes. Remote prompts require an explicit online choice. Credentials are kept outside notes/preferences in protected local storage. Use official ChatGPT public-client OAuth and Claude Code subscription authentication, without extracting another app's tokens or treating subscriptions as generic API keys. No Kratt cloud backend is introduced.

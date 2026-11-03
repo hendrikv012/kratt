@@ -1,6 +1,6 @@
 [package]
 name = "kratt"
-version = "1.3.3"
+version = "1.4.0"
 description = "Kratt, the study app, as a desktop app"
 authors = ["caesarsta"]
 repository = "https://github.com/hendrikv012/kratt"

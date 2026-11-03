@@ -15,7 +15,7 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .manage(service::Service(Mutex::new(service::Runtime::default())))
         .invoke_handler(tauri::generate_handler![
-            service::desktop_start, service::desktop_open,
+            service::desktop_start, service::desktop_open, service::desktop_open_auth,
             study_extensions::ext_stage_download, study_extensions::ext_stage_file,
             study_extensions::ext_commit, study_extensions::ext_discard,
             study_extensions::ext_remove, study_extensions::ext_fetch_text,

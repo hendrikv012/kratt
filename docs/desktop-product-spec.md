@@ -40,3 +40,9 @@ Current artifacts are unsigned previews. Full public-release acceptance still ne
 ## Online providers
 
 The owner requested provider choice after the initial local-only preview. `ai-providers.json` lives outside Study, uses owner-only file creation, and contains per-provider keys and separate ChatGPT account registrations. The UI receives only model/address metadata, key-present flags and account labels. It never persists new keys in browser preferences. ChatGPT uses PKCE and verified OIDC identity, serialized token refresh, revocation on sign-out and completed Responses streaming; Claude subscription use delegates to the installed official client with tools/MCP/hooks disabled. There is no automatic fallback to paid API credentials. See `ai-providers.md` for setup, provider contracts and validation limits.
+
+## Sources boxes
+
+Sources opens a subject grid with an always-available Unsorted box. Opening a subject shows its source cards; opening a card displays the original source content. Rich box shows counts and metadata, Simple box is compact, and Preview box shows source titles or text excerpts. The Box style control also offers the previous grouped List. All use the current app theme. New source inside a subject assigns it to that subject; menus, use checkboxes, sorting and drag-to-move/copy remain available.
+
+Presentation preferences (`layout.sources.style` and `subjectId`) use the existing settings persistence, including desktop `config.json`. Source content and membership remain in the existing Markdown files; changing style does not rewrite them. The provided HTML's future web-search mockup is outside this Sources layout change.

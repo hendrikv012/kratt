@@ -340,6 +340,8 @@ function Shell({ settingsState, splashDone }) {
     () => ({
       intro,
       palette: SUBJECT_COLORS,
+      sourcesLayout: settings.layout.sources,
+      setSourcesLayout: (patch) => set("layout", (layout) => ({ sources: { ...layout.sources, ...patch } })),
       graph: settings.graphView,
       setGraph: (patch) => set("graphView", patch),
       ai,

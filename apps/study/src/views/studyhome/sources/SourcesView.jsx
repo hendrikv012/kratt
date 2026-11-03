@@ -1,22 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowDown, ArrowUp, ArrowUpDown, FileText, Plus } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Plus } from "lucide-react";
 import { useStudy } from "../data/StudyProvider";
 import { useShell } from "../ShellContext";
 import Dialog from "../dialogs/Dialog";
 import AddSourceDialog from "./AddSourceDialog";
 import SourceGroup, { Cols } from "./SourceGroup";
 import SourceRow from "./SourceRow";
+import SourcesBoxes from "./SourcesBoxes";
+import { BOX_STYLES } from "./boxSummary";
+import "./boxes.css";
 import SubjectsDialog from "./SubjectsDialog";
 import { UNSORTED } from "../data/tree";
 import { sourceGroups, readCollapsed, writeCollapsed, isCollapsed, dropAction, dropMessage } from "./groups";
 import "./sources.css";
 
-// The Sources tab, laid out like Open Notebook's (frontend/src/app/
-// (dashboard)/sources/page.tsx): a sortable table of every source with its
-// type, title, when it was added and changed, and delete. Study addition:
-// a tick for which sources to use, and a group per subject (a source in two
-// subjects shows in both; the rest sit under Unsorted).
+// Source actions are shared by the subject boxes and the optional grouped list.
 
 export const TYPE_NAMES = { link: "Link", file: "File", text: "Text" };
 export const titleOf = (source) => source.title || "Untitled source";
@@ -42,7 +41,9 @@ function SortHeader({ field, label, sort, onSort }) {
 
 export default function SourcesView() {
   const { state, actions } = useStudy();
-  const { open, toast } = useShell();
+  const { open, toast, sourcesLayout, setSourcesLayout } = useShell();
+  const style = BOX_STYLES.some((s) => s.value === sourcesLayout?.style) ? sourcesLayout.style : "rich";
+  const groupId = sourcesLayout?.subjectId ?? null;
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState(null);
   const [sort, setSort] = useState({ by: "updated", order: "desc" });
@@ -59,6 +60,7 @@ export default function SourcesView() {
     return sort.order === "desc" ? (a, b) => by(b, a) : by;
   }, [sort]);
   const groups = useMemo(() => sourceGroups(state, compare), [state, compare]);
+  const activeGroup = groups.find((g) => g.id === groupId);
 
   // The rows on screen, in order; a collapsed group has none. Keys are per row
   // instance because one source can sit in several groups.
@@ -142,7 +144,7 @@ export default function SourcesView() {
   // Notebook. Fields, menus and dialogs own their keys; buttons own Enter and Space.
   useEffect(() => {
     const onKey = (e) => {
-      if (adding || deleting || pickingOpen || rows.length === 0) return;
+      if (style !== "list" || adding || deleting || pickingOpen || rows.length === 0) return;
       const target = e.target.closest ? e.target : null;
       if (target?.closest("input, textarea, select, [role=menu], [role=dialog], dialog")) return;
       // A focused button keeps Enter and Space for itself; arrows still move the selection.
@@ -156,42 +158,43 @@ export default function SourcesView() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [adding, deleting, pickingOpen, rows, current, open]);
+  }, [style, adding, deleting, pickingOpen, rows, current, open]);
 
   const allUsed = state.sources.length > 0 && state.sources.every((s) => s.use);
   // Subjects a source being deleted is in besides the group Delete was chosen from.
   const others = deleting
     ? (deleting.source.subjects ?? []).filter((id) => id !== deleting.from).map((id) => state.nodes[id]?.name ?? id)
     : [];
-  const addDialog = adding && <AddSourceDialog onDone={() => setAdding(false)} />;
+  const addDialog = adding && <AddSourceDialog subjectId={style !== "list" && activeGroup?.id !== UNSORTED ? activeGroup?.id : null} onDone={() => setAdding(false)} />;
 
-  if (state.sources.length === 0) {
-    return (
-      <div className="st-src-empty">
-        <FileText size={32} aria-hidden="true" />
-        <h2>No sources yet</h2>
-        <p>Add a link, a file or pasted text you study from.</p>
-        <button className="st-src-outline" onClick={() => setAdding(true)}>
-          <Plus size={15} aria-hidden="true" /> New source
-        </button>
-        {addDialog}
-      </div>
-    );
-  }
 
   return (
-    <div className="st-src">
+    <div className="st-src" data-box-style={style}>
       <header className="st-src-head">
         <div>
-          <h1>All sources</h1>
-          <p>View all your sources here. You can add new sources or manage existing ones.</p>
+          <h1>Sources</h1>
+          <p>Your study materials, organised by subject.</p>
         </div>
-        <button className="st-src-outline" onClick={() => setAdding(true)}>
-          <Plus size={15} aria-hidden="true" /> New source
-        </button>
+        <div className="st-src-tools">
+          <label className="st-src-style">Box style
+            <select value={style} onChange={(e) => setSourcesLayout({ style: e.target.value })}>
+              {BOX_STYLES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+            </select>
+          </label>
+          <button className="st-src-outline" onClick={() => setAdding(true)}>
+            <Plus size={15} aria-hidden="true" /> New source
+          </button>
+        </div>
       </header>
 
-      <div className="st-src-table-wrap">
+      {style !== "list" ? (
+        <SourcesBoxes groups={groups} style={style} groupId={groupId}
+          onGroup={(subjectId) => setSourcesLayout({ subjectId })}
+          onAdd={() => setAdding(true)} onOpen={(source) => open({ view: "source", id: source.id })}
+          menuItems={menuItems} dragProps={dragProps} dropProps={dropProps} dragging={dragging} overId={overId}
+          sort={sort} onSort={(next) => setSort(next)} />
+      ) : <div className="st-src-table-wrap">
+        {state.sources.length === 0 && <div className="st-src-box-empty"><h2>No sources yet</h2><p>Add a link, file or pasted text with New source.</p></div>}
         <div className="st-src-grid">
           <table className="st-src-table st-src-sorts">
             <Cols />
@@ -236,7 +239,7 @@ export default function SourcesView() {
             </SourceGroup>
           ))}
         </div>
-      </div>
+      </div>}
 
       {addDialog}
       {pickingOpen && <SubjectsDialog sourceId={picking} onDone={() => setPicking(null)} />}

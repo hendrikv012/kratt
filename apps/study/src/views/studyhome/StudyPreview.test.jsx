@@ -174,13 +174,14 @@ describe("study app", () => {
     });
     fireEvent.click(within(dialog).getByRole("button", { name: "Add source" }));
 
-    // The first line became the title.
-    const row = screen.getByText("Mitosis").closest("tr");
+    fireEvent.click(screen.getByRole("button", { name: "Open Unsorted, 1 source" }));
+    // The first line became the title of the source box.
+    const row = screen.getByRole("article", { name: "Mitosis" });
     expect(within(row).getByText("Text")).toBeTruthy();
     fireEvent.click(within(row).getByRole("checkbox", { name: "Use Mitosis" }));
     expect(within(row).getByRole("checkbox", { name: "Use Mitosis" }).checked).toBe(false);
 
-    fireEvent.click(row);
+    fireEvent.click(within(row).getByRole("button", { name: "Open Mitosis" }));
     expect(screen.getByDisplayValue("Mitosis")).toBeTruthy();
     expect(screen.getByText(/Cells divide into two/)).toBeTruthy();
     fireEvent.click(screen.getByRole("tab", { name: "Details" }));
@@ -204,9 +205,10 @@ describe("study app", () => {
 
     fireEvent.change(urls, { target: { value: "https://www.khanacademy.org/biology\nhttps://en.wikipedia.org/wiki/Mitosis" } });
     fireEvent.click(within(dialog).getByRole("button", { name: "Add source" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open Unsorted, 2 sources" }));
     expect(screen.getByText("khanacademy.org/biology")).toBeTruthy();
     expect(screen.getByText("en.wikipedia.org/wiki/Mitosis")).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "All sources" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Sources" })).toBeTruthy();
   });
 
   it("Sources: a text file keeps its text", async () => {
@@ -220,7 +222,8 @@ describe("study app", () => {
     await act(async () => {
       fireEvent.click(within(dialog).getByRole("button", { name: "Add source" }));
     });
-    fireEvent.click(await screen.findByText("photo-notes"));
+    fireEvent.click(await screen.findByRole("button", { name: "Open Unsorted, 1 source" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open photo-notes" }));
     expect(screen.getByText("Photosynthesis makes sugar.")).toBeTruthy();
   });
 
@@ -235,7 +238,8 @@ describe("study app", () => {
     await act(async () => {
       fireEvent.click(within(dialog).getByRole("button", { name: "Add source" }));
     });
-    fireEvent.click(await screen.findByText("Chapter 9"));
+    fireEvent.click(await screen.findByRole("button", { name: "Open Unsorted, 1 source" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open Chapter 9" }));
     expect(screen.getByText(/Mitochondria make ATP/)).toBeTruthy();
     fireEvent.click(screen.getByRole("tab", { name: "Details" }));
     expect(screen.getByText("Pages").nextSibling.textContent).toBe("2");

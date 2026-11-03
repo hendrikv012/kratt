@@ -32,7 +32,7 @@ beforeEach(() => {
 
 const view = (snap = SNAP) => (
   <StudyProvider client={fakeClient(snap)}>
-    <ShellContext.Provider value={{ open, toast }}>
+    <ShellContext.Provider value={{ open, toast, sourcesLayout: { style: "list" }, setSourcesLayout: vi.fn() }}>
       <SourcesView />
     </ShellContext.Provider>
   </StudyProvider>
@@ -274,7 +274,7 @@ it("keys work again when the source in the Subjects dialog is deleted", async ()
   };
   render(
     <StudyProvider client={fakeClient(SNAP)}>
-      <ShellContext.Provider value={{ open, toast }}>
+      <ShellContext.Provider value={{ open, toast, sourcesLayout: { style: "list" }, setSourcesLayout: vi.fn() }}>
         <SourcesView />
         <Probe />
       </ShellContext.Provider>

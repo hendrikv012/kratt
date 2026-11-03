@@ -36,7 +36,7 @@ export const DEFAULTS = {
     krattMoves: true,
     textSize: "normal",
   },
-  layout: { version: 1, sidebar: { chats: true, artifacts: true, review: true, pinned: true }, kinds: {}, home: null, sideWidth: 256, tabsAt: "top", tabs: { list: ["home"], active: "home" } },
+  layout: { sources: { style: "rich", subjectId: null }, version: 1, sidebar: { chats: true, artifacts: true, review: true, pinned: true }, kinds: {}, home: null, sideWidth: 256, tabsAt: "top", tabs: { list: ["home"], active: "home" } },
   home: {
     clock: { style: "digital", hours: "24", seconds: false, date: true },
   },

@@ -98,3 +98,6 @@ Note: ticket statuses below predate the landing of the real code. Re-validate in
 
 ### D-05 · Desktop packaging · todo
 **Repair Intel macOS frozen-engine OpenSSL linking.** Native run `41723137985` failed its packaged-engine smoke test on macos-x86_64 with `_SSL_get0_group_name` missing from cryptography's extension. Other platform results do not establish Intel macOS readiness.
+
+### F-14 · Frontend (owner-requested) · done
+**Sources boxes from the supplied HTML reference.** Subject boxes open source-card grids; Rich, Simple and Preview styles are selectable and persisted in desktop preferences. Preserve source actions and the existing list option. Include empty subjects, responsive themes and keyboard operation.

@@ -1,0 +1,52 @@
+/* Geometry from the owner's A/B/C reference; colour and type stay theme-owned. */
+.st-src[data-box-style] { min-height: 0; }
+.st-src-tools, .st-src-style { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.st-src-style { color: var(--st-text-soft); font-size: max(14px, var(--st-min-text)); }
+.st-src-style select { background: var(--st-surface); color: var(--st-text); border: 1px solid var(--st-line-strong); border-radius: 6px; padding: 7px 10px; font: inherit; max-width: 100%; }
+.st-src-boxes-scroll { flex: 1; min-height: 0; overflow: auto; padding: 3px; }
+.st-src-box-heading { display: flex; align-items: baseline; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin: 12px 0 28px; }
+.st-src-box-heading h2 { margin: 0; font-size: 22px; font-weight: 500; overflow-wrap: anywhere; }
+.st-src-box-heading p, .st-src-box-empty p { margin: 0; font: 14px/1.5 var(--st-page-font); color: var(--st-text-soft); }
+.st-src-box-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 16px; align-items: stretch; }
+.st-src-box { display: flex; flex-direction: column; min-width: 0; gap: 14px; padding: 18px; border: 1px solid var(--st-line); border-radius: 10px; background: var(--st-surface); color: var(--st-text); text-align: left; }
+.st-src-subject-box { min-height: 168px; cursor: pointer; align-items: stretch; }
+.st-src-subject-box > span { width: 100%; min-width: 0; }
+.st-src-subject-box:hover, .st-src-card:focus-within { border-color: var(--st-line-strong); }
+.st-src-box-title { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 500; line-height: 1.3; }
+.st-src-box-title > span:not(.st-src-box-dot) { min-width: 0; overflow-wrap: anywhere; }
+.st-src-box-title > svg { flex: none; color: var(--st-text-soft); }
+.st-src-box-dot { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+.st-src-box-count { color: var(--st-text-soft); font-size: 15px; }
+.st-src-box-count strong { color: var(--st-text); font-size: 34px; line-height: 1; font-weight: 500; margin-right: 4px; }
+.st-src-box-count-small { margin-left: auto; color: var(--st-text-soft); font-size: 17px; }
+.st-src-box-meta { font: 14px/1.5 var(--st-page-font); color: var(--st-text-soft); overflow-wrap: anywhere; }
+.st-src-box-summary { margin-top: auto; display: flex; flex-direction: column; gap: 4px; }
+.st-src-box-summary > span { color: var(--st-text-faint); }
+.st-src-box-preview { display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--st-line); padding-top: 12px; }
+.st-src-box-preview-row { display: flex; gap: 8px; font: 14px/1.5 var(--st-page-font); }
+.st-src-box-preview-row > :first-child { flex: none; color: var(--st-text-soft); }
+.st-src-box-preview-row > :last-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.st-src-card { padding: 0; gap: 0; overflow: hidden; }
+.st-src-card-open { display: flex; flex: 1; flex-direction: column; align-items: stretch; gap: 14px; padding: 18px; min-height: 156px; text-align: left; cursor: pointer; }
+.st-src-card-open:hover { background: var(--st-hover); }
+.st-src-card-open:focus-visible { outline-offset: -3px; }
+.st-src-card-detail { display: flex; flex-direction: column; gap: 4px; margin-top: auto; }
+.st-src-card-preview { border-top: 1px solid var(--st-line); padding-top: 12px; font: 14px/1.6 var(--st-page-font); color: var(--st-text-soft); overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; }
+.st-src-card-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 14px; border-top: 1px solid var(--st-line); }
+.st-src-card-actions label, .st-src-box-toolbar > label { display: flex; align-items: center; gap: 8px; font-size: max(14px, var(--st-min-text)); color: var(--st-text-soft); }
+.st-src-box-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.st-src-box-back { display: inline-flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+.st-src-box-empty { padding: 40px 16px; text-align: center; border: 1px dashed var(--st-line-strong); border-radius: 10px; }
+.st-src-box-empty h3 { font-size: 20px; margin: 0 0 8px; }
+.st-src-box-empty button { margin-top: 20px; }
+.st-src-drop-subjects { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.st-src-drop-subjects > span { width: 100%; color: var(--st-text-soft); }
+.st-src-drop-subject { padding: 12px; border: 1px dashed var(--st-line-strong); border-radius: 6px; }
+.st-src [data-over] { outline: 2px solid var(--st-accent); outline-offset: -2px; }
+.st-src[data-box-style="simple"] .st-src-subject-box { min-height: 84px; justify-content: center; }
+.st-src[data-box-style="simple"] .st-src-card-open { min-height: 84px; gap: 8px; }
+.st-src[data-box-style="preview"] .st-src-subject-box { min-height: 196px; }
+@media (max-width: 720px) {
+  .st-src[data-box-style] { padding: 20px 28px 20px 16px; }
+  .st-src-box-heading { margin-bottom: 20px; }
+}

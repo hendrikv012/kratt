@@ -65,7 +65,7 @@ async function readFile(file) {
   return base;
 }
 
-export default function AddSourceDialog({ onDone }) {
+export default function AddSourceDialog({ onDone, subjectId = null }) {
   const { actions, client } = useStudy();
   const [uploadError, setUploadError] = useState(null);
   const [type, setType] = useState("link");
@@ -101,7 +101,7 @@ export default function AddSourceDialog({ onDone }) {
         })
       );
     }
-    actions.addSources(items);
+    actions.addSources(items.map((item) => ({ ...item, subjects: subjectId ? [subjectId] : [] })));
     if (failed.length) {
       setBusy(false);
       setUploadError(`Added, but the original file couldn't be kept (${failed.join("; ")})`);

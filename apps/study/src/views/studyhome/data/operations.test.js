@@ -197,6 +197,12 @@ describe("unsorted", () => {
 });
 
 describe("sources", () => {
+  it("adds a source to existing subjects only, without duplicates", () => {
+    const { s, bio, cells } = sample();
+    const next = op.addSources(s, [{ title: "Lecture", type: "text", subjects: [bio, bio, cells, "deleted"] }]);
+    expect(next.sources[0].subjects).toEqual([bio]);
+    expect(op.addSources(op.EMPTY_STATE, [{ title: "Loose", subjects: [bio] }]).sources[0].subjects).toEqual([]);
+  });
   it("adds several at once, newest first, all ticked; untick, edit and delete", () => {
     let s = op.addSources(op.EMPTY_STATE, [{ type: "link", url: "https://a.org", title: "a.org" }]);
     s = op.addSources(s, [

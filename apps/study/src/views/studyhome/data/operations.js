@@ -326,7 +326,7 @@ export const deleteQuickNote = (state, id) => ({ ...state, quickNotes: state.qui
 // Adds several at once, newest first, all ticked.
 export function addSources(state, items) {
   const now = Date.now();
-  const added = items.map((item) => ({ content: "", ...item, id: newId(), use: true, subjects: [], createdAt: now, updatedAt: now }));
+  const added = items.map((item) => ({ content: "", ...item, id: newId(), use: true, subjects: [...new Set((item.subjects ?? []).filter((id) => state.subjects.includes(id)))], createdAt: now, updatedAt: now }));
   return { ...state, sources: [...added, ...state.sources] };
 }
 

@@ -10,7 +10,7 @@ import { createVaultSync } from "./vaultSync";
 // operations (vaultState.planSync) and sent through a queue that never loses typing
 // (vaultSync). Changes made on disk (by hand, or by the local AI) come back as events.
 
-export const OFFLINE_MESSAGE = "Study folder not connected. Start it with: memory-engine serve";
+export const OFFLINE_MESSAGE = "Study folder not connected. Reconnect the local engine or reopen Kratt.";
 const LEGACY_KEY = "study-app-data-v1";
 const LEGACY_DONE_KEY = "study-app-data-v1-imported";
 const REFRESH_DELAY = 300;
@@ -18,9 +18,13 @@ const START_RETRY = 2000;
 
 const StudyContext = createContext(null);
 
-// Pages, quick notes, sources or chats: something a folder switch or the first start must not lose.
+// Pages, quick notes, sources, chats or artifacts: something a folder switch or the first start must not lose.
 const hasContent = (state) =>
-  state.subjects.length > 0 || state.quickNotes.length > 0 || state.sources.length > 0 || state.chats.length > 0 ||
+  state.subjects.length > 0 ||
+  state.quickNotes.length > 0 ||
+  state.sources.length > 0 ||
+  state.chats.length > 0 ||
+  state.artifacts.length > 0 ||
   Object.values(state.nodes).some((node) => node.type === "page");
 
 function readLegacy() {
@@ -37,7 +41,7 @@ function readLegacy() {
 
 const isEmptySnapshot = (snapshot) =>
   snapshot.files.length === 0 &&
-  !snapshot.folders.some((path) => !["Unsorted", "Quick notes", "Sources", "Chats"].includes(path.split("/")[0]));
+  !snapshot.folders.some((path) => !["Unsorted", "Quick notes", "Sources", "Chats", "Artifacts"].includes(path.split("/")[0]));
 
 // `onPhase(phase)` hears every phase change; `renderGate(phase)` replaces the plain gate
 // text while the folder isn't open (the app shows its opening screen instead).

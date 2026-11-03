@@ -1,0 +1,4 @@
+# Build-only environment; the resulting sidecar embeds Python and these runtime imports.
+PyInstaller==6.16.0
+pyinstaller-hooks-contrib==2026.9
+PyYAML==6.0.3

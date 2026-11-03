@@ -12,7 +12,7 @@ import { isPinned } from "./tabs";
 const DRAG_START = 4;
 const SLIDE_MS = 150;
 
-const closable = (id) => id.startsWith("node:") || id.startsWith("source:");
+const closable = (id) => id.startsWith("node:") || id.startsWith("source:") || id.startsWith("artifact:");
 
 function motionReduced(el) {
   return (

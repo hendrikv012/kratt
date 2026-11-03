@@ -67,6 +67,81 @@ describe("sidebar", () => {
   });
 });
 
+describe("artifacts section", () => {
+  const art = (id, title, type, updated) => ({
+    path: `Artifacts/${title}.md`,
+    id,
+    meta: { id, title, type, made_from: ["p1"], made_in: null, created: updated, updated, parts: 1, source_bytes: 1 },
+    body: "### F\nB\n",
+    version: id,
+  });
+  const WITH = {
+    ...SAMPLE_SNAPSHOT,
+    folders: [...SAMPLE_SNAPSHOT.folders, "Artifacts"],
+    files: [
+      ...SAMPLE_SNAPSHOT.files,
+      art("a1", "Oldest", "flashcards", "2026-10-01T10:00:00Z"),
+      art("a2", "Deck", "slides", "2026-10-22T10:00:00Z"),
+      art("a3", "Quiz", "quiz", "2026-10-21T10:00:00Z"),
+      art("a4", "Cards", "flashcards", "2026-10-20T10:00:00Z"),
+    ],
+  };
+  const section = (side) => side.getByText("Artifacts").parentElement;
+
+  it("shows the 3 newest with type icons", async () => {
+    const side = await renderSidebar(WITH);
+    expect(side.queryByText("Oldest")).toBeNull();
+    const rows = ["Deck", "Quiz", "Cards"].map((t) => side.getByText(t).closest("button"));
+    expect(rows.map((r) => r.querySelector("svg").getAttribute("class"))).toEqual([
+      expect.stringContaining("lucide-presentation"),
+      expect.stringContaining("lucide-list-checks"),
+      expect.stringContaining("lucide-layers"),
+    ]);
+    expect(rows[0].querySelector(".st-side-meta").textContent).toBeTruthy();
+  });
+
+  it("says No artifacts yet when empty", async () => {
+    const side = await renderSidebar();
+    expect(side.getByText("No artifacts yet")).toBeTruthy();
+  });
+
+  it("See all opens the Artifacts view", async () => {
+    const side = await renderSidebar(WITH);
+    fireEvent.click(within(section(side)).getByRole("button", { name: "See all" }));
+    expect(screen.getByRole("region", { name: "Artifacts" })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Artifacts" })).toBeTruthy();
+  });
+
+  it("a row opens the artifact tab", async () => {
+    const side = await renderSidebar(WITH);
+    fireEvent.click(side.getByText("Quiz").closest("button"));
+    expect(screen.getByRole("tab", { name: "Quiz" }).getAttribute("aria-selected")).toBe("true");
+  });
+
+  it("is hidden when Settings > Layout > Artifacts is off", async () => {
+    window.history.replaceState(null, "", "/?view=study-preview&settings=layout");
+    render(<StudyPreview client={fakeClient(WITH)} />);
+    const toggle = await screen.findByRole("switch", { name: "Artifacts" });
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+    const side = within(document.querySelector(".st-sidebar"));
+    expect(side.getByText("Deck")).toBeTruthy();
+    fireEvent.click(toggle);
+    expect(side.queryByText("Deck")).toBeNull();
+  });
+
+  it("an older saved sidebar setting still shows Artifacts", async () => {
+    localStorage.setItem(
+      "study-preview-settings-v3",
+      JSON.stringify({ appearance: { upgraded: 2, openingAnimation: false }, layout: { sidebar: { chats: false } } })
+    );
+    window.history.replaceState(null, "", "/?view=study-preview&settings=layout");
+    render(<StudyPreview client={fakeClient(WITH)} />);
+    const toggle = await screen.findByRole("switch", { name: "Artifacts" });
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+    expect(within(document.querySelector(".st-sidebar")).getByText("Deck")).toBeTruthy();
+  });
+});
+
 describe("relativeTime", () => {
   const now = new Date(2026, 9, 20, 12, 0).getTime();
   it("says now, minutes, hours, weekday, then date", () => {

@@ -155,3 +155,27 @@ it("opens the original page from a name link even when a copy sorts first, and o
   click("n2.md");
   expect(opened.at(-1)).toBe("n2");
 });
+
+
+it("opens /Slides in make mode and routes only existing artifact links", async () => {
+  let api;
+  const shell = { open: vi.fn(), askLink() {}, route: { view: "node", id: "p1" }, chat: {} };
+  function Harness() {
+    api = useStudy();
+    return api.state.nodes.p1 ? <PageView id="p1" /> : null;
+  }
+  const { container } = render(
+    <StudyProvider client={fakeClient(SAMPLE_SNAPSHOT)}>
+      <ShellContext.Provider value={shell}><Harness /></ShellContext.Provider>
+    </StudyProvider>
+  );
+  await waitFor(() => expect(container.querySelector(".st-editor")).toBeTruthy());
+  act(() => window.dispatchEvent(new CustomEvent("kratt:ask", { detail: { editor: fakeEditor(container.querySelector(".st-editor")), make: "slides" } })));
+  expect(screen.getByRole("textbox", { name: "Topic for slides" })).toBeInTheDocument();
+  act(() => api.actions.addArtifact({ id: "a1", title: "Cells", type: "slides", madeFrom: ["p1"], items: [{ title: "Cells", body: "Facts" }] }));
+  act(() => window.dispatchEvent(new CustomEvent("lokus:open-file", { detail: "artifact:a1" })));
+  expect(shell.open).toHaveBeenCalledWith({ view: "artifact", id: "a1" });
+  shell.open.mockClear();
+  act(() => window.dispatchEvent(new CustomEvent("lokus:open-file", { detail: "artifact:missing" })));
+  expect(shell.open).not.toHaveBeenCalled();
+});

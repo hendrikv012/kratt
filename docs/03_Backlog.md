@@ -69,3 +69,19 @@ Note: ticket statuses below predate the landing of the real code. Re-validate in
 
 ## Milestone 3 — later
 - B-20 fuzzy/semantic topic matching · B-21 source import (PDF first) · B-22 OCR for test photos · B-23 vector DB
+
+
+## Requested feature — Artifacts
+
+### F-12 · Frontend · done
+**Complete study artifacts from the surviving `feat/artifacts` branch.** Flashcards, slides and quizzes, generation from chat/notes/slash menu/Artifacts view, full-screen viewers, Markdown storage and links, Quick Find, and complete input splitting are implemented on `codex/finish-artifacts`. See `logs/2026-11-03.md` and `apps/study/docs/artifacts-verification.md` for validation and limits. Mastery and engine code are unchanged.
+
+## Requested product — Desktop distribution
+
+### D-01 · Cross-cutting (owner-authorized) · done (unsigned preview)
+**Ship the native study app, managed bundled engine, local file storage, product site and release pipeline.** Recover the old prototype and validate actual artifacts. The owner explicitly deferred signing/notarization on 2026-11-03: build unsigned previews and keep trusted distribution as a later gate. The owner’s explicit shipping request authorizes changes across the frontend/backend/documentation lanes.
+
+- Delivered: the product site, seven native packages across Linux/macOS/Windows, managed local engine, disk persistence, checksums and a draft-release workflow. See `desktop-verification.md` for exact checks.
+
+### D-02 · Cross-cutting · todo
+**Trusted public desktop distribution.** Add Apple Developer ID signing/notarization and Windows publisher signing when credentials are available. Manually verify downloaded desktop interfaces on macOS and Windows and the Ubuntu package before promoting a stable release. The owner explicitly deferred signing; this does not block unsigned previews.

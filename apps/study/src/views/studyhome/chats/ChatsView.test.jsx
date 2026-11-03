@@ -22,7 +22,7 @@ const renderApp = async (client) => {
 };
 const openChats = async (client) => {
   const side = await renderApp(client);
-  fireEvent.click(side.getByRole("button", { name: "See all" }));
+  fireEvent.click(side.getAllByRole("button", { name: "See all" })[0]); // Chats comes first
   return within(screen.getByRole("region", { name: "Chats" }));
 };
 const panel = () => within(screen.getByRole("complementary", { name: "Kratt Chat" }));

@@ -463,3 +463,39 @@ describe("source subjects", () => {
     expect(op.updateSource(a, id, { title: "New" }).sources[0].subjects).toEqual([bio]);
   });
 });
+
+describe("artifacts", () => {
+  const items = [{ front: "Q", back: "A" }];
+  it("adds one first and returns its id", () => {
+    expect(op.EMPTY_STATE.artifacts).toEqual([]);
+    const r = op.addArtifact(op.EMPTY_STATE, { id: "a", title: "Krebs", type: "flashcards", madeFrom: ["p1"], items, now: 1000 });
+    expect(r.id).toBe("a");
+    expect(r.state.artifacts).toEqual([
+      { id: "a", title: "Krebs", type: "flashcards", madeFrom: ["p1"], madeIn: null, created: 1000, updated: 1000, lastScore: null, parts: 1, sourceBytes: 0, items },
+    ]);
+    const s = op.addArtifact(r.state, { id: "b", title: "Second", type: "quiz", madeFrom: [], madeIn: { kind: "chat", id: "c1" }, items: [], parts: 2, sourceBytes: 900, now: 2000 }).state;
+    expect(s.artifacts.map((a) => a.id)).toEqual(["b", "a"]);
+    expect(s.artifacts[0]).toMatchObject({ madeIn: { kind: "chat", id: "c1" }, parts: 2, sourceBytes: 900 });
+    expect(typeof op.addArtifact(op.EMPTY_STATE, { title: "x", type: "quiz", madeFrom: [], items: [] }).id).toBe("string");
+  });
+
+  it("renames; an empty title becomes Untitled <label>", () => {
+    let s = op.addArtifact(op.EMPTY_STATE, { id: "a", title: "Krebs", type: "slides", madeFrom: [], items: [], now: 1 }).state;
+    expect(op.renameArtifact(s, "a", "  New  ").artifacts[0].title).toBe("New");
+    expect(op.renameArtifact(s, "a", " ").artifacts[0].title).toBe("Untitled Slides");
+  });
+
+  it("recordScore sets lastScore and keeps updated", () => {
+    const s = op.addArtifact(op.EMPTY_STATE, { id: "a", title: "Krebs", type: "quiz", madeFrom: [], items: [], now: 1000 }).state;
+    const scored = op.recordScore(s, "a", { right: 3, of: 5, now: 9000 });
+    expect(scored.artifacts[0].lastScore).toEqual({ right: 3, of: 5, at: 9000 });
+    expect(scored.artifacts[0].updated).toBe(1000);
+  });
+
+  it("deletes", () => {
+    let s = op.addArtifact(op.EMPTY_STATE, { id: "a", title: "A", type: "quiz", madeFrom: [], items: [] }).state;
+    s = op.deleteArtifact(s, "a");
+    expect(s.artifacts).toEqual([]);
+    for (const name of ["addArtifact", "renameArtifact", "recordScore", "deleteArtifact"]) expect(op.mutations[name]).toBe(op[name]);
+  });
+});

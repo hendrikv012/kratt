@@ -52,3 +52,10 @@ __pycache__/
 
 # Claude Code worktrees (each is its own git repo)
 .claude/worktrees/
+
+# Native product output
+/apps/study/src-tauri/target/
+/apps/study/src-tauri/gen/
+/apps/study/src-tauri/binaries/
+/release/
+*.egg-info/

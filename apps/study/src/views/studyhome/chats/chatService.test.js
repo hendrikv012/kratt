@@ -108,3 +108,21 @@ describe("createChatService", () => {
     await expect(askLocal(new VaultOffline())).rejects.toMatchObject({ code: "offline" });
   });
 });
+
+describe("send", () => {
+  const sender = (client, local = false) => createChatService({ client, address: () => "http://x:1", local: () => local }).send;
+
+  it("returns the output", async () => {
+    const send = sender({ notebookAsk: async (address, prompt) => ({ output: `got ${prompt} at ${address}` }) });
+    expect(await send("Hi")).toBe("got Hi at http://x:1");
+  });
+
+  it("maps errors like ask", async () => {
+    const failing = (rejection, local) => sender({ notebookAsk: () => Promise.reject(rejection), localAsk: () => Promise.reject(rejection) }, local)("Hi");
+    await expect(failing(new VaultOffline())).rejects.toMatchObject({ code: "offline" });
+    await expect(failing(new Error("ai-auth"))).rejects.toMatchObject({ code: "ai-auth" });
+    await expect(failing(new Error("boom"))).rejects.toMatchObject({ code: "ai-unavailable" });
+    await expect(failing(new Error("no-model"), true)).rejects.toMatchObject({ code: "no-model" });
+    await expect(failing(new Error("boom"), true)).rejects.toMatchObject({ code: "ollama-unavailable" });
+  });
+});

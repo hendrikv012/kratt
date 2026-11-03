@@ -1,11 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronRight, History, Plus, SquarePen, X } from "lucide-react";
+import { ChevronRight, ChevronDown, History, Plus, SquarePen, X } from "lucide-react";
 import { useStudy } from "../data/StudyProvider";
 import { useShell } from "../ShellContext";
 import { newId } from "../data/operations";
 import { allPages } from "../data/tree";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import Kratt from "../kratt/Kratt";
+import ArtifactCard from "../artifacts/ArtifactCard";
+import MakeProgress from "../artifacts/MakeProgress";
+import { ARTIFACT_TYPES, TYPE_LABELS } from "../artifacts/format";
+import { wantsArtifact } from "../artifacts/intent";
+import { artifactLink, splitArtifactLinks } from "../artifacts/links";
+import { useMakeArtifact } from "../artifacts/useMakeArtifact";
 import { CHAT_MESSAGES, ChatError, buildPrompt, citationsIn, createChatService, gatherContext } from "./chatService";
 import { chatTitle, escapeHeadings } from "./format";
 import "./chat.css";
@@ -115,6 +121,25 @@ export default function ChatPanel({ open, onClose, width, onWidth, chatId, sessi
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
+  // Making an artifact here. `making` remembers which chat and type, so the result lands in that
+  // chat and the progress shows the right noun. `made` waits for the saved artifact to reach state.
+  const maker = useMakeArtifact();
+  const [making, setMaking] = useState(null); // { chatId, type }
+  const [made, setMade] = useState(null); // { chatId, id, type }
+  useEffect(() => {
+    maker.cancel(); // another chat was opened: a late result must not land in it
+    setMaking(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, open]);
+  useEffect(() => {
+    if (!made) return;
+    const a = state.artifacts.find((x) => x.id === made.id);
+    if (!a) return;
+    setMade(null);
+    actions.appendTurn(made.chatId, { who: "kratt", text: `Here are your ${TYPE_LABELS[made.type].toLowerCase()}: ${artifactLink(a)}` }, Date.now());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [made, state.artifacts]);
+
   const route = shell.route;
   const routePage = route?.view === "node" && state.nodes[route.id]?.type === "page" ? route.id : null;
   const context = (chat ? chat.context : draftContext ?? (routePage ? [routePage] : [])).filter((id) => state.nodes[id]);
@@ -155,7 +180,7 @@ export default function ChatPanel({ open, onClose, width, onWidth, chatId, sessi
   // Saves the question (creating the chat on the first one), then asks.
   const sendQuestion = (text, { fromComposer = false } = {}) => {
     const question = text.trim();
-    if (!question || pending) return;
+    if (!question || pending || maker.busy) return;
     try {
       buildPrompt({ question, context: [], turns: [], memory }); // too long even on its own?
     } catch (e) {
@@ -173,6 +198,19 @@ export default function ChatPanel({ open, onClose, width, onWidth, chatId, sessi
     ask({ id, question, turns, ids: context });
   };
 
+  const makeArtifact = async (type) => {
+    if (pending || maker.busy || context.length === 0) return;
+    let id = chat?.id;
+    if (!id) {
+      id = actions.addChat({ id: newId(), title: contextPage?.name ?? TYPE_LABELS[type], context, now: Date.now() });
+      onChatId(id);
+    }
+    setMaking({ chatId: id, type });
+    const artifactId = await maker.make({ type, ids: context, topic: chat?.title ?? contextPage?.name ?? "", madeIn: { kind: "chat", id } });
+    setMaking(null);
+    if (artifactId) setMade({ chatId: id, id: artifactId, type });
+  };
+
   // Re-asks the last question, which has no answer after it, without saving it again.
   const last = chat?.turns.at(-1);
   const canRetry = Boolean(chat && last?.who === "you" && !pending);
@@ -183,6 +221,7 @@ export default function ChatPanel({ open, onClose, width, onWidth, chatId, sessi
   const offline = vault?.offline;
   const statusText = offline ? CHAT_MESSAGES.offline : status;
   const turns = chat?.turns ?? [];
+  const busyMaking = pending || maker.busy;
 
   const earlierLine = (
     <p key="earlier" className="st-chat-earlier">
@@ -202,13 +241,19 @@ export default function ChatPanel({ open, onClose, width, onWidth, chatId, sessi
       );
     }
     const cites = citationsIn(turn.text, state);
+    // The offer: this answer follows a question that asked for study material.
+    const asked = wantsArtifact(turns[i - 1]?.who === "you" ? turns[i - 1].text : "");
     return (
       <div key={i} className="st-chat-turn">
         <div className="st-chat-who">
           <Kratt size={20} />
           Kratt
         </div>
-        <div className="st-chat-bot">{turn.text}</div>
+        <div className="st-chat-bot">
+          {splitArtifactLinks(turn.text).map((part, k) =>
+            typeof part === "string" ? <span key={k}>{part}</span> : <ArtifactCard key={k} id={part.id} />
+          )}
+        </div>
         {cites.length > 0 && (
           <div className="st-chat-cites">
             {cites.map((c) => (
@@ -231,6 +276,11 @@ export default function ChatPanel({ open, onClose, width, onWidth, chatId, sessi
           >
             Save as note
           </button>
+          {asked && (
+            <button className="st-chat-quiet" disabled={busyMaking || offline || context.length === 0} onClick={() => makeArtifact(asked)}>
+              Make this as {TYPE_LABELS[asked].toLowerCase()}
+            </button>
+          )}
         </div>
       </div>
     );
@@ -321,6 +371,10 @@ export default function ChatPanel({ open, onClose, width, onWidth, chatId, sessi
           )}
           {turns.flatMap((turn, i) => (i === earlierAt ? [earlierLine, renderTurn(turn, i)] : [renderTurn(turn, i)]))}
           {earlierAt !== null && earlierAt >= turns.length && earlierLine}
+          {maker.busy && making && (making.chatId === chatId || !chatId) && (
+            <MakeProgress type={making.type} progress={maker.progress} onCancel={maker.cancel} />
+          )}
+          {maker.error && <p className="st-chat-soft" role="alert">{maker.error}</p>}
           {pending && (
             <div className="st-chat-who">
               <Kratt size={20} mode="think" />
@@ -357,6 +411,22 @@ export default function ChatPanel({ open, onClose, width, onWidth, chatId, sessi
         </div>
 
         <div className="st-chat-compose">
+          <div className="st-chat-actions">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="st-chat-quiet" aria-label="Make" disabled={busyMaking || offline || context.length === 0}>
+                  Make <ChevronDown size={12} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                {ARTIFACT_TYPES.map((t) => (
+                  <DropdownMenuItem key={t} onSelect={() => makeArtifact(t)}>
+                    {TYPE_LABELS[t]}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
           <div className="st-chat-box">
             <textarea
               ref={box}

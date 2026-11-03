@@ -1,3 +1,5 @@
+import { isDesktop, openDesktop } from "../../../desktop/runtime";
+import ModelDownload from "../../../desktop/ModelDownload";
 import { useEffect, useState } from "react";
 import { useStudy } from "../data/StudyProvider";
 import { Group, Row, Section, Segmented, Select, Toggle } from "./controls";
@@ -214,7 +216,7 @@ function LocalModelRows() {
     note = (
       <>
         Kratt uses Ollama to run the AI on this computer. Install it from{" "}
-        <a href="https://ollama.com/download" target="_blank" rel="noreferrer">
+        <a href="https://ollama.com/download" target="_blank" rel="noreferrer" onClick={isDesktop() ? (event) => { event.preventDefault(); openDesktop("ollama").catch((e) => setSaveError(String(e))); } : undefined}>
           ollama.com
         </a>
         , then come back here.
@@ -230,7 +232,7 @@ function LocalModelRows() {
   } else if (up && models.length === 0) {
     note = (
       <>
-        No models are installed in Ollama yet. In a terminal, run <code>ollama pull llama3.2</code>, then come back here.
+        No models are installed in Ollama yet. Download one below, then choose it.
       </>
     );
   } else if (missing) {
@@ -260,6 +262,7 @@ function LocalModelRows() {
           {note}
         </p>
       )}
+      {up && <ModelDownload client={client} onDone={() => client.localStatus().then(setStatus).catch((e) => setSaveError(e.message))} />}
       {saveError && <p className="st-faint st-small">{saveError}</p>}
     </>
   );
@@ -277,7 +280,7 @@ export function AiSection({ value, set }) {
             onChange={(v) => set({ model: v })}
             options={[
               { value: "local", label: "On this computer" },
-              { value: "cloud", label: "Online service" },
+              ...(!isDesktop() ? [{ value: "cloud", label: "Online service" }] : []),
             ]}
           />
         </Row>

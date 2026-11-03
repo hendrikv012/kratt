@@ -1,4 +1,5 @@
 import { pathTo, UNSORTED } from "../data/tree";
+import { TYPE_LABELS } from "../artifacts/format";
 
 const stripTags = (html = "") =>
   html
@@ -68,5 +69,15 @@ export function builtinProviders(study, shell) {
       ].filter(Boolean),
   };
 
-  return [pages, subjects, folders, actionItems];
+  const artifacts = {
+    id: "artifacts",
+    items: () => (study.state.artifacts ?? []).map((a) => ({
+      id: `artifact:${a.id}`,
+      group: "Artifacts",
+      title: a.title,
+      subtitle: TYPE_LABELS[a.type],
+      run: () => shell.open({ view: "artifact", id: a.id }),
+    })),
+  };
+  return [pages, subjects, folders, artifacts, actionItems];
 }

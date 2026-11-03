@@ -8,20 +8,24 @@ on this computer, the app's questions to Ollama (`local_ai`), which it starts if
 """
 
 import json
+import hmac
 import os
 import queue
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from socketserver import TCPServer
 from urllib.parse import parse_qs, urlparse
 
 from memory_engine import local_ai, notebook_bridge
 from memory_engine.frontmatter import atomic_write
 from memory_engine.vault import Vault, VaultError
+from memory_engine.vault_search import VaultSearch
 
 ALLOWED_ORIGINS = {"http://localhost:1420", "tauri://localhost", "http://tauri.localhost"}
 DEFAULT_PORT = 5057
 KEEPALIVE_SECONDS = 15
+CONFIG_LOCK = threading.RLock()
 
 
 def config_path() -> Path:
@@ -40,7 +44,8 @@ def _load_config() -> dict:
 def _save_config(**changes) -> None:
     target = config_path()
     target.parent.mkdir(parents=True, exist_ok=True)
-    atomic_write(target, json.dumps({**_load_config(), **changes}, indent=2) + "\n")
+    with CONFIG_LOCK:
+        atomic_write(target, json.dumps({**_load_config(), **changes}, indent=2) + "\n")
 
 
 def load_study_folder() -> Path:
@@ -150,6 +155,8 @@ def _local_status(request: "_Handler", query: dict) -> dict:
 def _set_local_ai(request: "_Handler", query: dict) -> dict:
     data = request.json()
     changes = {}
+    if os.environ.get("KRATT_DESKTOP") == "1" and data.get("local") is False:
+        raise VaultError("This desktop build uses local AI only")
     if "local" in data:
         if not isinstance(data["local"], bool):
             raise VaultError("local must be true or false")
@@ -171,7 +178,26 @@ def _local_ask(request: "_Handler", query: dict) -> dict:
 
 
 # (method, path) -> route(request, query): the answer as JSON, or None when the route answered itself.
+def _preferences(request, query):
+    preferences = request.json().get("preferences")
+    if not isinstance(preferences, dict):
+        raise VaultError("preferences must be an object")
+    _save_config(preferences=preferences)
+    return {}
+
+
+def _pull_model(request, query):
+    model = request.json().get("model")
+    return request.server.ollama.pull(model)
+
+
 ROUTES = {
+    ("GET", "/health"): lambda request, query: {"ok": True, "service": "kratt-engine", "protocol": 1},
+    ("GET", "/search"): lambda request, query: {"hits": request.server.search.search(query.get("q", ""))},
+    ("GET", "/setting/preferences"): lambda request, query: {"preferences": _load_config().get("preferences")},
+    ("PUT", "/setting/preferences"): _preferences,
+    ("POST", "/local/pull"): _pull_model,
+    ("GET", "/local/pull"): lambda request, query: request.server.ollama.pull_status(),
     ("GET", "/vault"): lambda request, query: request.vault.snapshot(),
     ("GET", "/file"): lambda request, query: dict(zip(("text", "version"), request.vault.read(query.get("path", "")))),
     ("GET", "/setting/folder"): lambda request, query: {"path": str(request.vault.root)},
@@ -257,6 +283,17 @@ class _Handler(BaseHTTPRequestHandler):
             return
         url = urlparse(self.path)
         query = {key: values[0] for key, values in parse_qs(url.query).items()}
+        token = self.server.token
+        supplied = self.headers.get("Authorization", "").removeprefix("Bearer ")
+        # EventSource has no custom headers; its token is confined to the local event URL.
+        if url.path == "/events" and not supplied:
+            supplied = query.get("token", "")
+        if token and not hmac.compare_digest(token.encode(), supplied.encode()):
+            self._send(401, {"error": "Kratt connection expired; restart the app"}, origin)
+            return
+        if os.environ.get("KRATT_DESKTOP") == "1" and (url.path.startswith("/notebook/") or url.path == "/setting/notebook-password"):
+            self._send(403, {"error": "This desktop build uses local AI only"}, origin)
+            return
         route = ROUTES.get((self.command, url.path))
         if route is None:
             self._send(404, {"error": f"no such route: {url.path}"}, origin)
@@ -287,7 +324,7 @@ class _Handler(BaseHTTPRequestHandler):
         self.send_response(204)
         self.send_header("Access-Control-Allow-Origin", origin)
         self.send_header("Access-Control-Allow-Methods", "GET, PUT, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
         self.send_header("Access-Control-Max-Age", "600")
         self.send_header("Vary", "Origin")
         self.send_header("Content-Length", "0")
@@ -322,8 +359,16 @@ class _Handler(BaseHTTPRequestHandler):
 class StudyServer(ThreadingHTTPServer):
     daemon_threads = True
 
+    def server_bind(self):
+        # Loopback needs no reverse DNS. HTTPServer's getfqdn can stall desktop startup
+        # on systems whose hostname/DNS is unavailable (including macOS CI runners).
+        TCPServer.server_bind(self)
+        self.server_name = "localhost"
+        self.server_port = self.server_address[1]
+
     def __init__(self, folder: Path, port: int, ollama: local_ai.OllamaKeeper | None = None):
         super().__init__(("127.0.0.1", port), _Handler)
+        self.token = os.environ.get("KRATT_ENGINE_TOKEN", "")
         self.ollama = ollama or local_ai.OllamaKeeper()
         self.stopping = threading.Event()
         self._lock = threading.Lock()
@@ -338,6 +383,7 @@ class StudyServer(ThreadingHTTPServer):
         folder.mkdir(parents=True, exist_ok=True)
         with self._lock:
             self.vault = Vault(folder)
+            self.search = VaultSearch(self.vault)
             self.watcher = Watcher(self.vault)
             self.watcher.poll()  # remember the folder as it is now
 

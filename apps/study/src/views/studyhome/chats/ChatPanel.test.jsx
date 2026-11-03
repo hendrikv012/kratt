@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render, screen, fireEvent, within, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, within, waitFor, act } from "@testing-library/react";
 import StudyPreview from "../StudyPreview";
 import { SAMPLE_SNAPSHOT, fakeClient, installMemoryLocalStorage, openKrebs } from "../data/testing/fakeVault";
 import { formatTurns } from "./format";
@@ -16,7 +16,7 @@ vi.mock("./chatService", async (importOriginal) => {
     ...real,
     createChatService: (options) => {
       const service = real.createChatService(options);
-      return { ask: (args) => (bug.error ? Promise.reject(bug.error) : service.ask(args)) };
+      return { ...service, ask: (args) => (bug.error ? Promise.reject(bug.error) : service.ask(args)) };
     },
   };
 });
@@ -324,5 +324,130 @@ describe("Kratt Chat panel", () => {
     expect(panel().getByRole("button", { name: "Quiz me on Krebs cycle" })).toBeTruthy();
     fireEvent.click(panel().getByRole("button", { name: "Remove This page" }));
     expect(panel().queryByRole("button", { name: "Explain this page in 5 steps" })).toBeNull();
+  });
+
+  describe("artifacts", () => {
+    const ART = "# Fresh\n\n### New?\nYes\n";
+    const artifactFiles = (client) => client.snapshotNow().files.filter((f) => f.path.startsWith("Artifacts/"));
+    const makeMenu = (name) => {
+      fireEvent.keyDown(panel().getByRole("button", { name: "Make" }), { key: "Enter" });
+      fireEvent.click(within(screen.getByRole("menu")).getByText(name));
+    };
+    const withKrebs = async (client) => {
+      client.notebookAsk = vi.fn(async () => ({ output: ART }));
+      const side = await renderApp(client);
+      fireEvent.click(side.getByText("Krebs cycle, step by step")); // opens the panel
+      await openKrebs(side);
+      return side;
+    };
+
+    it("Make > Flashcards adds a Kratt turn with a card", async () => {
+      const client = fakeClient({ ...SAMPLE_SNAPSHOT, folders: [...SAMPLE_SNAPSHOT.folders, "Artifacts"] });
+      await withKrebs(client);
+      fireEvent.click(panel().getByRole("button", { name: "New chat" }));
+      expect(panel().getByRole("button", { name: "Make" }).disabled).toBe(false);
+      const before = chatFiles(client).length;
+      makeMenu("Flashcards");
+      expect(await panel().findByText(/Kratt is making/)).toBeTruthy();
+      expect(await panel().findByText("Fresh")).toBeTruthy();
+      expect(panel().getByText("1 card")).toBeTruthy();
+      expect(panel().queryByText(/\[\[artifact:/)).toBeNull();
+      await waitFor(() => {
+        expect(chatFiles(client)).toHaveLength(before + 1); // the chat was created first
+        const chat = chatFiles(client).find((f) => f.body.includes("Here are your flashcards: [[artifact:"));
+        expect(chat).toBeTruthy();
+        expect(artifactFiles(client)).toHaveLength(1);
+      });
+    });
+
+    it("the card opens the artifact tab", async () => {
+      const client = fakeClient({ ...SAMPLE_SNAPSHOT, folders: [...SAMPLE_SNAPSHOT.folders, "Artifacts"] });
+      await withKrebs(client);
+      fireEvent.click(panel().getByRole("button", { name: "New chat" }));
+      client.notebookAsk = vi.fn(async () => ({ output: "# Fresh\n\n### Q?\n- [x] A\n- [ ] B\n" }));
+      makeMenu("Quiz");
+      await panel().findByText("Fresh");
+      fireEvent.click(panel().getByRole("button", { name: "Open" }));
+      expect((await screen.findByRole("textbox", { name: "Title" })).value).toBe("Fresh");
+    });
+
+    it("a card for a deleted artifact says so", async () => {
+      const client = fakeClient(SAMPLE_SNAPSHOT);
+      client.setBody(C1, formatTurns([{ who: "you", text: "hi" }, { who: "kratt", text: "Here: [[artifact:gone|Quiz · Old]]" }]));
+      const side = await renderApp(client);
+      fireEvent.click(side.getByText("Krebs cycle, step by step"));
+      expect(await panel().findByText("Artifact deleted")).toBeTruthy();
+    });
+
+    it("a question asking for slides gets a Make button, and nothing is made until it is clicked", async () => {
+      const client = fakeClient({ ...SAMPLE_SNAPSHOT, folders: [...SAMPLE_SNAPSHOT.folders, "Artifacts"] });
+      client.notebookAsk = vi.fn(async () => ({ output: client.notebookAsk.mock.calls.length > 1 ? ART : "Sure thing." }));
+      await renderApp(client);
+      fireEvent.keyDown(window, { key: "j", ctrlKey: true });
+      fireEvent.keyDown(panel().getByRole("button", { name: "Add context" }), { key: "Enter" });
+      fireEvent.click(within(screen.getByRole("menu")).getByText("Krebs cycle"));
+      send("Make slides on the Krebs cycle");
+      const button = await panel().findByRole("button", { name: "Make this as slides" });
+      expect(client.notebookAsk).toHaveBeenCalledTimes(1);
+      expect(artifactFiles(client)).toHaveLength(0);
+      fireEvent.click(button);
+      expect(await panel().findByText("1 slide")).toBeTruthy();
+      await waitFor(() => expect(artifactFiles(client)).toHaveLength(1));
+    });
+
+    it("an ordinary question has no Make button", async () => {
+      const client = fakeClient(SAMPLE_SNAPSHOT);
+      await renderApp(client);
+      fireEvent.keyDown(window, { key: "j", ctrlKey: true });
+      send("What is ATP?");
+      await panel().findByText("Kratt's engine is connected. Chats save to your Study folder.");
+      expect(panel().queryByRole("button", { name: /Make this as/ })).toBeNull();
+    });
+
+    it("Make is disabled with no context, while busy and offline", async () => {
+      const client = fakeClient({ ...SAMPLE_SNAPSHOT, folders: [...SAMPLE_SNAPSHOT.folders, "Artifacts"] });
+      await renderApp(client);
+      fireEvent.keyDown(window, { key: "j", ctrlKey: true });
+      expect(panel().getByRole("button", { name: "Make" }).disabled).toBe(true); // no context
+      fireEvent.keyDown(panel().getByRole("button", { name: "Add context" }), { key: "Enter" });
+      fireEvent.click(within(screen.getByRole("menu")).getByText("Krebs cycle"));
+      expect(panel().getByRole("button", { name: "Make" }).disabled).toBe(false);
+      let release;
+      client.notebookAsk = vi.fn(() => new Promise((r) => (release = r)));
+      send("What is ATP?");
+      await waitFor(() => expect(panel().getByRole("button", { name: "Make" }).disabled).toBe(true));
+      release({ output: "Fine" });
+      await waitFor(() => expect(panel().getByRole("button", { name: "Make" }).disabled).toBe(false));
+    });
+
+    it("closing the chat panel during generation saves no late artifact", async () => {
+      const client = fakeClient({ ...SAMPLE_SNAPSHOT, folders: [...SAMPLE_SNAPSHOT.folders, "Artifacts"] });
+      await withKrebs(client);
+      let release;
+      client.notebookAsk = vi.fn(() => new Promise((r) => { release = r; }));
+      makeMenu("Flashcards");
+      await panel().findByText(/Kratt is making/);
+      fireEvent.click(panel().getByRole("button", { name: "Close Kratt Chat" }));
+      await act(async () => { release({ output: ART }); });
+      expect(artifactFiles(client)).toHaveLength(0);
+    });
+
+    it("opening another chat mid-make saves nothing into the new chat", async () => {
+      const client = fakeClient({ ...SAMPLE_SNAPSHOT, folders: [...SAMPLE_SNAPSHOT.folders, "Artifacts"] });
+      let release;
+      const side = await withKrebs(client);
+      client.notebookAsk = vi.fn(() => new Promise((r) => (release = r)));
+      fireEvent.click(panel().getByRole("button", { name: "New chat" }));
+      makeMenu("Flashcards");
+      await panel().findByText(/Kratt is making/);
+      fireEvent.click(side.getByText("Krebs cycle, step by step"));
+      expect(panel().queryByText(/Kratt is making/)).toBeNull();
+      await act(async () => {
+        release({ output: ART });
+        await new Promise((r) => setTimeout(r, 50));
+      });
+      expect(panel().queryByText(/Here are your/)).toBeNull();
+      expect(artifactFiles(client)).toHaveLength(0);
+    });
   });
 });

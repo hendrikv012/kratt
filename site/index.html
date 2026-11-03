@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kratt — A study partner that stays with your notes</title>
+  <meta name="description" content="Connected notes, local AI, flashcards, slides and quizzes. Kratt is a desktop study workspace for Linux, macOS and Windows. Your work stays in files you own.">
+  <meta name="theme-color" content="#edf1f7">
+  <link rel="icon" href="assets/kratt.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="site.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="wrap masthead">
+  <a class="brand" href="./" aria-label="Kratt home"><img src="assets/kratt.svg" width="48" height="40" alt="">Kratt</a>
+  <nav aria-label="Main"><a href="#workspace">The workspace</a><a href="#local">Your files</a><a href="#download">Downloads</a><a href="https://github.com/hendrikv012/kratt">GitHub</a></nav>
+</header>
+<main id="main">
+  <section class="wrap hero">
+    <div>
+      <p class="intro">A study partner that stays with your notes.</p>
+      <h1>Make room for<br>understanding.</h1>
+      <p class="lede">Gather your notes. Connect the ideas. Ask Kratt to turn them into something you can practise — with AI running on your own computer.</p>
+      <div class="actions"><a class="button primary" href="#download">Get Kratt for desktop</a><a class="text-link" href="#workspace">Take a look inside</a></div>
+      <p class="availability">For Linux, macOS and Windows. Early preview.</p>
+    </div>
+    <aside class="hero-note" aria-label="About Kratt">
+      <img src="assets/kratt.svg" width="240" height="194" alt="Kratt, a small orange pixel creature carrying a fork">
+      <h2>A helper.<br>A home for your ideas.</h2>
+      <p>Named after the resourceful helper of Estonian folklore. This one helps you study.</p>
+    </aside>
+  </section>
+  <section class="wrap workspace" id="workspace" aria-labelledby="workspace-title">
+    <div class="section-heading"><h2 id="workspace-title">All the pieces, in one place.</h2><div class="theme-switch" role="group" aria-label="Screenshot theme"><button data-theme="chalk" aria-pressed="true">Light</button><button data-theme="ember" aria-pressed="false">Dark</button></div></div>
+    <figure class="workspace-shot"><img id="workspace-image" src="assets/chalk-notes.png" alt="Kratt study workspace showing a biology note, subject sidebar and linked flashcards" width="1280" height="900" fetchpriority="high"><figcaption>The actual Kratt workspace, shown with example study notes.</figcaption></figure>
+    <div class="features">
+      <article><h3>Think in connections</h3><p>Organise pages into subjects. Link one idea to another with wiki links. Keep the source material close to your own words.</p></article>
+      <article><h3>Make practice personal</h3><p>Turn your selected notes into flashcards, slides or quizzes. Larger selections are processed in parts, without cutting notes to fit a single prompt.</p></article>
+      <article><h3>Find your focus</h3><p>Review one card or question at a time. Open full screen, use the keyboard, and return to the notes that the material came from.</p></article>
+    </div>
+  </section>
+  <section class="practice-band">
+    <div class="wrap practice">
+      <div><h2>From “I read it”<br>to “I remember it.”</h2><p>Choose the notes that matter. Kratt makes study material you can revisit, rename and keep beside your work.</p><ul class="plain-list"><li>Flashcards with Got it / Again</li><li>Slides for a clear walkthrough</li><li>Quizzes with explanations and saved scores</li></ul><p class="small">AI can make mistakes. Check generated material against your notes.</p></div>
+      <figure><img id="practice-image" src="assets/chalk-cards.png" alt="Kratt flashcard viewer with a biology question and links back to the original note" width="1280" height="900" loading="lazy"><figcaption>Study materials stay linked to where they came from.</figcaption></figure>
+    </div>
+  </section>
+  <section class="wrap local" id="local">
+    <div><h2>Your learning.<br>Your computer.<br>Your files.</h2><p>Kratt creates a Study folder when you first open it. Notes, sources, chats and study materials live there as Markdown files, ready to open in another editor or back up yourself.</p><p>The bundled engine reads those files and rebuilds a local search index. Selected notes supply the context for AI questions. Ollama runs the model on your computer.</p><a class="text-link" href="#privacy">How privacy works</a></div>
+    <div class="folder-view" aria-label="Example Study folder"><div class="folder-title"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 7V5h6l2 2h10v13H3Z"/></svg>Study</div><ul><li><span>Biology/</span><small>Your subjects and notes</small><ul><li>Cells.md</li></ul></li><li><span>Sources/</span><small>Reference material</small></li><li><span>Chats/</span><small>Conversations with Kratt</small></li><li><span>Artifacts/</span><small>Flashcards, slides and quizzes</small></li><li><span>Quick notes/</span><small>Ideas before they have a home</small></li></ul><p>No account. No cloud memory database.</p></div>
+  </section>
+  <section class="download-band" id="download">
+    <div class="wrap">
+      <h2>A place on your desktop.</h2><p class="download-intro">This is the product website. The app runs on your computer; downloads are hosted on GitHub Releases.</p>
+      <p id="release-status" role="status">Checking for published builds…</p>
+      <div class="downloads">
+        <article><h3>Linux</h3><p>x86_64 · Ubuntu 22.04 or newer-compatible systems</p><div data-downloads="linux-x86_64"><span class="pending">No published build yet</span></div><details><summary>Install on Linux</summary><p>Open the .deb in your software installer. Or download the AppImage, allow it to run as a program in the file’s Properties, then double-click it. AppImage support varies by distribution; the .deb is the simplest option on Ubuntu.</p></details></article>
+        <article><h3>macOS</h3><p>Apple silicon and Intel · macOS 11+</p><div data-downloads="macos-arm64"><span class="pending">No published build yet</span></div><div data-downloads="macos-x86_64"></div><details><summary>Install on macOS</summary><p>Open the DMG and drag Kratt into Applications. Current testing builds are unsigned and not notarized; Gatekeeper may block them. A verified public release is still planned.</p></details></article>
+        <article><h3>Windows</h3><p>x64 · Windows 10 or 11</p><div data-downloads="windows-x64"><span class="pending">No published build yet</span></div><details><summary>Install on Windows</summary><p>Open the installer and follow its prompts. The engine and WebView2 installer are included. Current testing builds are unsigned and may show publisher or SmartScreen warnings.</p></details></article>
+      </div>
+      <p class="release-links"><a id="release-notes" href="https://github.com/hendrikv012/kratt/releases">Releases and notes</a><a id="checksums" hidden>SHA-256 checksums</a><a href="https://github.com/hendrikv012/kratt/actions/workflows/build-release.yml">Preview build progress</a></p>
+      <noscript><p>JavaScript is needed to list current release files. <a href="https://github.com/hendrikv012/kratt/releases">Browse all downloads on GitHub Releases.</a></p></noscript>
+    </div>
+  </section>
+  <section class="wrap getting-started">
+    <h2>Start with what you’re learning.</h2>
+    <ol><li><h3>Open Kratt</h3><p>The engine starts and creates your Study folder automatically. No Python installation or engine commands.</p></li><li><h3>Bring an idea</h3><p>Create a subject and a note. Write, link pages, or add source material to build your workspace.</p></li><li><h3>Meet your study partner</h3><p>For AI, install Ollama from the prompt, then choose or download a model in Kratt. You can keep taking notes without it.</p></li></ol>
+  </section>
+  <section class="wrap faq" id="privacy">
+    <div><h2>A few good questions.</h2><p>Something else on your mind?<br><a href="https://github.com/hendrikv012/kratt/issues">Ask or report a problem.</a></p></div>
+    <div class="questions">
+      <details open><summary>Does anything leave my computer?</summary><p>The desktop engine sends AI prompts only to local Ollama. Kratt has no cloud backend or telemetry. Downloading models, opening websites, and installing extensions can use the internet. An extension may have its own network permissions; review them before installing it.</p></details>
+      <details><summary>Do I need Ollama just to use notes?</summary><p>No. Writing and organising notes works without AI. Chat and generated study materials need a running Ollama installation and a downloaded model. Model performance depends on your computer.</p></details>
+      <details><summary>Can I use my files somewhere else?</summary><p>Yes. They are ordinary Markdown files with metadata. Open your Study folder in another editor, copy it to a backup drive, or change its location in Settings → Data.</p></details>
+      <details><summary>Will it cover all my notes?</summary><p>Kratt sends every selected note, splitting larger selections into parts. That prevents input from being cut to fit one prompt. It does not guarantee that the AI includes every detail in its answers, so review the results.</p></details>
+      <details><summary>Is Kratt ready for everyone?</summary><p>It is an early desktop preview. Current builds are for testing; macOS signing, notarization and Windows signing are not configured yet. Published release notes describe the checks completed for each build.</p></details>
+      <details><summary>What does this website collect?</summary><p>This page has no analytics or advertising scripts. GitHub hosts it and serves release metadata and downloads. Those requests are subject to GitHub’s privacy policy. Your Study files are never sent to this website.</p></details>
+    </div>
+  </section>
+</main>
+<footer class="wrap"><a class="brand" href="./"><img src="assets/kratt.svg" width="40" height="32" alt="">Kratt</a><p>A little helper for a world of ideas.</p><a href="https://github.com/hendrikv012/kratt/issues">Support</a><a href="https://github.com/hendrikv012/kratt/releases">Release notes</a></footer>
+</body>
+</html>

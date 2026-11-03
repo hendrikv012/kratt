@@ -1,9 +1,11 @@
+import { connection, isDesktop } from "../../desktop/runtime";
+import { createVaultClient } from "./data/vaultClient";
 import { useEffect, useMemo, useState } from "react";
 import { getDefaultConfig } from "../../core/graph/config-manager.js";
 import { upgradeSettings } from "./settings/upgrade.js";
 
-// Settings for the design probe, kept in localStorage so choices survive a
-// reload. The real app would use Lokus's config store instead.
+// Desktop preferences persist in config.json through the engine. Browser development
+// keeps its localStorage preferences; these are migrated on the first desktop launch.
 //
 // Settings are grouped, and each group belongs to one settings section.
 // Only what the user changed is stored, merged over DEFAULTS on load, so
@@ -34,7 +36,7 @@ export const DEFAULTS = {
     krattMoves: true,
     textSize: "normal",
   },
-  layout: { version: 1, sidebar: { chats: true, review: true, pinned: true }, kinds: {}, home: null, sideWidth: 256, tabsAt: "top", tabs: { list: ["home"], active: "home" } },
+  layout: { version: 1, sidebar: { chats: true, artifacts: true, review: true, pinned: true }, kinds: {}, home: null, sideWidth: 256, tabsAt: "top", tabs: { list: ["home"], active: "home" } },
   home: {
     clock: { style: "digital", hours: "24", seconds: false, date: true },
   },
@@ -48,6 +50,7 @@ export const DEFAULTS = {
 };
 
 function readChanges() {
+  if (connection()?.preferences) return connection().preferences;
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) return JSON.parse(saved) ?? {};
@@ -60,7 +63,11 @@ function readChanges() {
   }
 }
 
-const loadChanges = () => upgradeSettings(readChanges());
+const loadChanges = () => {
+  const changes = upgradeSettings(readChanges());
+  return isDesktop() ? { ...changes, ai: { ...changes.ai, model: "local", apiKey: "" } } : changes;
+};
+let preferenceWrite = Promise.resolve();
 
 // Returns the current settings, `set(group, patch)` to change part of one
 // group (`patch` may be a function of the group's current values that
@@ -72,6 +79,12 @@ export function useSettings() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(changes));
     } catch {}
+    if (isDesktop()) {
+      connection().preferences = changes;
+      preferenceWrite = preferenceWrite.catch(() => {}).then(() => createVaultClient().setPreferences(changes)).catch(() => {
+        window.dispatchEvent(new CustomEvent("kratt-settings-error", { detail: "Settings could not be saved to disk. Reconnect the engine and change the setting again." }));
+      });
+    }
   }, [changes]);
 
   const settings = useMemo(

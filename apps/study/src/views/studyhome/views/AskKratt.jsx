@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import MarkdownIt from "markdown-it";
 import { useStudy } from "../data/StudyProvider";
 import { useShell } from "../ShellContext";
@@ -6,6 +6,11 @@ import { newId } from "../data/operations";
 import Kratt from "../kratt/Kratt";
 import { CHAT_MESSAGES, ChatError, createChatService, gatherContext } from "../chats/chatService";
 import { chatTitle, escapeHeadings } from "../chats/format";
+import { noteFileToHtml } from "../../../core/markdown/noteFile";
+import { ARTIFACT_TYPES, TYPE_LABELS } from "../artifacts/format";
+import { artifactLink } from "../artifacts/links";
+import { useMakeArtifact } from "../artifacts/useMakeArtifact";
+import MakeProgress from "../artifacts/MakeProgress";
 import "./ask-kratt.css";
 
 // Answers are Markdown from Open Notebook. Any HTML in them shows as text, so an answer can't add
@@ -44,8 +49,8 @@ function placeAt(editor, at) {
 
 // The box /Kratt opens in a note: ask about the note, get the answer into it, and carry on in
 // Kratt Chat if there's more to ask.
-export default function AskKratt({ editor, pageId, onClose }) {
-  const { state, actions, client } = useStudy();
+export default function AskKratt({ editor, pageId, make: initialType, onClose }) {
+  const { state, actions, client, vault } = useStudy();
   const shell = useShell();
   const at = useRef(editor.state.selection.from).current;
   const [place, setPlace] = useState(null);
@@ -53,14 +58,44 @@ export default function AskKratt({ editor, pageId, onClose }) {
   const [phase, setPhase] = useState("asking"); // asking | thinking | answered | failed
   const [answer, setAnswer] = useState(null);
   const [error, setError] = useState(null);
+  const maker = useMakeArtifact();
+  const [makeType, setMakeType] = useState(initialType ?? null);
+  const [madeId, setMadeId] = useState(null);
+  const closed = useRef(false);
+  const busy = phase === "thinking" || maker.busy;
   const asked = useRef(0); // the current ask; a closed box ignores a late answer
   const settings = useRef(shell.chat);
   settings.current = shell.chat;
-  const service = useMemo(() => createChatService({ client, address: () => settings.current?.address }), [client]);
+  const service = useMemo(() => createChatService({ client, address: () => settings.current?.address, local: () => settings.current?.local }), [client]);
 
   useLayoutEffect(() => setPlace(placeAt(editor, at)), [editor, at]);
 
+  useEffect(() => {
+    closed.current = false;
+    return () => { closed.current = true; asked.current++; };
+  }, []);
+
+  useEffect(() => {
+    if (!madeId || closed.current || editor.isDestroyed) return;
+    const artifact = state.artifacts.find((a) => a.id === madeId);
+    if (!artifact) return;
+    insertAnswer(editor, at, noteFileToHtml(artifactLink(artifact)));
+    setMadeId(null);
+    setPhase("made");
+  }, [madeId, state.artifacts, editor, at]);
+
+  const makeArtifact = async (type) => {
+    if (busy || vault?.offline || closed.current) return;
+    setMakeType(type);
+    setError(null);
+    setPhase("asking");
+    const id = await maker.make({ type, ids: [pageId], topic: question.trim(), madeIn: { kind: "page", id: pageId } });
+    if (id && !closed.current && !editor.isDestroyed) setMadeId(id);
+  };
+
   const close = () => {
+    closed.current = true;
+    maker.cancel();
     asked.current++;
     onClose();
     if (!editor.isDestroyed) editor.commands.focus();
@@ -68,7 +103,8 @@ export default function AskKratt({ editor, pageId, onClose }) {
 
   const send = async () => {
     const q = question.trim();
-    if (!q || phase === "thinking") return;
+    if (!q || busy || closed.current) return;
+    maker.clearError();
     const id = ++asked.current;
     setPhase("thinking");
     setError(null);
@@ -110,27 +146,39 @@ export default function AskKratt({ editor, pageId, onClose }) {
   return (
     <div className="st-ask" role="dialog" aria-label="Ask Kratt" style={place ?? undefined} onKeyDown={onKeyDown}>
       <div className="st-ask-row">
-        <Kratt size={20} mode={phase === "thinking" ? "thinking" : "idle"} />
-        {phase === "answered" ? (
-          <span className="st-ask-note">Kratt's answer is in your note.</span>
+        <Kratt size={20} mode={busy ? "think" : "idle"} />
+        {phase === "answered" || phase === "made" ? (
+          <span className="st-ask-note">{phase === "made" ? "Your artifact is linked in this note." : "Kratt's answer is in your note."}</span>
         ) : (
           <input
             className="st-ask-input"
-            aria-label="Ask Kratt about this note"
-            placeholder="Ask Kratt about this note…"
+            aria-label={makeType ? `Topic for ${TYPE_LABELS[makeType].toLowerCase()}` : "Ask Kratt about this note"}
+            placeholder={makeType ? "Focus on (optional)…" : "Ask Kratt about this note…"}
             autoFocus
             value={question}
-            readOnly={phase === "thinking"}
+            readOnly={busy}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
-                send();
+                if (makeType) makeArtifact(makeType);
+                else send();
               }
             }}
           />
         )}
       </div>
+      {phase !== "answered" && phase !== "made" && (
+        <div className="st-ask-make" role="group" aria-label="Make study material">
+          {ARTIFACT_TYPES.map((type) => (
+            <button key={type} type="button" className="st-ghost-button" disabled={busy || vault?.offline} onClick={() => makeArtifact(type)}>
+              Make {TYPE_LABELS[type].toLowerCase()}
+            </button>
+          ))}
+        </div>
+      )}
+      {maker.busy && <MakeProgress type={makeType} progress={maker.progress} onCancel={maker.cancel} />}
+      {maker.error && <p className="st-ask-status st-artifact-error" role="alert">{maker.error}</p>}
       {phase === "thinking" && <p className="st-ask-status">Kratt is thinking…</p>}
       {phase === "failed" && (
         <p className="st-ask-status st-ask-error" role="alert">
@@ -149,7 +197,7 @@ export default function AskKratt({ editor, pageId, onClose }) {
           </button>
         )}
         <button className="st-ghost-button" onClick={close}>
-          {phase === "answered" ? "Done" : "Cancel"}
+          {phase === "answered" || phase === "made" ? "Done" : maker.busy ? "Close" : "Cancel"}
         </button>
       </div>
     </div>

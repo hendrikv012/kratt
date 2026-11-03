@@ -17,6 +17,7 @@ import http.client
 import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 import tempfile
@@ -82,10 +83,22 @@ def find_ollama(system: str | None = None, env: dict | None = None, exists: Call
     return next((place for place in places if exists(place)), None)
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def _open(request, timeout):
+    if os.environ.get("KRATT_DESKTOP") == "1":
+        # Local notes must not be forwarded through a corporate proxy or an HTTP redirect.
+        return urllib.request.build_opener(urllib.request.ProxyHandler({}), _NoRedirect()).open(request, timeout=timeout)
+    return urllib.request.urlopen(request, timeout=timeout)
+
+
 def installed_models(url: str, timeout: float = CHECK_TIMEOUT) -> list[dict] | None:
     """What `GET /api/tags` lists, or None when nothing answers there like Ollama does."""
     try:
-        with urllib.request.urlopen(f"{url.rstrip('/')}/api/tags", timeout=timeout) as reply:
+        with _open(f"{url.rstrip('/')}/api/tags", timeout=timeout) as reply:
             models = json.loads(reply.read())["models"]
     except (OSError, http.client.HTTPException, ValueError, KeyError, TypeError):
         return None
@@ -95,6 +108,8 @@ def installed_models(url: str, timeout: float = CHECK_TIMEOUT) -> list[dict] | N
 def can_chat(model: dict) -> bool:
     """Whether a model from /api/tags can answer questions. Ollama 0.6+ lists capabilities; for
     older versions an embedding model is recognised by its name or family."""
+    if model.get("remote_host") or model.get("remote_model") or str(model.get("name", "")).endswith(("-cloud", ":cloud")):
+        return False
     capabilities = model.get("capabilities")
     if isinstance(capabilities, list):
         return "completion" in capabilities
@@ -112,7 +127,7 @@ def _same_model(wanted: str, name: str) -> bool:
 
 
 def _log_path() -> Path:
-    return Path(tempfile.gettempdir()) / "kratt-logs" / "ollama.log"
+    return Path(os.environ.get("KRATT_LOG_DIR", str(Path(tempfile.gettempdir()) / "kratt-logs"))) / "ollama.log"
 
 
 def _start_options() -> dict:
@@ -137,6 +152,8 @@ class OllamaKeeper:
         self._lock = threading.Lock()
         self._process: subprocess.Popen | None = None  # the Ollama this keeper started
         self._failure = ""
+        self._pull = {"state": "idle"}
+        self._pull_lock = threading.Lock()
 
     @property
     def started_here(self) -> bool:
@@ -188,6 +205,48 @@ class OllamaKeeper:
         errors = [line for line in lines if line.startswith("Error")]  # Ollama's reason for giving up
         return errors[-1] if errors else "\n".join(lines[-LOG_LINES:])
 
+    def pull_status(self) -> dict:
+        with self._pull_lock:
+            return dict(self._pull)
+
+    def pull(self, model: str) -> dict:
+        if not isinstance(model, str) or not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_./:-]{0,150}", model):
+            raise LocalAiError("invalid-model", 400)
+        if model.endswith(("-cloud", ":cloud")):
+            raise LocalAiError("model-remote", 400)
+        if self.ensure()["state"] not in ("running", "started"):
+            raise LocalAiError("ollama-unavailable")
+        with self._pull_lock:
+            if self._pull["state"] == "downloading":
+                return dict(self._pull)
+            self._pull = {"state": "downloading", "model": model, "detail": "Starting download…"}
+        threading.Thread(target=self._download, args=(model,), daemon=True).start()
+        return self.pull_status()
+
+    def _download(self, model: str) -> None:
+        request = urllib.request.Request(f"{self.url.rstrip('/')}/api/pull",
+            data=json.dumps({"model": model, "stream": True}).encode(), headers={"Content-Type": "application/json"})
+        try:
+            with _open(request, timeout=ASK_TIMEOUT) as response:
+                success = False
+                for line in response:
+                    data = json.loads(line)
+                    if not isinstance(data, dict):
+                        raise ValueError("Ollama returned an invalid download status")
+                    if data.get("error"):
+                        raise ValueError(str(data["error"]))
+                    success = data.get("status") == "success"
+                    with self._pull_lock:
+                        self._pull = {"state": "downloading", "model": model, "detail": data.get("status", "Downloading…"),
+                                      "completed": data.get("completed", 0), "total": data.get("total", 0)}
+                if not success:
+                    raise ValueError("Download ended before completion; retry to resume")
+            result = {"state": "done", "model": model}
+        except (OSError, ValueError, http.client.HTTPException) as error:
+            result = {"state": "failed", "model": model, "detail": str(error)}
+        with self._pull_lock:
+            self._pull = result
+
     def stop(self) -> None:
         """Stop Ollama if this keeper started it; one that was already running is left alone."""
         with self._lock:
@@ -222,6 +281,8 @@ def ask(keeper: OllamaKeeper, model: str | None, prompt: str) -> str:
     found = next((m for m in tags if isinstance(m, dict) and _same_model(model, str(m.get("name")))), None)
     if found is None:
         raise LocalAiError("model-missing", status=400)
+    if not can_chat(found):
+        raise LocalAiError("model-remote", status=400)
     payload: dict = {"model": model, "messages": [{"role": "user", "content": prompt}], "stream": False,
                      "options": {"num_ctx": context_size(prompt)}}
     if "thinking" in (found.get("capabilities") or []):
@@ -229,7 +290,7 @@ def ask(keeper: OllamaKeeper, model: str | None, prompt: str) -> str:
     request = urllib.request.Request(f"{keeper.url.rstrip('/')}/api/chat", data=json.dumps(payload).encode("utf-8"),
                                      headers={"Content-Type": "application/json"}, method="POST")
     try:
-        with urllib.request.urlopen(request, timeout=ASK_TIMEOUT) as reply:
+        with _open(request, timeout=ASK_TIMEOUT) as reply:
             answer = json.loads(reply.read())
         content = answer["message"]["content"]
     except urllib.error.HTTPError as err:

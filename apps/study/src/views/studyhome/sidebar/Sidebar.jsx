@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Blocks, ChevronsLeft, ChevronsRight, GripVertical, Home, Library, MessageSquarePlus, Search, Settings, StickyNote, Waypoints } from "lucide-react";
 import SubjectTree from "./SubjectTree";
 import ChatsSection from "./ChatsSection";
+import ArtifactsSection from "./ArtifactsSection";
 import ReviewSection from "./ReviewSection";
 import PinnedSection from "./PinnedSection";
 import Kratt from "../kratt/Kratt";
@@ -91,6 +92,7 @@ export default function Sidebar({ side = "left", onSide, onDrag, sections = {}, 
       </button>
 
       {sections.chats !== false && <ChatsSection />}
+      {sections.artifacts !== false && <ArtifactsSection />}
       {sections.review !== false && <ReviewSection />}
       {sections.pinned !== false && <PinnedSection />}
       <SubjectTree />

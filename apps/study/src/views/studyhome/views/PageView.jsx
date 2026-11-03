@@ -26,7 +26,13 @@ function usePageLinks(pageId) {
   useEffect(() => {
     const onOpen = (e) => {
       // The same rule as the graph: a page in this page's own subject wins over a copy elsewhere.
-      const target = resolveWikiHref(state, e.detail ?? "", pageId);
+      const href = String(e.detail ?? "");
+      if (href.startsWith("artifact:")) {
+        const id = href.slice("artifact:".length).replace(/\.md$/, "");
+        if (state.artifacts?.some((a) => a.id === id)) open({ view: "artifact", id });
+        return;
+      }
+      const target = resolveWikiHref(state, href, pageId);
       if (target) open({ view: "node", id: target });
     };
     window.addEventListener("lokus:open-file", onOpen);
@@ -40,7 +46,7 @@ function useAskKratt(editorBox) {
   useEffect(() => {
     const onAsk = (e) => {
       const editor = e.detail?.editor;
-      if (editor && editorBox.current?.contains(editor.view.dom)) setAsking(editor);
+      if (editor && editorBox.current?.contains(editor.view.dom)) setAsking({ editor, make: e.detail?.make });
     };
     window.addEventListener("kratt:ask", onAsk);
     return () => window.removeEventListener("kratt:ask", onAsk);
@@ -94,7 +100,7 @@ export default function PageView({ id }) {
       <div className="st-editor" ref={editorBox}>
         <Editor key={id} content={page.content} onContentChange={saveContent} />
       </div>
-      {asking && <AskKratt key={id} editor={asking} pageId={id} onClose={stopAsking} />}
+      {asking && <AskKratt key={id} editor={asking.editor} make={asking.make} pageId={id} onClose={stopAsking} />}
     </article>
   );
 }

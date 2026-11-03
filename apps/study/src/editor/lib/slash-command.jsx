@@ -605,6 +605,19 @@ const commandItems = [
           window.dispatchEvent(new CustomEvent("kratt:ask", { detail: { editor } }));
         },
       },
+      ...[
+        ["Flashcards", "flashcards", "Make flashcards from this note."],
+        ["Slides", "slides", "Make slides from this note."],
+        ["Quiz", "quiz", "Make a quiz from this note."],
+      ].map(([title, make, description]) => ({
+        title,
+        description,
+        icon: <Kratt size={18} />,
+        command: ({ editor, range }) => {
+          editor.chain().focus().deleteRange(range).run();
+          window.dispatchEvent(new CustomEvent("kratt:ask", { detail: { editor, make } }));
+        },
+      })),
     ],
   },
   {

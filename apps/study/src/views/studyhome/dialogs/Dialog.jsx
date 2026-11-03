@@ -2,14 +2,33 @@ import { useEffect, useRef } from "react";
 import "./dialogs.css";
 
 // Small centred dialog over the app. Escape or a click outside cancels.
-export default function Dialog({ title, onCancel, children }) {
+export default function Dialog({ title, onCancel, children, trapFocus = false }) {
   const ref = useRef(null);
+  const cancel = useRef(onCancel);
+  cancel.current = onCancel;
   useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && onCancel();
+    const previous = document.activeElement;
+    const onKey = (e) => {
+      if (e.defaultPrevented || e.target?.closest?.('[role="menu"]')) return;
+      if (e.key === "Escape") {
+        e.preventDefault();
+        cancel.current();
+      } else if (trapFocus && e.key === "Tab") {
+        const controls = [...ref.current.querySelectorAll('button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])')]
+          .filter((el) => !el.disabled && !el.closest('[hidden]'));
+        const at = controls.indexOf(document.activeElement);
+        if (!controls.length) e.preventDefault();
+        else if (e.shiftKey && at <= 0) { e.preventDefault(); controls.at(-1).focus(); }
+        else if (!e.shiftKey && (at < 0 || at === controls.length - 1)) { e.preventDefault(); controls[0].focus(); }
+      }
+    };
     window.addEventListener("keydown", onKey);
     ref.current?.focus();
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onCancel]);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      if (trapFocus && previous?.isConnected) previous.focus();
+    };
+  }, [trapFocus]);
 
   return (
     <div className="st-dialog-backdrop" onPointerDown={(e) => e.target === e.currentTarget && onCancel()}>

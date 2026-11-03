@@ -1,6 +1,7 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import QuickFind from "./QuickFind";
+import { builtinProviders } from "./builtinProviders";
 import StudyPreview from "../StudyPreview";
 import { EMPTY_SNAPSHOT, fakeClient } from "../data/testing/fakeVault";
 
@@ -92,4 +93,18 @@ describe("quick find in the study app", () => {
     fireEvent.click(screen.getByRole("button", { name: "Search" }));
     expect(screen.getByRole("combobox")).toBeTruthy();
   });
+});
+
+
+test("finds an artifact by title and opens its viewer", () => {
+  const open = vi.fn();
+  const onClose = vi.fn();
+  const providers = builtinProviders({ state: { nodes: {}, artifacts: [{ id: "a1", title: "Photosynthesis", type: "flashcards" }] }, actions: {} }, { open });
+  render(<QuickFind open onClose={onClose} providers={providers} recentIds={[]} />);
+  const input = screen.getByRole("combobox");
+  fireEvent.change(input, { target: { value: "Photosynthesis" } });
+  expect(screen.getByRole("option")).toHaveTextContent("Flashcards");
+  fireEvent.keyDown(input, { key: "Enter" });
+  expect(open).toHaveBeenCalledWith({ view: "artifact", id: "a1" });
+  expect(onClose).toHaveBeenCalled();
 });

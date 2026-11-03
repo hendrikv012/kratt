@@ -1,4 +1,8 @@
-# 05 — Running the app (runbook)
+# 05 — Running the browser development stack
+
+This is the legacy developer workflow, including the optional Open Notebook services.
+Desktop users should follow [INSTALL.md](INSTALL.md); the packaged app starts its own
+local engine and does not require these commands or services.
 
 Verified 2026-10-31 on Arch Linux. `scripts/start.py` (or `scripts/start.fish`) starts
 everything, skips anything already running, and opens the browser at http://localhost:1420.

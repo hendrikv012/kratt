@@ -52,7 +52,8 @@ describe("Settings > AI, on this computer (Ollama)", () => {
     ollama(client, { state: "running", models: [] });
     const dialog = await openAi(client);
     await within(dialog).findByText("Ollama is running");
-    expect(within(dialog).getByRole("note").textContent).toContain("ollama pull llama3.2");
+    expect(within(dialog).getByRole("note").textContent).toContain("Download one below");
+    expect(within(dialog).getByRole("button", { name: "Download model" })).toBeEnabled();
     expect(within(dialog).queryByLabelText("Model")).toBeNull();
   });
 

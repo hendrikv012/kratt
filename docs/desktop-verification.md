@@ -12,6 +12,7 @@ Integration branch: `codex/desktop-release`. This record distinguishes checks ac
 - Product site: Chromium checks passed for images, light/dark screenshot switching, 390px mobile layout, no-release state, versioned asset URLs/checksums and browser errors. Screenshots use example notes only.
 - Full frontend suite: 1,006 tests passed locally after the runtime dependency fixes; the preceding GitHub run also passed 1,006 tests.
 - Linux AppImage, Debian package and portable tar archive: generated; AppImage and Debian extracted engines pass smoke checks.
+- Chromium artifact regression after dependency patches: all three viewers, full mode, and note-to-quiz generation/link/scoring/persistence passed in Ember and Chalk.
 - Linux packaged GUI: launched from the AppImage, created an isolated Study folder, reached the authenticated engine through the frontend, and shut down the engine after the actual GUI process exited. The AppImage extraction wrapper is a separate parent; the test explicitly identifies the GUI.
 - Product site deployed and checked over HTTPS: HTTP 200 at https://hendrikv012.github.io/kratt/.
 

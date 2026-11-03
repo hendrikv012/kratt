@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { createVaultClient } from "../views/studyhome/data/vaultClient";
 import { connection, isDesktop, openDesktop, startDesktop } from "./runtime";
 import ModelDownload from "./ModelDownload";
+import "@fontsource/pixelify-sans/500.css";
+import "@fontsource-variable/geist/wght.css";
 import "./desktop.css";
 
 export default function DesktopGate({ children }) {
@@ -53,7 +55,7 @@ export default function DesktopGate({ children }) {
         <h1>{phase === "starting" ? "Opening your Study folder…" : phase === "failed" ? "Kratt needs a moment" : "Meet your local study partner"}</h1>
         {phase === "starting" && <p>Starting the engine on this computer.</p>}
         {error && <p role="alert">{error}</p>}
-        {phase === "failed" && <div className="kratt-startup-actions"><button onClick={start}>Retry</button><button onClick={() => open("logs")}>Open logs</button></div>}
+        {phase === "failed" && <div className="kratt-startup-actions"><button className="kratt-startup-primary" onClick={start}>Retry</button><button onClick={() => open("logs")}>Open logs</button></div>}
         {phase === "setup" && <>
           <p>Your notes live in <strong>{connection()?.studyDir}</strong>. You can study without AI, or connect Ollama to make flashcards, slides and quizzes locally.</p>
           {ai?.state === "not-installed" ? <><p>Ollama is not installed. Open its download page, install it, then come back to Kratt.</p><button onClick={() => open("ollama")}>Install Ollama</button></> : ai?.state === "failed" ? <p role="alert">Ollama could not start. {ai.detail}</p> : <>
@@ -62,7 +64,7 @@ export default function DesktopGate({ children }) {
             </select></label>}
             <ModelDownload client={client} onDone={() => checkAi().catch((e) => setError(e.message))} />
           </>}
-          <div className="kratt-startup-actions"><button onClick={() => checkAi().catch((e) => setError(e.message))}>Check again</button><button onClick={enter}>Continue to notes</button><button onClick={() => open("data")}>Show my files</button></div>
+          <div className="kratt-startup-actions"><button onClick={() => checkAi().catch((e) => setError(e.message))}>Check again</button><button className="kratt-startup-primary" onClick={enter}>Continue to notes</button><button onClick={() => open("data")}>Show my files</button></div>
         </>}
       </div>
     </main>}

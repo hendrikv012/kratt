@@ -85,3 +85,6 @@ Note: ticket statuses below predate the landing of the real code. Re-validate in
 
 ### D-02 · Cross-cutting · todo
 **Trusted public desktop distribution.** Add Apple Developer ID signing/notarization and Windows publisher signing when credentials are available. Manually verify downloaded desktop interfaces on macOS and Windows and the Ubuntu package before promoting a stable release. The owner explicitly deferred signing; this does not block unsigned previews.
+
+### F-13 · Frontend / brand (owner-authorized) · done
+**Carry the app's Ember design into the product site, GitHub presentation and unthemed desktop surfaces.** Use the existing palette/type/mascot, review responsive screenshots, preserve release links and app theme choices. The owner explicitly requested this across the site, repository presentation and frontend.

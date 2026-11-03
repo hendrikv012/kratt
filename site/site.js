@@ -1,13 +1,14 @@
 const repository = "hendrikv012/kratt";
 const status = document.querySelector("#release-status");
-for (const button of document.querySelectorAll("[data-theme]")) {
-  button.addEventListener("click", () => {
-    const theme = button.dataset.theme;
-    for (const other of document.querySelectorAll("[data-theme]")) other.setAttribute("aria-pressed", String(other === button));
-    document.querySelector("#workspace-image").src = `assets/${theme}-notes.png`;
-    document.querySelector("#practice-image").src = `assets/${theme}-cards.png`;
-  });
+function setAppearance(theme) {
+  const light = theme === "ember-light";
+  document.documentElement.dataset.ember = light ? "light" : "dark";
+  document.querySelector('meta[name="theme-color"]').content = light ? "#f6f3ee" : "#0e0e0e";
+  for (const button of document.querySelectorAll("[data-theme]")) button.setAttribute("aria-pressed", String(button.dataset.theme === theme));
+  document.querySelector("#workspace-image").src = `assets/${theme}-notes.png`;
+  document.querySelector("#practice-image").src = `assets/${theme}-cards.png`;
 }
+for (const button of document.querySelectorAll("[data-theme]")) button.addEventListener("click", () => setAppearance(button.dataset.theme));
 const formats = [
   ["linux-x86_64", "AppImage", "Download AppImage"],
   ["linux-x86_64", "deb", "Download Ubuntu / Debian installer"],

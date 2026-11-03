@@ -1,0 +1,31 @@
+/* Generated from the app's Ember presets by scripts/sync-ember-brand.mjs. */
+:root {
+  --st-bg: #0e0e0e;
+  --st-sidebar: #131313;
+  --st-surface: #161616;
+  --st-hover: #1c1c1c;
+  --st-line: #232323;
+  --st-text: #ece8e3;
+  --st-text-soft: #a19c96;
+  --st-text-body: #d6d1cb;
+  --st-accent: #ff8a3d;
+  --st-accent-ink: #0e0e0e;
+  --st-accent-wash: #301f15;
+  --st-kratt: #ff8a3d;
+  color-scheme: dark;
+}
+:root[data-ember="light"] {
+  --st-bg: #f6f3ee;
+  --st-sidebar: #f2eee7;
+  --st-surface: #ffffff;
+  --st-hover: #ece8e1;
+  --st-line: #dcd6cc;
+  --st-text: #1b1917;
+  --st-text-soft: #5f5a54;
+  --st-text-body: #2b2825;
+  --st-accent: #b04d0c;
+  --st-accent-ink: #ffffff;
+  --st-accent-wash: #ecdcce;
+  --st-kratt: #d9661b;
+  color-scheme: light;
+}

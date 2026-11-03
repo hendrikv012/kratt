@@ -1,16 +1,40 @@
-.kratt-startup { min-height: 100vh; padding: 6vh 24px; display: grid; place-items: center; background: #161b25; color: #e9edf5; font-family: Inter, sans-serif; }
-.kratt-startup-sheet { max-width: 640px; width: 100%; padding: 36px; border: 1px solid #394254; border-radius: 16px; background: #1c2330; }
-.kratt-startup h1 { font-size: 30px; letter-spacing: -.04em; line-height: 1.15; margin: 24px 0; }
-.kratt-startup p { line-height: 1.65; overflow-wrap: anywhere; }
-.kratt-startup button, .kratt-startup select, .kratt-startup input { font: inherit; color: inherit; background: #283449; border: 1px solid #52627a; border-radius: 6px; padding: 9px 12px; }
-.kratt-startup button { cursor: pointer; }
+/* Before StudyPreview mounts, fall back to its Ember preset. Once mounted,
+   inherited --st-* tokens keep recovery and notices on the person's own theme. */
+.kratt-startup {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: clamp(24px, 6vh, 64px) 24px;
+  display: grid;
+  place-items: safe center;
+  background: var(--st-bg, #0e0e0e);
+  color: var(--st-text, #ece8e3);
+  font: 15px/1.65 var(--st-page-font, 'Geist Variable', Geist, system-ui, sans-serif);
+  color-scheme: inherit;
+}
+.kratt-startup-sheet { max-width: 640px; width: 100%; padding: clamp(24px, 4vw, 36px); border: 1px solid var(--st-line, #232323); border-radius: 6px; background: var(--st-surface, #161616); }
+.kratt-startup img { width: 64px; height: 64px; }
+.kratt-startup h1 { font: 500 clamp(28px, 4vw, 36px)/1.15 var(--st-sans, 'Pixelify Sans', system-ui, sans-serif); letter-spacing: .01em; margin: 24px 0; }
+.kratt-startup p { line-height: 1.65; overflow-wrap: anywhere; color: var(--st-text-body, #d6d1cb); }
+.kratt-startup strong { color: var(--st-text, #ece8e3); font-weight: 500; }
+.kratt-startup button, .kratt-startup select, .kratt-startup input {
+  color: var(--st-text, #ece8e3); background: var(--st-bg, #0e0e0e);
+  border: 1px solid var(--st-line, #232323); border-radius: 6px; padding: 9px 12px; min-height: 42px;
+}
+.kratt-startup button { font: 500 17px/1.3 var(--st-sans, 'Pixelify Sans', system-ui, sans-serif); cursor: pointer; }
+.kratt-startup select, .kratt-startup input { font: inherit; width: 100%; min-width: 0; }
 .kratt-startup button:disabled { opacity: .55; cursor: wait; }
-.kratt-startup button:hover { background: #374762; }
-.kratt-startup :focus-visible { outline: 2px solid #89c7ff; outline-offset: 3px; }
+.kratt-startup button:hover:not(:disabled) { background: var(--st-hover, #1c1c1c); }
+.kratt-startup .kratt-startup-primary { background: var(--st-accent, #ff8a3d); color: var(--st-accent-ink, #0e0e0e); border-color: transparent; }
+.kratt-startup .kratt-startup-primary:hover:not(:disabled) { background: var(--st-accent, #ff8a3d); filter: brightness(1.08); }
+.kratt-startup :focus-visible, .kratt-desktop-notice :focus-visible { outline: 2px solid var(--st-accent, #ff8a3d); outline-offset: 3px; }
 .kratt-startup-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
 .kratt-startup label { display: grid; gap: 8px; margin: 16px 0; }
 .kratt-model-download { margin-top: 20px; }
 .kratt-model-download p { font-size: 14px; }
 .kratt-model-download label { margin-right: 10px; }
-.kratt-desktop-notice { position: fixed; bottom: 20px; left: 20px; right: 20px; padding: 16px; background: #452923; color: white; z-index: 99999; }
-.kratt-desktop-notice button { margin-left: 12px; }
+.kratt-startup [role='alert'] { border-left: 2px solid var(--st-accent, #ff8a3d); padding-left: 14px; }
+.kratt-desktop-notice { position: fixed; bottom: 20px; left: 20px; right: 20px; padding: 16px; background: var(--st-surface, #161616); color: var(--st-text, #ece8e3); border: 1px solid var(--st-line, #232323); border-left: 3px solid var(--st-accent, #ff8a3d); border-radius: 6px; z-index: 99999; font: 15px/1.6 var(--st-page-font, 'Geist Variable', Geist, system-ui, sans-serif); }
+.kratt-desktop-notice button { margin-left: 12px; color: var(--st-accent, #ff8a3d); background: transparent; border: 0; font: 500 17px var(--st-sans, 'Pixelify Sans', system-ui, sans-serif); cursor: pointer; }
+
+.app-root:has(.kratt-startup) .app-titlebar { background: var(--st-bg, #0e0e0e) !important; transition: none !important; }

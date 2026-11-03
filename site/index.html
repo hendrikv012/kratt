@@ -1,49 +1,58 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-ember="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kratt — A study partner that stays with your notes</title>
   <meta name="description" content="Connected notes, local AI, flashcards, slides and quizzes. Kratt is a desktop study workspace for Linux, macOS and Windows. Your work stays in files you own.">
-  <meta name="theme-color" content="#edf1f7">
+  <meta name="theme-color" content="#0e0e0e">
   <link rel="icon" href="assets/kratt.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="ember.css">
   <link rel="stylesheet" href="styles.css">
+  <meta property="og:title" content="Kratt — Your notes, with a study partner">
+  <meta property="og:description" content="Connected notes, local AI and study materials. Your work stays on your computer.">
+  <meta property="og:image" content="https://hendrikv012.github.io/kratt/assets/kratt-banner.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://hendrikv012.github.io/kratt/">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
   <script type="module" src="site.js"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="wrap masthead">
   <a class="brand" href="./" aria-label="Kratt home"><img src="assets/kratt.svg" width="48" height="40" alt="">Kratt</a>
-  <nav aria-label="Main"><a href="#workspace">The workspace</a><a href="#local">Your files</a><a href="#download">Downloads</a><a href="https://github.com/hendrikv012/kratt">GitHub</a></nav>
+  <nav aria-label="Main"><a href="#workspace">Workspace</a><a href="#practice">Study materials</a><a href="#local">Your files</a><a href="#download">Downloads</a><a href="https://github.com/hendrikv012/kratt">GitHub</a></nav>
 </header>
 <main id="main">
   <section class="wrap hero">
     <div>
-      <p class="intro">A study partner that stays with your notes.</p>
-      <h1>Make room for<br>understanding.</h1>
+      <h1>Your notes, with a study partner.</h1>
       <p class="lede">Gather your notes. Connect the ideas. Ask Kratt to turn them into something you can practise — with AI running on your own computer.</p>
       <div class="actions"><a class="button primary" href="#download">Get Kratt for desktop</a><a class="text-link" href="#workspace">Take a look inside</a></div>
       <p class="availability">For Linux, macOS and Windows. Early preview.</p>
     </div>
-    <aside class="hero-note" aria-label="About Kratt">
-      <img src="assets/kratt.svg" width="240" height="194" alt="Kratt, a small orange pixel creature carrying a fork">
-      <h2>A helper.<br>A home for your ideas.</h2>
-      <p>Named after the resourceful helper of Estonian folklore. This one helps you study.</p>
+    <aside class="hero-note" aria-label="Meet Kratt">
+      <img src="assets/kratt.svg" width="80" height="68" alt="Kratt, an orange pixel helper carrying a fork">
+      <h2>A little help making sense of it.</h2>
+      <p>Named after the resourceful helper of Estonian folklore. This one works with your notes.</p>
+      <div class="note-links"><a href="#workspace">Connected notes</a><a href="#practice">Made for practice</a><a href="#local">Kept on your computer</a></div>
     </aside>
   </section>
   <section class="wrap workspace" id="workspace" aria-labelledby="workspace-title">
-    <div class="section-heading"><h2 id="workspace-title">All the pieces, in one place.</h2><div class="theme-switch" role="group" aria-label="Screenshot theme"><button data-theme="chalk" aria-pressed="true">Light</button><button data-theme="ember" aria-pressed="false">Dark</button></div></div>
-    <figure class="workspace-shot"><img id="workspace-image" src="assets/chalk-notes.png" alt="Kratt study workspace showing a biology note, subject sidebar and linked flashcards" width="1280" height="900" fetchpriority="high"><figcaption>The actual Kratt workspace, shown with example study notes.</figcaption></figure>
+    <div class="section-heading"><h2 id="workspace-title">All the pieces, in one place.</h2><div class="theme-switch" role="group" aria-label="Ember appearance"><button data-theme="ember" aria-pressed="true">Ember dark</button><button data-theme="ember-light" aria-pressed="false">Ember light</button></div></div>
+    <figure class="workspace-shot"><img id="workspace-image" src="assets/ember-notes.png" alt="Kratt study workspace showing a biology note, subject sidebar and linked flashcards" width="1280" height="900" fetchpriority="high"><figcaption>The actual Kratt workspace, shown with example study notes.</figcaption></figure>
     <div class="features">
       <article><h3>Think in connections</h3><p>Organise pages into subjects. Link one idea to another with wiki links. Keep the source material close to your own words.</p></article>
       <article><h3>Make practice personal</h3><p>Turn your selected notes into flashcards, slides or quizzes. Larger selections are processed in parts, without cutting notes to fit a single prompt.</p></article>
       <article><h3>Find your focus</h3><p>Review one card or question at a time. Open full screen, use the keyboard, and return to the notes that the material came from.</p></article>
     </div>
   </section>
-  <section class="practice-band">
+  <section class="practice-band" id="practice">
     <div class="wrap practice">
       <div><h2>From “I read it”<br>to “I remember it.”</h2><p>Choose the notes that matter. Kratt makes study material you can revisit, rename and keep beside your work.</p><ul class="plain-list"><li>Flashcards with Got it / Again</li><li>Slides for a clear walkthrough</li><li>Quizzes with explanations and saved scores</li></ul><p class="small">AI can make mistakes. Check generated material against your notes.</p></div>
-      <figure><img id="practice-image" src="assets/chalk-cards.png" alt="Kratt flashcard viewer with a biology question and links back to the original note" width="1280" height="900" loading="lazy"><figcaption>Study materials stay linked to where they came from.</figcaption></figure>
+      <figure><img id="practice-image" src="assets/ember-cards.png" alt="Kratt flashcard viewer with a biology question and links back to the original note" width="1280" height="900" loading="lazy"><figcaption>Study materials stay linked to where they came from.</figcaption></figure>
     </div>
   </section>
   <section class="wrap local" id="local">

@@ -19,7 +19,7 @@ Native screenshot using a local test API; replace its example address with your 
 
 `ai-providers.json` is beside Kratt's `config.json`, outside Study. It is created with owner-only permissions on POSIX. It is a protected local credential file, not an encrypted vault; protect your OS account and backups. The UI sees key-present flags and account labels, not saved secrets. New keys are not written into browser settings. Claude authentication remains with its official client.
 
-ChatGPT uses a dedicated loopback callback, fresh state/nonce/PKCE, the issued per-account client ID, JWKS signature/issuer/audience/expiry/nonce validation, and granted plan scopes. Refreshes are serialized and rotated tokens are persisted. Auth attempts expire after five minutes. Callback URLs and tokens are not logged. Requests use the public Responses API with `store:false`, require stream completion, and reject provider redirects.
+ChatGPT uses a stable `urn:uuid:<UUIDv4>` host identifier (1.4.1 migrates the bare UUID saved by 1.4.0), a dedicated loopback callback, fresh state/nonce/PKCE, the issued per-account client ID, JWKS signature/issuer/audience/expiry/nonce validation, and granted plan scopes. Refreshes are serialized and rotated tokens are persisted. Auth attempts expire after five minutes. Callback URLs and tokens are not logged. Requests use the public Responses API with `store:false`, require stream completion, and reject provider redirects.
 
 The desktop retains Host/Origin/session-token checks. Its old Open Notebook bridge remains disabled; browser development can still use the legacy bridge. Internet connections come from the engine or official subscription client, not a Kratt-hosted backend.
 

@@ -4,6 +4,7 @@ import os
 import stat
 import time
 import urllib.error
+import uuid
 from urllib.parse import parse_qs, urlparse
 
 import jwt
@@ -105,6 +106,9 @@ def test_oauth_state_registration_and_existing_account_not_replaced(tmp_path, mo
         assert params['client_id'] == ['dynamic_agent_client']
         assert params['agent_name_hint'] == ['Kratt']
         assert params['code_challenge_method'] == ['S256']
+        host = params['ext_agent_host_id'][0]
+        assert host.startswith('urn:uuid:') and uuid.UUID(host).version == 4
+        assert ai.store.read()['chatgpt']['host'] == host
         pending = ai.auth.pending
         with pytest.raises(ProviderError, match='state'):
             ai.auth.complete(pending, {'state': 'wrong', 'code': 'code', 'client_id': 'issued'})
@@ -194,5 +198,28 @@ def test_callback_rejects_wrong_state_and_cancel_invalidates_attempt(tmp_path):
         with pytest.raises(ProviderError, match='expired'):
             ai.auth.complete(pending, {'state': pending['state'], 'code': 'fake', 'client_id': 'fake'})
         assert not ai.auth.status()['signedIn']
+    finally:
+        ai.close()
+
+
+@pytest.mark.parametrize('existing', [
+    'c0ca8525-8659-4af2-a578-d22e60878f23',
+    'urn:uuid:c0ca8525-8659-4af2-a578-d22e60878f23',
+    'urn:ietf:params:oauth:jwk-thumbprint:sha-256:example',
+    'did:key:example',
+])
+def test_host_id_migration_is_stable_and_preserves_accounts(tmp_path, existing):
+    ai = OnlineAi(tmp_path)
+    data = ai.store.read()
+    accounts = {'issued': {'sub': 'person', 'tokens': {'access_token': 'fixture-secret'}}}
+    data['chatgpt'] = {'host': existing, 'active': 'issued', 'accounts': accounts}
+    ai.store.write(data)
+    expected = existing if ':' in existing else 'urn:uuid:' + existing
+    try:
+        for account in (None, 'issued'):
+            result = ai.auth.start(account)
+            assert parse_qs(urlparse(result['url']).query)['ext_agent_host_id'] == [expected]
+            stored = ai.store.read()['chatgpt']
+            assert stored == {'host': expected, 'active': 'issued', 'accounts': accounts}
     finally:
         ai.close()

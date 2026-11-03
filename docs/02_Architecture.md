@@ -26,7 +26,7 @@ The local desktop full-text index mirrors Markdown/text files in `.study/search.
 
 ## Distribution
 
-App version uses MAJOR.MINOR.PATCH, currently 1.4.0. Native runners build Linux x86_64 AppImage/deb/tar, macOS arm64/x86_64 DMG, and Windows x64 EXE/MSI. Package verification checks actual contents and executes the extracted engine. Checksums, metadata, install guidance and generated notes accompany draft releases. Per the owner's latest instruction, signing/notarization is deferred and all builds are labelled unsigned previews.
+App version uses MAJOR.MINOR.PATCH, currently 1.4.1. Native runners build Linux x86_64 AppImage/deb/tar, macOS arm64/x86_64 DMG, and Windows x64 EXE/MSI. Package verification checks actual contents and executes the extracted engine. Checksums, metadata, install guidance and generated notes accompany draft releases. Per the owner's latest instruction, signing/notarization is deferred and all builds are labelled unsigned previews.
 
 GitHub Pages receives only `site/`. Download links resolve real versioned assets in GitHub Releases, with explicit empty/error states. No app or installer is deployed to Pages.
 

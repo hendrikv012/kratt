@@ -81,7 +81,14 @@ class ChatGptAuth:
         with self.store.lock:
             data = self.store.read()
             config = data.setdefault("chatgpt", {})
-            config.setdefault("host", str(uuid.uuid4()))
+            config.setdefault("host", uuid.uuid4().urn)
+            # 1.4.0 saved a bare UUID, but OpenAI accepts UUID *URIs* (urn:uuid:...).
+            # Migrate its representation without rotating the host or its registrations.
+            try:
+                config["host"] = uuid.UUID(config["host"]).urn
+            except (ValueError, AttributeError, TypeError):
+                # Other supported opaque identifiers (JWK thumbprints / did:key) stay intact.
+                pass
             account = config.get("accounts", {}).get(account_id) if account_id else None
             if account_id and not account:
                 raise ProviderError("Choose an existing ChatGPT account or add another.")

@@ -7,15 +7,20 @@ Status values: `todo` · `doing` · `done` · `blocked`. Pull the top `todo` in 
 ### T-01 · Architect · done
 **Land the real workspace in this repo.** Copy `apps/study/`, `engine/`, `scripts/` and any still-useful docs from the local workspace into this repo, commit, push.
 - Done when: the real code is in this repo and the app runs from the repo.
-- **Landed 2026-10-31.** Pitfalls fixed on the way: five nested repos committed as pointers (de-submoduled), 11 Claude Code worktree pointers unstaged, node_modules pointer removed, `.gitignore` extended (worktrees, Python junk). Cost: the five folders' pre-monorepo git histories are gone (backup failed); worktree checkouts deleted from disk. See `logs/2026-10-31.md`.
+- **Landed 2026-10-31**, and the stack was launched from the repo the same day (see `logs/2026-10-31.md` and `05-Running.md`).
 
 ### T-02 · Architect · todo
 **Reconcile docs with the real code.** Walk `apps/study/` and `engine/`, remove every *(unverified)* marker in `02_Architecture.md`, and rewrite the M1 tickets below so they match reality (some may already be done — mark them so).
 - Done when: nothing in `02_Architecture.md` is marked *(unverified)* and M1 ticket statuses are truthful.
+- Note: much of this is now known from the launcher and configs (ports, SurrealDB, uv, OpenNB engine); remaining unknowns are the Ollama model wiring and what the M1 backend tickets map to in `engine/src/memory_engine`.
 
 ### T-03 · Architect · todo
 **Decide the fate of the `kratt/` template.** Either delete it, or implement `template-review-fixes-spec.md` on a branch. Deferred 2026-10-31 by owner decision.
 - Done when: decision recorded in `04_Decisions.md` and executed or ticketed.
+
+### T-04 · Architect · todo
+**Triage npm audit in `apps/study`** (28 findings, dev chain, 2 critical). Do not blanket-fix during M1; assess whether any affect runtime.
+- Done when: each critical is understood and either fixed or dismissed with a reason in the log.
 
 ## Milestone 1 — Core loop
 Note: ticket statuses below predate the landing of the real code. Re-validate in T-02 before working them.
@@ -26,10 +31,12 @@ Note: ticket statuses below predate the landing of the real code. Re-validate in
 ### B-01 · Backend · todo
 **Choose and scaffold the glue service** (FastAPI or Express) with a health endpoint and SQLite connection.
 - Done when: service starts locally, `GET /health` returns ok, DB file is created, decision and reason logged.
+- Reality check (2026-10-31): the Study folder service on :5057 may already be this — confirm in T-02.
 
 ### B-02 · Backend · todo
 **Create the schema** per `02_Architecture.md`: topics, score_events, notes, note_links, reviews. Add migrations.
 - Done when: schema creates on a fresh DB; inserting and reading a score event works in a test.
+- Reality check (2026-10-31): `engine` keeps notes in Markdown + one SQLite index (`memory.db`); confirm what exists in `engine/src/memory_engine` before writing anything new.
 
 ### B-03 · Backend · todo
 **Mastery calculation**: time-decayed weighted aggregate, `tau` in config.
@@ -38,6 +45,7 @@ Note: ticket statuses below predate the landing of the real code. Re-validate in
 ### B-04 · Backend · todo
 **Model interface + Ollama adapter** (one method: review a note → list of `{topic, delta, reason}`). Leave a stub for an external model.
 - Done when: a sample note returns structured JSON from a local model; invalid output is handled without crashing.
+- Reality check (2026-10-31): the service already talks to Ollama (it starts it); confirm the existing interface in T-02.
 
 ### B-05 · Backend · todo
 **Review endpoint**: `POST /notes/:id/review` calls the model and writes `score_events` (topic names normalised).

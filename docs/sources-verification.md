@@ -23,4 +23,4 @@ Both `~/Study` and the installed app’s `~/.local/share/kratt/Study` were archi
 4. During an upload, switch tabs or press Cancel. Completed files remain; the interrupted source says Original not saved and unstarted files disappear.
 5. Choose Rich/Simple/Preview in Settings → Layout and home screen → Sources. Quit and reopen to check saved style and tabs.
 
-Native package/install validation is recorded in the daily log after the final packaged-app check. Other OS builds are not claimed by this local Linux verification.
+Native package/install check passed on the extracted installed Linux 1.6.0 executable (`36c0913`): authenticated upload, source navigation, Settings persistence and tab restoration after clearing localStorage and restarting. The existing launcher now points to this version; the previous installation is retained. Other OS builds are not claimed by this local Linux verification.

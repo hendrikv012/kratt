@@ -102,5 +102,5 @@ Note: ticket statuses below predate the landing of the real code. Re-validate in
 ### F-14 · Frontend (owner-requested) · done
 **Sources boxes from the supplied HTML reference.** Subject boxes open source-card grids; Rich, Simple and Preview styles are selectable and persisted in desktop preferences. Preserve source actions and the existing list option. Include empty subjects, responsive themes and keyboard operation.
 
-### F-15 · Sources Part A · doing
+### F-15 · Sources Part A · done
 **Complete the approved subject pages and streamed uploads.** Owner-authorized frontend/backend work: recover the unfinished implementation, keep the reference box styles in Settings, show Unsorted below subjects, open separate subject tabs, and accept files/folders/links through one cancellable queue. Web search stays Part B.

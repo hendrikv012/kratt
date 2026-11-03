@@ -126,3 +126,10 @@ describe("send", () => {
     await expect(failing(new Error("boom"), true)).rejects.toMatchObject({ code: "ollama-unavailable" });
   });
 });
+
+it("preserves online-provider sign-in and quota errors", async () => {
+  const error = Object.assign(new Error("Provider usage limit reached"), { code: "provider" });
+  const client = { notebookAsk: async () => { throw error; } };
+  const service = createChatService({ client, address: () => "unused" });
+  await expect(service.send("question")).rejects.toMatchObject({ code: "provider", message: "Provider usage limit reached" });
+});

@@ -14,3 +14,5 @@ export function startDesktop() {
   return starting;
 }
 export const openDesktop = (target) => invoke("desktop_open", { target });
+
+export const openDesktopAuth = (url) => invoke("desktop_open_auth", { url });

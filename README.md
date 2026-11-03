@@ -2,7 +2,7 @@
 
 # Kratt
 
-A desktop study workspace with connected notes and a local AI study partner. Gather your material, link the ideas, and turn your notes into flashcards, slides and quizzes.
+A desktop study workspace with connected notes and your choice of AI study partner. Gather your material, link the ideas, and turn your notes into flashcards, slides and quizzes.
 
 [Explore Kratt](https://hendrikv012.github.io/kratt/) · [Preview builds](https://github.com/hendrikv012/kratt/actions/workflows/build-release.yml) · [Releases](https://github.com/hendrikv012/kratt/releases) · [Install guide](docs/INSTALL.md)
 
@@ -11,7 +11,7 @@ A desktop study workspace with connected notes and a local AI study partner. Gat
 - **Connected notes.** Organise pages into subjects, keep sources close, and follow links between ideas.
 - **Practice from your material.** Make flashcards, slides and quizzes in chat or directly from a note. Return to the original notes from each artifact.
 - **Your files, on your computer.** Notes, sources, chats and study materials live in a Study folder as Markdown. Kratt starts its bundled engine automatically; no Python or engine commands are needed.
-- **A local study partner.** Ollama runs the AI on your computer. Taking notes works without it.
+- **Your choice of AI.** Use Ollama locally, or explicitly connect an online API or supported ChatGPT/Claude subscription in Settings → AI. Online providers receive your question and selected context. Taking notes works without AI.
 
 <details>
 <summary>See the Ember workspace and flashcards</summary>

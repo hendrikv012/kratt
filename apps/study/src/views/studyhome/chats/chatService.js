@@ -137,6 +137,7 @@ export function createChatService({ client, address, local = () => false }) {
       const { output } = onComputer ? await client.localAsk(prompt) : await client.notebookAsk(address(), prompt);
       return output;
     } catch (error) {
+      if (error?.code === "provider") throw new ChatError("provider", error.message);
       if (error instanceof VaultOffline) throw new ChatError("offline", CHAT_MESSAGES.offline);
       if (onComputer) {
         const code = isLocalError(error?.message) ? error.message : "ollama-unavailable";

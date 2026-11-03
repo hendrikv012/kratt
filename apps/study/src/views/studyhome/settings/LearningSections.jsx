@@ -1,4 +1,5 @@
 import { isDesktop, openDesktop } from "../../../desktop/runtime";
+import OnlineAiRows from "./OnlineAiRows";
 import ModelDownload from "../../../desktop/ModelDownload";
 import { useEffect, useState } from "react";
 import { useStudy } from "../data/StudyProvider";
@@ -280,24 +281,12 @@ export function AiSection({ value, set }) {
             onChange={(v) => set({ model: v })}
             options={[
               { value: "local", label: "On this computer" },
-              ...(!isDesktop() ? [{ value: "cloud", label: "Online service" }] : []),
+              { value: "cloud", label: "Online service" },
             ]}
           />
         </Row>
         {value.model === "local" && <LocalModelRows />}
-        {value.model === "cloud" && (
-          <Row label="API key" description="Stored only on this computer." htmlFor="st-api-key">
-            <input
-              id="st-api-key"
-              className="st-input"
-              type="password"
-              placeholder="Paste your key"
-              value={value.apiKey}
-              onChange={(e) => set({ apiKey: e.target.value })}
-            />
-          </Row>
-        )}
-        {value.model === "cloud" && <OpenNotebookRows value={value} set={set} />}
+        {value.model === "cloud" && (isDesktop() ? <OnlineAiRows /> : <OpenNotebookRows value={value} set={set} />)}
         <Row
           label="Chat memory"
           description="How much of the page, your notes and this chat is sent with each question. Pick Short if answers ignore what you said earlier."

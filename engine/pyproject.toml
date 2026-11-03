@@ -12,6 +12,8 @@ dependencies = [
     "tree-sitter>=0.26",
     "tree-sitter-python>=0.25",
     "pyyaml>=6",
+    "PyJWT[crypto]==2.15.1",
+    "cryptography==50.0.2",
     "ruff>=0.6",
     "mypy>=1.11",
     "pytest>=9",  # the Doctor runs the workspace's tests

@@ -7,7 +7,7 @@ Verified against the monorepo source on 2026-11-03. This replaces the unverified
 - `apps/study/src/`: React/Vite study workspace, Tiptap editor, file synchronization, chats and study artifacts.
 - `apps/study/src/desktop/`: native startup/recovery gate and model setup. Browser development bypasses this gate.
 - `apps/study/src-tauri/`: Rust Tauri shell, owned engine lifecycle, extension package handling, capabilities and bundle configuration. There is one Tauri project, not a second root-level shell.
-- `engine/src/memory_engine/`: Python file service, local Ollama integration and the existing advanced memory-engine CLI.
+- `engine/src/memory_engine/`: Python file service, local Ollama and optional online-provider integration, and the existing advanced memory-engine CLI.
 - `scripts/`: frozen-engine smoke testing, package verification/collection and AppImage compatibility repair.
 - `site/`: marketing website only; `.github/workflows/` builds native packages and deploys that site.
 - `docs/`, `design/`: product specification, decisions, validation records and mascot artwork. `kratt/` remains the unrelated unused starter.
@@ -16,7 +16,7 @@ Verified against the monorepo source on 2026-11-03. This replaces the unverified
 
 Tauri embeds production React assets and an OS-native PyInstaller engine executable. Rust allocates platform app-data folders, locks ownership, spawns the engine, verifies health, and shuts it down. The Python stdlib HTTP server binds to a dynamically assigned loopback port. Requests require the app's session token and allowed Host/Origin. Standalone developer `memory-engine serve` remains on 5057 without the desktop session token.
 
-Ollama is external and local. Kratt discovers or starts it, supports installed-model selection and explicit model downloads, and stops only an Ollama process it started. Missing AI does not prevent note use. Desktop online notebook routes are disabled; extension networking remains opt-in under existing permissions.
+Ollama is external and local. Kratt discovers or starts it, supports installed-model selection and explicit model downloads, and stops only an Ollama process it started. Missing AI does not prevent note use. Settings also offers opt-in OpenAI/Claude and OpenAI-compatible APIs, ChatGPT public-client OAuth, and the official Claude Code subscription client. The engine owns provider transport, protected credential files, callback listeners and CLI process cleanup. Selected prompts leave the computer only when online AI is chosen. Desktop legacy online notebook routes remain disabled; extension networking remains opt-in under existing permissions.
 
 ## Persistence
 
@@ -26,7 +26,7 @@ The local desktop full-text index mirrors Markdown/text files in `.study/search.
 
 ## Distribution
 
-App version uses MAJOR.MINOR.PATCH, currently inherited as 1.3.3. Native runners build Linux x86_64 AppImage/deb/tar, macOS arm64/x86_64 DMG, and Windows x64 EXE/MSI. Package verification checks actual contents and executes the extracted engine. Checksums, metadata, install guidance and generated notes accompany draft releases. Per the owner's latest instruction, signing/notarization is deferred and all builds are labelled unsigned previews.
+App version uses MAJOR.MINOR.PATCH, currently 1.4.0. Native runners build Linux x86_64 AppImage/deb/tar, macOS arm64/x86_64 DMG, and Windows x64 EXE/MSI. Package verification checks actual contents and executes the extracted engine. Checksums, metadata, install guidance and generated notes accompany draft releases. Per the owner's latest instruction, signing/notarization is deferred and all builds are labelled unsigned previews.
 
 GitHub Pages receives only `site/`. Download links resolve real versioned assets in GitHub Releases, with explicit empty/error states. No app or installer is deployed to Pages.
 

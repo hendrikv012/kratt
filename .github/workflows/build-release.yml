@@ -87,7 +87,7 @@ jobs:
       - name: Test engine source
         run: |
           python -m pip install -e 'engine[dev]'
-          python -m pytest engine/tests/test_desktop.py engine/tests/test_desktop_product.py engine/tests/test_serve.py engine/tests/test_local_ai.py -q
+          python -m pytest engine/tests/test_desktop.py engine/tests/test_desktop_product.py engine/tests/test_serve.py engine/tests/test_local_ai.py engine/tests/test_ai_providers.py -q
       - name: Freeze Python engine
         run: |
           python -m pip install -r engine/requirements-desktop.txt

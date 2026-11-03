@@ -50,10 +50,9 @@ def main(argv: list[str] | None = None) -> int:
         # A remembered folder is explicit user choice; leave it intact across upgrades.
         if not (root / "config.json").exists():
             _save_config(folder=str(root / "Study"), local=True)
-        # A desktop install never forwards notes to an online notebook service.
+        # Ollama stays local; separately selected online providers are opt-in.
         os.environ["OLLAMA_HOST"] = "127.0.0.1:11434"
         os.environ["OLLAMA_NO_CLOUD"] = "1"
-        _save_config(local=True)
     folder = (args.folder or load_study_folder()).expanduser()
     server = make_server(folder, args.port)
     print(f"Study folder: {folder}")

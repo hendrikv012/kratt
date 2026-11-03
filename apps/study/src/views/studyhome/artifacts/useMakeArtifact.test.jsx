@@ -11,6 +11,8 @@ let hook;
 let study;
 
 function setup(notebookAsk) {
+  hook = null;
+  study = null;
   const client = fakeClient(SAMPLE_SNAPSHOT);
   client.notebookAsk = vi.fn(notebookAsk ?? (async () => ({ output: BODY })));
   function Probe() {
@@ -29,7 +31,7 @@ function setup(notebookAsk) {
   return { client, ...view };
 }
 
-const ready = () => waitFor(() => expect(study.state.nodes.p1).toBeTruthy());
+const ready = () => waitFor(() => expect(study?.state.nodes.p1).toBeTruthy());
 afterEach(() => vi.restoreAllMocks());
 
 describe("useMakeArtifact", () => {

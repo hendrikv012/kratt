@@ -36,7 +36,7 @@ Inside are `Study/`, `logs/`, `temp/`, and `config.json`. Notes, chats, sources 
 
 ## Local AI
 
-The welcome screen detects Ollama. **Install Ollama** opens its official download page. Once installed, use **Check again**, then select an installed model or **Download model**. Model downloads use the internet and may occupy several gigabytes. **Continue to notes** skips AI setup; it remains available in **Settings → AI**. There is no automatic model download and no cloud AI fallback in this desktop build.
+The welcome screen detects Ollama. **Install Ollama** opens its official download page. Once installed, use **Check again**, then select an installed model or **Download model**. Model downloads use the internet and may occupy several gigabytes. **Continue to notes** skips AI setup; it remains available in **Settings → AI**. There is no automatic model download or cloud fallback. To use an online provider instead, choose **Settings → AI → Online service** and follow the [provider setup guide](ai-providers.md).
 
 ## Checksums and support
 

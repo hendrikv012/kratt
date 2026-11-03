@@ -54,3 +54,9 @@ test("a stopped engine preserves the mounted workspace while retrying", async ()
   fireEvent.click(screen.getByText("Retry"));
   await waitFor(() => expect(note).toBeVisible());
 });
+test("restores an online provider without forcing Ollama setup", async () => {
+  client.preferences.mockResolvedValue({ preferences: { ai: { model: "cloud" } } });
+  render(<DesktopGate><div>My notes</div></DesktopGate>);
+  await screen.findByText("My notes");
+  expect(client.localStatus).not.toHaveBeenCalled();
+});

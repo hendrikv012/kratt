@@ -17,14 +17,14 @@ The sidecar filename uses the Rust host triple; Windows adds `.exe`. Build on th
 
 ## Packages
 
-From `apps/study`, run `npm run tauri:build -- --bundles deb,appimage` on Linux; use `dmg` on macOS or `nsis,msi` on Windows. Linux packaging tools may need `APPIMAGE_EXTRACT_AND_RUN=1` and `NO_STRIP=1`. Then, from the root:
+From `apps/study`, run `npm run tauri:build -- --bundles deb,appimage` on Linux; use `app` on macOS or `nsis,msi` on Windows. Linux packaging tools may need `APPIMAGE_EXTRACT_AND_RUN=1` and `NO_STRIP=1`. Then, from the root:
 
 ```sh
 python scripts/fix_appimage.py
 python scripts/package_release.py --platform linux-x86_64
 ```
 
-Other platforms use `macos-arm64`, `macos-x86_64` or `windows-x64` and skip the AppImage step. Outputs go to ignored `release/<platform>/`. Do not commit binaries. The collector fails if an installer or bundled engine is missing. It extracts AppImage/deb, mounts DMG, or extracts MSI and silently installs NSIS before exercising the actual frozen engine. A tar fallback includes the full AppDir, not just the application executable.
+On macOS, run `python scripts/build_dmg.py` before collecting packages. It uses `hdiutil` directly to create a drag-to-Applications DMG without Finder automation; transient image-creation failures get two bounded retries, and the image is verified. Other platforms use `macos-arm64`, `macos-x86_64` or `windows-x64` and skip the AppImage step. Outputs go to ignored `release/<platform>/`. Do not commit binaries. The collector fails if an installer or bundled engine is missing. It extracts AppImage/deb, mounts DMG, or extracts MSI and silently installs NSIS before exercising the actual frozen engine. A tar fallback includes the full AppDir, not just the application executable.
 
 ## GitHub Actions
 

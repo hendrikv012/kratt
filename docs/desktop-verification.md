@@ -1,27 +1,33 @@
 # Desktop verification
 
-Integration branch: `codex/desktop-release`. This record distinguishes checks actually run from remaining release gates.
+Integration branch: `codex/desktop-release`. Initial binary source commit: `b2cec11b7157819a168bcaa18d57625a0cd0a125`. [Native build run](https://github.com/hendrikv012/kratt/actions/runs/41702385628). Later commits add release promotion and verification documentation; they do not change the app binaries.
 
-## Local checks (2026-11-03, Linux x86_64)
+## Verified checks (2026-11-03)
 
-- Production React build: passed.
-- Rust `cargo check`: passed; all 33 library tests passed.
-- Desktop startup/model download UI tests: 6 passed (missing Ollama/continue, retry/logs, disk preferences, preserving open work on restart).
-- Python service/local-AI/desktop tests: 62 passed, including Windows-compatible atomic saves and model-download stream failures.
-- Frozen engine smoke: passed on the generated Linux executable (health, auth, automatic folders, Markdown save/read, search, preferences, stdin shutdown).
-- Product site: Chromium checks passed for images, light/dark screenshot switching, 390px mobile layout, no-release state, versioned asset URLs/checksums and browser errors. Screenshots use example notes only.
-- Full frontend suite: 1,006 tests passed locally after the runtime dependency fixes; the preceding GitHub run also passed 1,006 tests.
-- Linux AppImage, Debian package and portable tar archive: generated; AppImage and Debian extracted engines pass smoke checks.
-- Chromium artifact regression after dependency patches: all three viewers, full mode, and note-to-quiz generation/link/scoring/persistence passed in Ember and Chalk.
-- Linux packaged GUI: launched from the AppImage, created an isolated Study folder, reached the authenticated engine through the frontend, and shut down the engine after the actual GUI process exited. The AppImage extraction wrapper is a separate parent; the test explicitly identifies the GUI.
-- Product site deployed and checked over HTTPS: HTTP 200 at https://hendrikv012.github.io/kratt/.
+- Full frontend suite: 1,006 tests passed locally after the runtime dependency patches and again on GitHub.
+- Production React build and Rust `cargo check`: passed; all 33 Rust library tests passed locally.
+- Engine tests: 62 passed on Linux and Apple Silicon; Windows passed 61, with its inapplicable POSIX SIGTERM test skipped. Windows stdin-closure shutdown is tested separately.
+- Desktop startup/model download UI: 6 tests cover missing Ollama, continuing to notes, retry/logs, disk preferences, keeping open work during restart, and model downloads.
+- Chromium production checks: flashcards, slides, quizzes, full mode, and note-to-quiz generation/link/scoring/persistence passed in Ember and Chalk.
+- Linux packaged GUI: the rebuilt AppImage created an isolated Study folder, started the authenticated engine through the frontend, and stopped the engine after the actual GUI exited. No personal files were used.
+- Product site: HTTPS 200 at https://hendrikv012.github.io/kratt/. Chromium checked images, light/dark screenshot switching, 390px layout, no-release state, versioned release/checksum links and browser errors. Screenshots contain example notes only.
+- Release validation: 6 tests cover complete artifacts, altered binaries, wrong commits, missing checksums, extra files and unsafe checksum paths. The promotion workflow validates actual CI artifacts before drafting a release.
 
-## Native runner checks
+## Native packages
 
-The corrected GitHub frontend run passed all 1,006 tests; all four native build jobs have started.
+| Target | Packages | Package verification | GUI verification |
+|---|---|---|---|
+| Linux x86_64 / Ubuntu 22.04 | AppImage, deb, portable tar.gz | Passed: extracted AppImage and deb engines | Local Arch build passed startup/exit; Ubuntu GUI not manually tested |
+| macOS Apple Silicon | DMG | Passed: mounted DMG engine | Not manually tested |
+| macOS Intel | DMG | App compiled; Tauri DMG helper failed; replacement packaging awaiting CI | Not manually tested |
+| Windows x64 | EXE, MSI | Passed: installed NSIS and extracted MSI engines | Not manually tested |
 
-The first Windows job exposed an eager Unix-only sandbox import; fixed with a fail-closed platform check before importing `resource`. The first macOS Intel job timed out in Python process startup; the service now avoids unnecessary reverse DNS at bind, and test subprocess startup is portable/diagnostic. These changes require another native CI run. The corrected Linux Ubuntu job generated and verified its packages. Windows then exposed a Unix-only `fchmod` call in atomic saving; it now uses the available platform API. The POSIX SIGTERM test is skipped on Windows, whose stdin-closure shutdown is tested separately. Apple Silicon DMG generation and its extracted engine smoke passed. Intel macOS and Windows completion remains pending. Each job must verify an extracted/installed engine and publish checksum metadata. A configured workflow is not evidence of an artifact.
+Every engine smoke covers automatic folders, localhost health, authentication, Markdown save/read, file search, preferences and shutdown. Packages include the Python runtime. The downloadable artifacts carry their source commit, version, platform, verification flags and SHA-256 hashes. The initial Windows portability failures were corrected before this run.
 
-## Still required for trusted public distribution
+## Remaining limits
 
-Apple Developer ID signing/notarization and Windows publisher signing are deferred by explicit owner instruction. Test the downloaded GUI and installer on each target system, including first launch, missing Ollama, model selection, save/reopen, restart and quit. Native engine smoke tests do not certify Gatekeeper, SmartScreen, GPU rendering, installer UI or every OS version. Public download links can only be checked after a release is published; draft releases remain hidden from the product site.
+Apple Developer ID signing/notarization and Windows publisher signing are deferred by explicit owner instruction. These are unsigned previews. Native engine smoke tests do not certify Gatekeeper, SmartScreen, GPU rendering, installer UI or every OS version. Test the downloaded GUI on each target system, including first launch, missing Ollama, model selection, save/reopen, restart and quit.
+
+Draft releases remain hidden from the product site's public download list until published. Real-model generation quality was not evaluated; browser generation tests used deterministic fixtures. Input splitting preserves stored source text but cannot guarantee semantic completeness of generated study material.
+
+Runtime audit fixes removed all high/critical production findings. One moderate Tiptap finding and one low KaTeX finding remain; development toolchain findings are tracked in T-04 and the daily log.

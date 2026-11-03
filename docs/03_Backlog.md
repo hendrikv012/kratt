@@ -91,3 +91,10 @@ Note: ticket statuses below predate the landing of the real code. Re-validate in
 
 ### D-03 · AI providers (owner-authorized) · done
 **Restore online AI choices in the desktop app.** Add direct OpenAI/Claude and compatible APIs, supported subscription authentication, protected local credential storage, and provider-aware startup/chat/artifacts. The owner's request supersedes D-01's local-only AI restriction; local files remain authoritative and remote requests require an explicit online-provider choice.
+
+
+### D-04 · AI sign-in repair · done
+**Correct ChatGPT host-ID formatting and migrate saved UUIDs.** The owner reported OpenAI rejecting `ext_agent_host_id`. Use the documented UUID URN, preserve the underlying host identity and saved accounts, and update the installed Linux app.
+
+### D-05 · Desktop packaging · todo
+**Repair Intel macOS frozen-engine OpenSSL linking.** Native run `41723137985` failed its packaged-engine smoke test on macos-x86_64 with `_SSL_get0_group_name` missing from cryptography's extension. Other platform results do not establish Intel macOS readiness.

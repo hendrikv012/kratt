@@ -1909,7 +1909,7 @@ dependencies = [
 
 [[package]]
 name = "kratt"
-version = "1.4.0"
+version = "1.4.1"
 dependencies = [
  "fs2",
  "hex",

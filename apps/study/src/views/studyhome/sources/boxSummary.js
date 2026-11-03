@@ -2,11 +2,11 @@ export const BOX_STYLES = [
   { value: "rich", label: "Rich box" },
   { value: "simple", label: "Simple box" },
   { value: "preview", label: "Preview box" },
-  { value: "list", label: "List" },
 ];
 
 export function sourceKind(source) {
   if (source.type === "file" && /\.pdf$/i.test(source.fileName || source.file || "")) return "PDF";
+  if (source.type === "file" && /\.(png|jpe?g|gif|webp|svg|heic|avif)$/i.test(source.fileName || source.file || "")) return "Image";
   return { link: "Link", file: "File", text: "Text" }[source.type] || "File";
 }
 

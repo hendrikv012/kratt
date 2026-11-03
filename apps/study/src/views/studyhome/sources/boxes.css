@@ -30,7 +30,8 @@
 .st-src-box-preview-row > :first-child { flex: none; color: var(--st-text-faint); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; }
 .st-src-box-more { margin-top: auto; color: var(--st-text-soft); font: 12px/1.4 var(--st-page-font); }
 .st-src-box-preview-row > :last-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.st-src-card { padding: 0; gap: 0; overflow: hidden; }
+.st-src-card { padding: 0; gap: 0; overflow: visible; }
+.st-src-card-open { border-radius: 10px 10px 0 0; }
 .st-src-card-open { display: flex; flex: 1; flex-direction: column; align-items: stretch; gap: 14px; padding: 18px; min-height: 156px; text-align: left; cursor: pointer; }
 .st-src-card-open:hover { background: var(--st-hover); }
 .st-src-card-open:focus-visible { outline-offset: -3px; }
@@ -76,3 +77,12 @@
 .st-src-search-button { height: 44px; padding: 0 20px; background: var(--st-accent); color: var(--st-accent-ink); border-radius: 6px; font-size: 15px; font-weight: 500; }
 .st-src-find :disabled { cursor: not-allowed; }
 .st-src-find .st-src-search-status { font-size: 13px; color: var(--st-text-faint); }
+
+.st-src { position: relative; }
+.st-src-collection { display: flex; flex-direction: column; gap: 20px; padding-bottom: 150px; }
+.st-src-box-heading h2 .st-src-box-dot { display: inline-block; }
+.st-src-list-scroll { overflow: auto; padding-bottom: 130px; margin-bottom: -100px; }
+.st-src-use-all { display: flex; align-items: center; gap: 8px; color: var(--st-text-soft); }
+.st-src-upload-status { display: block; color: var(--st-accent); font: 13px/1.5 var(--st-page-font); }
+.st-src-drop-overlay { pointer-events: none; position: absolute; inset: 8px; z-index: 8; border: 2px dashed var(--st-accent); border-radius: 10px; background: var(--st-accent-wash); display: grid; place-items: center; color: var(--st-text); font-size: 26px; }
+@media (max-width: 720px) { .st-src-boxes-scroll { padding: 20px 16px; } }

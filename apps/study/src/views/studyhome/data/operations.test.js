@@ -411,6 +411,20 @@ describe("source subjects", () => {
     return { ...base, s, id: s.sources[0].id };
   }
 
+  it("addSources keeps given ids, subjects and upload", () => {
+    const { s, bio } = withSource();
+    const next = op.addSources(s, [
+      { type: "file", title: "a", id: "keep-1", subjects: [bio, "nope"], upload: "uploading" },
+      { type: "file", title: "b" },
+    ]);
+    const [a, b] = next.sources;
+    expect(a).toMatchObject({ id: "keep-1", subjects: [bio], upload: "uploading", use: true });
+    expect(b.id).toBeTruthy();
+    expect(b.id).not.toBe("keep-1");
+    expect(b.subjects).toEqual([]);
+    expect(b.upload).toBeUndefined();
+  });
+
   it("new sources start with no subjects", () => {
     const { s } = withSource();
     expect(s.sources[0].subjects).toEqual([]);

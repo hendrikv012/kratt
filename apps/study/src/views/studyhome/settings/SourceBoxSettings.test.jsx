@@ -12,7 +12,7 @@ it("changes source box style only in Settings and persists it without losing the
   const first = render(<StudyPreview client={fakeClient(EMPTY_SNAPSHOT)} />);
   const dialog = await screen.findByRole("dialog", { name: "Settings" });
   const select = within(dialog).getByLabelText("Box style");
-  expect([...select.options].map((o) => o.textContent)).toEqual(["Rich box", "Simple box", "Preview box", "List"]);
+  expect([...select.options].map((o) => o.textContent)).toEqual(["Rich box", "Simple box", "Preview box"]);
   fireEvent.change(select, { target: { value: "preview" } });
   await waitFor(() => expect(JSON.parse(localStorage.getItem("study-preview-settings-v3")).layout.sources).toEqual({ style: "preview", subjectId: "__unsorted__" }));
   fireEvent.click(within(dialog).getByRole("button", { name: "Close" }));

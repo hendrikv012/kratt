@@ -74,6 +74,7 @@ export function fakeClient(snapshot = EMPTY_SNAPSHOT, { folder = "/home/me/Study
     calls: [],
     fail: false,
     folderPath: folder,
+    checkError: null, // a message makes uploadCheck refuse, as the service does when a file won't fit
     notebookOk: false, // whether the stand-in Open Notebook answers
     notebookPassword: null,
     // The stand-in Ollama, as /local/status answers: state "running", "started", "not-installed" or "failed".
@@ -144,9 +145,16 @@ export function fakeClient(snapshot = EMPTY_SNAPSHOT, { folder = "/home/me/Study
       layout = structuredClone(next);
       return {};
     },
-    async upload(path, blob) {
+    async upload(path, blob, { onProgress, signal } = {}) {
       guard("upload", { path, size: blob?.size });
+      if (signal?.aborted) throw Object.assign(new Error("Upload cancelled"), { name: "AbortError" });
+      onProgress?.(blob?.size ?? 0, blob?.size ?? 0);
       return { path };
+    },
+    async uploadCheck(path, size) {
+      guard("uploadCheck", { path, size });
+      if (client.checkError) throw new Error(client.checkError);
+      return { ok: true };
     },
     async folder() {
       guard("folder", {});

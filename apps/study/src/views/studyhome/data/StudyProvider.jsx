@@ -123,7 +123,11 @@ export function StudyProvider({ children, client: givenClient, onPhase, renderGa
         nodes[id] = { ...node, content: current.nodes[id].content };
       }
     }
-    adopt({ ...fresh, state: { ...fresh.state, nodes } });
+    const sources = fresh.state.sources.map((source) => {
+      const live = current.sources.find((s) => s.id === source.id);
+      return live?.upload === "uploading" && freshVersions[source.id] === versions.current[source.id] ? { ...source, upload: "uploading" } : source;
+    });
+    adopt({ ...fresh, state: { ...fresh.state, nodes, sources } });
   };
 
   useEffect(() => {
@@ -215,7 +219,9 @@ export function StudyProvider({ children, client: givenClient, onPhase, renderGa
   // Settings → Study folder. Switching to an empty folder while the app has pages offers to
   // copy them over instead of showing an empty app straight away. Until the person answers,
   // changes wait; leaving the question unanswered goes back to the folder before.
+  const uploading = useRef(0);
   const switchFolder = async (path) => {
+    if (uploading.current) throw new Error("Wait for uploads to finish, or cancel them, before switching Study folders");
     if (sync.current?.pending().length) throw new Error("Still saving your last changes; try again in a moment");
     const before = await client.folder();
     const answer = await client.setFolder(path);
@@ -253,6 +259,8 @@ export function StudyProvider({ children, client: givenClient, onPhase, renderGa
       state,
       parents: parentIndex(state),
       actions,
+      getState: () => latest.current,
+      holdUploads: () => { uploading.current += 1; return () => { uploading.current -= 1; }; },
       client,
       vault: { ...vault, phase, dismissNotice: () => sync.current?.clearNotice(), switchFolder, copyPagesHere, startEmpty, cancelSwitch },
     }),

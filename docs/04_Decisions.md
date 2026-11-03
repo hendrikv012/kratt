@@ -29,3 +29,9 @@ Use subject-to-source navigation with Rich, Simple and Preview boxes from the ow
 ## 2026-11-04 — Correct the Sources implementation against the owner's preview
 
 The owner rejected the 1.5.0 interpretation. Box style belongs in Settings → Layout and home screen → Sources, not in the Sources header. Restore the reference's Find sources panel and panel/Subjects/grid hierarchy, four-column wide layout, and A/B/C geometry. Keep web search explicitly unavailable as the original preview labels it future work; do not invent results. Bump to 1.5.1 for the corrected local installation.
+
+## 2026-11-04 — Complete Sources Part A from the approved Claude design
+
+The owner's recovered chat supersedes the prior Unsorted box and inline subject navigation: Unsorted is a list under subject boxes, and each subject opens its own tab. Keep the earlier requested source cards inside subjects and A/B/C styles in Settings. Recover reviewed intake/upload work from the old branches, adapting it to the current desktop authentication rather than replacing newer engine routes. No subjects are created by imports; web search remains Part B.
+
+Persist filename/size for duplicate checks across restart, keep all upload paths in one queue including the dialog, discard unstarted imports on Cancel, and prevent changing Study folders mid-upload. Treat originals as opaque files outside note scanning/indexing, so uploaded Markdown stays byte-for-byte unchanged and multi-GB text files cannot trigger a whole-file read. Use decimal GB consistently for the 50 GB cap, progress and free-space messages. These data-flow changes are documented in architecture/product spec; version 1.6.0 identifies the completed feature.

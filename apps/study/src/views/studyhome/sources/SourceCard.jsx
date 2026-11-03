@@ -21,7 +21,8 @@ export default function SourceCard({ source, style, onOpen, menuItems, dragProps
               {source.url || source.fileName || `${source.content?.length ?? 0} characters`}
               <span>Updated {ago(source.updatedAt)}</span>
             </span>}
-          </button>
+            {source.upload && <span className="st-src-upload-status">{source.upload === "uploading" ? "Uploading…" : "Original not saved"}</span>}
+      </button>
           <div className="st-src-card-actions">
             <label><input className="st-src-check" type="checkbox" checked={source.use}
               aria-label={`Use ${title}`} onChange={() => actions.setSourcesUse([source.id], !source.use)} /> Use source</label>

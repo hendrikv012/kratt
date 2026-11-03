@@ -17,6 +17,13 @@ export default function SourceRow({ source, groupId, selected, onHover, onOpen, 
       data-selected={selected || undefined}
       onMouseEnter={onHover}
       onClick={onOpen}
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(); }
+        if (e.key === "ArrowDown") { e.preventDefault(); e.currentTarget.nextElementSibling?.focus(); }
+        if (e.key === "ArrowUp") { e.preventDefault(); e.currentTarget.previousElementSibling?.focus(); }
+      }}
       {...dragProps}
     >
       <td onClick={(e) => e.stopPropagation()}>
@@ -36,7 +43,8 @@ export default function SourceRow({ source, groupId, selected, onHover, onOpen, 
       </td>
       <td>
         <span className="st-src-title">{titleOf(source)}</span>
-        {source.url && <span className="st-src-url">{source.url}</span>}
+        {(source.url || source.fileName) && <span className="st-src-url">{source.url || source.fileName}</span>}
+        {source.upload && <span className="st-src-upload-status">{source.upload === "uploading" ? "Uploading…" : "Original not saved"}</span>}
       </td>
       <td className="st-src-muted st-src-hide-sm">{ago(source.createdAt)}</td>
       <td className="st-src-muted st-src-hide-sm">{ago(source.updatedAt)}</td>

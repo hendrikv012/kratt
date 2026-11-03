@@ -1,9 +1,12 @@
+import errno
 import os
+import shutil
 
 import pytest
 
 from memory_engine.frontmatter import split_frontmatter
-from memory_engine.vault import Vault, VaultError, sanitize_name
+from memory_engine import vault as vault_module
+from memory_engine.vault import MAX_UPLOAD, NotEnoughSpace, UploadTooLarge, Vault, VaultError, sanitize_name
 
 
 
@@ -77,9 +80,79 @@ def test_layout_round_trip(tmp_path):
 
 def test_uploads_only_go_into_sources_files(tmp_path):
     vault = Vault(tmp_path)
-    assert vault.upload("Sources/files/lecture.pdf", b"%PDF") == "Sources/files/lecture.pdf"
+    assert vault.upload("Sources/files/lecture.pdf", [b"%PDF"], 4) == "Sources/files/lecture.pdf"
     with pytest.raises(VaultError, match="Sources/files"):
-        vault.upload("Biology/x.pdf", b"%PDF")
+        vault.upload("Biology/x.pdf", [b"%PDF"], 4)
+
+
+def test_upload_streams_chunks(tmp_path):
+    vault = Vault(tmp_path)
+    assert vault.upload("Sources/files/a.bin", [b"one", b"two", b"three"], 11) == "Sources/files/a.bin"
+    assert (tmp_path / "Sources/files/a.bin").read_bytes() == b"onetwothree"
+
+
+def test_upload_short_body_leaves_nothing(tmp_path):
+    vault = Vault(tmp_path)
+    with pytest.raises(VaultError, match="upload ended early"):
+        vault.upload("Sources/files/a.bin", [b"abcd"], 10)
+    assert list((tmp_path / "Sources/files").iterdir()) == []
+
+
+def test_upload_that_fails_midway_leaves_nothing(tmp_path):
+    def chunks():
+        yield b"abcd"
+        raise ConnectionResetError("the app went away")
+
+    with pytest.raises(ConnectionResetError):
+        Vault(tmp_path).upload("Sources/files/a.bin", chunks(), 10)
+    assert list((tmp_path / "Sources/files").iterdir()) == []
+
+
+def test_upload_refuses_when_disk_full(tmp_path, monkeypatch):
+    monkeypatch.setattr(vault_module.shutil, "disk_usage", lambda _: shutil._ntuple_diskusage(0, 0, 3_100_000_000))
+    with pytest.raises(NotEnoughSpace) as refused:
+        Vault(tmp_path).upload("Sources/files/a.bin", [b"x"], 12_400_000_000)
+    assert str(refused.value) == "Not enough space on disk (needs 12.4 GB, 3.1 GB free)"
+    assert isinstance(refused.value, VaultError) and not (tmp_path / "Sources").exists()
+
+
+def test_disk_filling_up_during_the_write_is_not_enough_space(tmp_path, monkeypatch):
+    monkeypatch.setattr(vault_module.shutil, "disk_usage", lambda _: shutil._ntuple_diskusage(0, 0, 3_100_000_000))
+
+    def chunks():
+        yield b"abcd"
+        raise OSError(errno.ENOSPC, "No space left on device")
+
+    with pytest.raises(NotEnoughSpace, match=r"^Not enough space on disk \(needs 0.0 GB, 3.1 GB free\)$"):
+        Vault(tmp_path).upload("Sources/files/a.bin", chunks(), 10)
+    assert list((tmp_path / "Sources/files").iterdir()) == []
+
+
+def test_check_upload_runs_the_upload_checks_without_writing(tmp_path, monkeypatch):
+    vault = Vault(tmp_path)
+    vault.check_upload("Sources/files/a.bin", 10)
+    with pytest.raises(VaultError, match="Sources/files"):
+        vault.check_upload("Biology/a.bin", 10)
+    with pytest.raises(UploadTooLarge):
+        vault.check_upload("Sources/files/a.bin", MAX_UPLOAD + 1)
+    monkeypatch.setattr(vault_module.shutil, "disk_usage", lambda _: shutil._ntuple_diskusage(0, 0, 5))
+    with pytest.raises(NotEnoughSpace):
+        vault.check_upload("Sources/files/a.bin", 10)
+    assert not (tmp_path / "Sources").exists()
+
+
+def test_upload_over_limit(tmp_path):
+    assert MAX_UPLOAD == 50_000_000_000
+    with pytest.raises(UploadTooLarge):
+        Vault(tmp_path).upload("Sources/files/a.bin", [b"x"], MAX_UPLOAD + 1)
+
+
+def test_upload_clash_gets_number(tmp_path):
+    vault = Vault(tmp_path)
+    vault.upload("Sources/files/a.bin", [b"first"], 5)
+    assert vault.upload("Sources/files/a.bin", [b"second"], 6) == "Sources/files/a (2).bin"
+    assert (tmp_path / "Sources/files/a.bin").read_bytes() == b"first"
+    assert (tmp_path / "Sources/files/a (2).bin").read_bytes() == b"second"
 
 
 def test_saving_keeps_the_file_mode_and_new_files_follow_the_umask(tmp_path):
@@ -114,3 +187,45 @@ def test_the_kept_disk_version_is_its_own_page(tmp_path):
     meta, body = split_frontmatter((tmp_path / clash).read_text())
     assert meta["id"] != "k1" and meta["title"].startswith("Krebs (from disk ") and body == "Changed by hand\n"
     assert {f["id"] for f in vault.snapshot()["files"]} == {"k1", meta["id"]}
+
+
+def test_original_markdown_is_opaque_and_unchanged(tmp_path):
+    vault = Vault(tmp_path)
+    original = b'# My original\nNo metadata.\n'
+    path = vault.upload('Sources/files/Folder/note.md', [original], len(original))
+    snapshot = vault.snapshot()
+    assert snapshot['files'] == []
+    assert 'Sources/files/Folder' not in snapshot['folders']
+    assert (tmp_path / path).read_bytes() == original
+
+
+def test_crash_parts_cleaned_but_originals_and_other_hidden_files_kept(tmp_path):
+    directory = tmp_path / 'Sources/files/nested'
+    directory.mkdir(parents=True)
+    stale = directory / ('.kratt-upload-' + 'a' * 24 + '.part')
+    stale.write_bytes(b'incomplete')
+    original = directory / 'file.bin'
+    original.write_bytes(b'complete')
+    hidden = directory / '.personal.part'
+    hidden.write_bytes(b'private')
+    Vault(tmp_path)
+    assert not stale.exists()
+    assert original.read_bytes() == b'complete'
+    assert hidden.read_bytes() == b'private'
+
+
+def test_concurrent_uploads_never_replace_each_other(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+    vault = Vault(tmp_path)
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        paths = list(pool.map(lambda i: vault.upload('Sources/files/same.bin', [bytes([i])], 1), range(8)))
+    assert len(set(paths)) == 8
+    assert sorted((tmp_path / path).read_bytes() for path in paths) == [bytes([i]) for i in range(8)]
+
+
+def test_originals_do_not_follow_symlinks(tmp_path):
+    (tmp_path / 'Sources').mkdir()
+    (tmp_path / 'Biology').mkdir()
+    (tmp_path / 'Sources/files').symlink_to(tmp_path / 'Biology', target_is_directory=True)
+    with pytest.raises(VaultError, match='symbolic links'):
+        Vault(tmp_path).upload('Sources/files/a.txt', [b'x'], 1)

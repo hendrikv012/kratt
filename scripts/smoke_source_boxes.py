@@ -122,7 +122,8 @@ with tempfile.TemporaryDirectory(prefix="kratt-native-ui-") as tmp:
             assert not js('return !!document.querySelector(".kratt-startup")')
             def button(text):
                 return js('const b=[...document.querySelectorAll("button")].find(b=>b.textContent.trim()===arguments[0]); if(!b)throw Error(arguments[0]); b.click()', [text])
-            button('Sources')
+            if turn == 0:
+                button('Sources')
             wait(lambda: js('return !!document.querySelector(".st-src[data-box-style]")'))
             if turn == 0:
                 click('button[aria-label="Open Biology, 1 source"]')
@@ -130,6 +131,7 @@ with tempfile.TemporaryDirectory(prefix="kratt-native-ui-") as tmp:
                 wait(lambda: js('return !!document.querySelector(".st-src-detail-title")'))
                 assert 'Cells use ATP for energy.' in js('return document.body.textContent')
                 button('All sources')
+                click('button[aria-label="Open Biology, 1 source"]')
                 wait(lambda: js('return !!document.querySelector(".st-src-card-open")'))
                 assert not js('return !!document.querySelector("#st-source-box-style")')
                 button('Settings')
@@ -139,6 +141,16 @@ with tempfile.TemporaryDirectory(prefix="kratt-native-ui-") as tmp:
                 button('Close')
                 wait(lambda: js('return document.querySelector(".st-src").dataset.boxStyle === "preview"'))
                 wait(lambda: json.loads((Path(tmp) / 'config.json').read_text()).get('preferences', {}).get('layout', {}).get('sources', {}).get('style') == 'preview')
+                # The dialog shares the authenticated native upload queue.
+                upload = Path(tmp) / 'native-original.txt'
+                upload.write_text('Native upload preserves these bytes.\n')
+                button('Upload files')
+                keys('input[type="file"]', str(upload))
+                button('Add source')
+                original = vault / 'Sources/files/native-original.txt'
+                wait(lambda: original.exists() and original.read_bytes() == upload.read_bytes())
+                wait(lambda: js('return !document.querySelector(".st-src-upload-status")'))
+                print('PASS: native authenticated original upload into Biology', flush=True)
                 if args.screenshot:
                     args.screenshot.write_bytes(base64.b64decode(call('GET', f'/session/{sid}/screenshot')))
                 js('localStorage.clear()')
@@ -146,7 +158,7 @@ with tempfile.TemporaryDirectory(prefix="kratt-native-ui-") as tmp:
             else:
                 wait(lambda: js('return !!document.querySelector(".st-src-card-preview")'))
                 assert js('return document.querySelector(".st-src").dataset.boxStyle') == 'preview'
-                assert js('return document.querySelector(".st-src-box-heading h2").textContent') == 'Biology'
+                assert js('return document.querySelector(".st-src-box-heading h2").textContent') .strip().startswith('Biology')
                 print('PASS: box style and subject restored from disk after browser storage cleared', flush=True)
             call("DELETE", f"/session/{sid}")
             sid = None

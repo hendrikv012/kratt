@@ -1,0 +1,27 @@
+/* The upload panel: small, bottom-right, over the content and the toasts' row. */
+.st-uploads {
+  position: absolute;
+  right: var(--sp-5);
+  bottom: var(--sp-5);
+  z-index: 75; /* over toasts (70) */
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3, 12px);
+  width: min(320px, calc(100% - 2 * var(--sp-5)));
+  padding: 10px 14px;
+  border-radius: 3px;
+  background: var(--st-bg);
+  color: var(--st-text);
+  box-shadow: 0 0 0 1px var(--st-line), 0 12px 32px rgb(0 0 0 / 0.45);
+  font-size: max(13px, var(--st-min-text));
+  line-height: 1.45;
+}
+.st-uploads-body { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.st-uploads-title { overflow-wrap: anywhere; }
+.st-uploads-bytes { color: var(--st-text-soft); }
+.st-uploads progress { width: 100%; height: 6px; accent-color: var(--st-accent); }
+.st-uploads[data-still] .st-kratt * { animation: none !important; }
+
+.st-uploads details { max-height: 160px; overflow: auto; font-size: 13px; }
+.st-uploads summary { cursor: pointer; }
+.st-uploads li { overflow-wrap: anywhere; }

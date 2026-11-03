@@ -24,9 +24,13 @@ The Study folder is authoritative. Pages, quick notes, sources, chats and artifa
 
 The local desktop full-text index mirrors Markdown/text files in `.study/search.sqlite3`, updates from disk on search, and can be rebuilt. The advanced CLI retains its existing SQLite/vector/code indexing modules; it is not the desktop runtime's dependency chain. Browser state holds caches and pending writes, not the authoritative saved notes.
 
+## Source intake
+
+Sources overview renders subject boxes and an Unsorted list. `subject-sources:<id>` routes use normal persisted tabs; box style and per-collection sorting live in preferences. One app-wide upload provider plans imports, assigns existing subjects and serializes original uploads independently of open tabs. Files up to 50 GB (decimal) use authenticated XHR progress/abort with an upload preflight. The engine streams chunks to temporary files and publishes only complete originals. `Sources/files/` is opaque: vault snapshots and full-text search exclude it, preserving original bytes and avoiding huge text reads. Source Markdown retains extracted text, subject membership, upload status, original filename and size; these survive restart for duplicate detection. Pending files are removed on Cancel, completed files remain, and the interrupted source shows Original not saved.
+
 ## Distribution
 
-App version uses MAJOR.MINOR.PATCH, currently 1.5.1. Native runners build Linux x86_64 AppImage/deb/tar, macOS arm64/x86_64 DMG, and Windows x64 EXE/MSI. Package verification checks actual contents and executes the extracted engine. Checksums, metadata, install guidance and generated notes accompany draft releases. Per the owner's latest instruction, signing/notarization is deferred and all builds are labelled unsigned previews.
+App version uses MAJOR.MINOR.PATCH, currently 1.6.0. Native runners build Linux x86_64 AppImage/deb/tar, macOS arm64/x86_64 DMG, and Windows x64 EXE/MSI. Package verification checks actual contents and executes the extracted engine. Checksums, metadata, install guidance and generated notes accompany draft releases. Per the owner's latest instruction, signing/notarization is deferred and all builds are labelled unsigned previews.
 
 GitHub Pages receives only `site/`. Download links resolve real versioned assets in GitHub Releases, with explicit empty/error states. No app or installer is deployed to Pages.
 

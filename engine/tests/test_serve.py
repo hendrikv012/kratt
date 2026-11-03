@@ -1,11 +1,14 @@
 import http.client
 import json
+import shutil
+import socket
 import threading
 
 import pytest
 
 from memory_engine.__main__ import main
 from memory_engine.serve import Watcher, load_study_folder, make_server
+from memory_engine import vault as vault_module
 from memory_engine.vault import Vault
 
 
@@ -70,6 +73,22 @@ def test_layout_and_upload(service):
     assert call(service, "PUT", "/layout", {"layout": {"subjects": ["s1"]}})[0] == 200
     assert service.vault.read_layout() == {"subjects": ["s1"]}
     assert json.loads(call(service, "POST", "/upload?path=Sources/files/a.pdf", b"%PDF")[2]) == {"path": "Sources/files/a.pdf"}
+    big = bytes(range(256)) * 9000  # over 2 MiB, so it arrives in several chunks
+    assert json.loads(call(service, "POST", "/upload?path=Sources/files/a.pdf", big)[2]) == {"path": "Sources/files/a (2).pdf"}
+    assert (service.vault.root / "Sources/files/a (2).pdf").read_bytes() == big
+
+
+def test_upload_disk_full_is_507(service, monkeypatch):
+    monkeypatch.setattr(vault_module.shutil, "disk_usage", lambda _: shutil._ntuple_diskusage(0, 0, 5))
+    status, _, body = call(service, "POST", "/upload?path=Sources/files/a.bin", b"x" * 10)
+    assert status == 507
+    assert json.loads(body) == {"error": "Not enough space on disk (needs 0.0 GB, 0.0 GB free)"}
+    assert not (service.vault.root / "Sources").exists()
+
+
+def test_upload_over_limit_is_413(service):
+    status, _, body = call(service, "POST", "/upload?path=Sources/files/a.bin", b"x", {"Content-Length": "53687091201"})
+    assert status == 413 and "error" in json.loads(body)
 
 
 def test_the_folder_setting_switches_and_is_remembered(service, tmp_path):
@@ -116,3 +135,58 @@ def test_other_file_errors_are_answered_not_dropped(service):
     call(service, "POST", "/folder", {"path": "A"})
     status, _, body = call(service, "POST", "/move", {"from": "A", "to": "A/B"})  # into itself
     assert status == 400 and json.loads(body)["error"]
+
+
+def disk_with(free):
+    return lambda _: shutil._ntuple_diskusage(0, 0, free)
+
+
+def test_upload_check_answers_before_any_bytes_are_sent(service, monkeypatch):
+    assert call(service, "GET", "/upload/check?path=Sources/files/a.bin&size=10")[::2] == (200, b'{"ok": true}')
+    status, _, body = call(service, "GET", "/upload/check?path=Sources/files/a.bin&size=53687091201")
+    assert status == 413 and "error" in json.loads(body)
+    status, _, body = call(service, "GET", "/upload/check?path=Biology/a.bin&size=10")
+    assert status == 400 and "Sources/files" in json.loads(body)["error"]
+    status, _, body = call(service, "GET", "/upload/check?path=Sources/files/a.bin&size=-1")
+    assert status == 400
+    monkeypatch.setattr(vault_module.shutil, "disk_usage", disk_with(3_100_000_000))
+    status, _, body = call(service, "GET", "/upload/check?path=Sources/files/a.bin&size=12400000000")
+    assert status == 507
+    assert json.loads(body) == {"error": "Not enough space on disk (needs 12.4 GB, 3.1 GB free)"}
+    assert not (service.vault.root / "Sources").exists()
+
+
+def test_a_507_reaches_an_app_still_sending_the_body(service, monkeypatch):
+    monkeypatch.setattr(vault_module.shutil, "disk_usage", disk_with(1000))
+    size = 16 * 1024 * 1024
+    head = (f"POST /upload?path=Sources/files/big.bin HTTP/1.1\r\nHost: 127.0.0.1:{service.server_port}\r\n"
+            f"Origin: http://localhost:1420\r\nContent-Length: {size}\r\n\r\n").encode()
+    with socket.create_connection(("127.0.0.1", service.server_port), timeout=10) as sock:
+        sock.sendall(head)
+        sock.sendall(b"x" * size)
+        reply = b""
+        while chunk := sock.recv(65536):
+            reply += chunk
+    status_line, _, rest = reply.partition(b"\r\n")
+    assert b" 507 " in status_line
+    assert json.loads(rest.split(b"\r\n\r\n", 1)[1]) == {"error": "Not enough space on disk (needs 0.0 GB, 0.0 GB free)"}
+
+
+def test_upload_requires_explicit_size_and_rejects_transfer_encoding(service):
+    conn = http.client.HTTPConnection('127.0.0.1', service.server_port, timeout=5)
+    conn.putrequest('POST', '/upload?path=Sources/files/missing.bin')
+    conn.putheader('Origin', 'http://localhost:1420')
+    conn.endheaders()
+    reply = conn.getresponse()
+    assert reply.status == 400
+    assert 'Content-Length' in reply.read().decode()
+    assert not (service.vault.root / 'Sources/files/missing.bin').exists()
+
+
+def test_upload_preflight_and_body_require_desktop_auth(service):
+    service.token = 'fixture-token'
+    assert call(service, 'GET', '/upload/check?path=Sources/files/a.bin&size=1')[0] == 401
+    assert call(service, 'POST', '/upload?path=Sources/files/a.bin', b'x')[0] == 401
+    headers = {'Authorization': 'Bearer fixture-token'}
+    assert call(service, 'GET', '/upload/check?path=Sources/files/a.bin&size=1', headers=headers)[0] == 200
+    assert call(service, 'POST', '/upload?path=Sources/files/a.bin', b'x', headers=headers)[0] == 200

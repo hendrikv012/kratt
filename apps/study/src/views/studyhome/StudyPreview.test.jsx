@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen, fireEvent, within, act } from "@testing-library/react";
+import { render, screen, fireEvent, within, act, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import StudyPreview from "./StudyPreview";
 import { HOME_ORDER } from "./home/grid";
@@ -164,9 +164,8 @@ describe("study app", () => {
   it("Sources: add pasted text, open it, untick it, and delete it", async () => {
     await renderStudy();
     fireEvent.click(within(sidebar()).getByText("Sources"));
-    fireEvent.click(screen.getByRole("button", { name: "Open Unsorted, 0 sources" }));
-    expect(screen.getByText("No sources yet")).toBeTruthy();
-    fireEvent.click(screen.getAllByRole("button", { name: /New source/ })[0]);
+    expect(screen.getByText("Everything is in a subject")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Add link" }));
 
     let dialog = screen.getByRole("dialog", { name: "Add source" });
     fireEvent.click(within(dialog).getByRole("tab", { name: /Enter text/ }));
@@ -176,12 +175,12 @@ describe("study app", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Add source" }));
 
     // The first line became the title of the source box.
-    const row = screen.getByRole("article", { name: "Mitosis" });
+    const row = (await screen.findByText("Mitosis")).closest("tr");
     expect(within(row).getByText("Text")).toBeTruthy();
     fireEvent.click(within(row).getByRole("checkbox", { name: "Use Mitosis" }));
     expect(within(row).getByRole("checkbox", { name: "Use Mitosis" }).checked).toBe(false);
 
-    fireEvent.click(within(row).getByRole("button", { name: "Open Mitosis" }));
+    fireEvent.click(row);
     expect(screen.getByDisplayValue("Mitosis")).toBeTruthy();
     expect(screen.getByText(/Cells divide into two/)).toBeTruthy();
     fireEvent.click(screen.getByRole("tab", { name: "Details" }));
@@ -190,14 +189,13 @@ describe("study app", () => {
     fireEvent.click(screen.getByRole("button", { name: "Delete source" }));
     dialog = screen.getByRole("dialog", { name: "Delete source" });
     fireEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
-    expect(screen.getByText("No sources yet")).toBeTruthy();
+    expect(screen.getByText("Everything is in a subject")).toBeTruthy();
   });
 
   it("Sources: several links at once, and a bad line is caught", async () => {
     await renderStudy();
     fireEvent.click(within(sidebar()).getByText("Sources"));
-    fireEvent.click(screen.getByRole("button", { name: "Open Unsorted, 0 sources" }));
-    fireEvent.click(screen.getAllByRole("button", { name: /New source/ })[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Add link" }));
     const dialog = screen.getByRole("dialog", { name: "Add source" });
     const urls = within(dialog).getByRole("textbox");
     fireEvent.change(urls, { target: { value: "https://www.khanacademy.org/biology\nnot a link" } });
@@ -206,16 +204,15 @@ describe("study app", () => {
 
     fireEvent.change(urls, { target: { value: "https://www.khanacademy.org/biology\nhttps://en.wikipedia.org/wiki/Mitosis" } });
     fireEvent.click(within(dialog).getByRole("button", { name: "Add source" }));
-    expect(screen.getByText("khanacademy.org/biology")).toBeTruthy();
+    expect(await screen.findByText("khanacademy.org/biology")).toBeTruthy();
     expect(screen.getByText("en.wikipedia.org/wiki/Mitosis")).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Unsorted" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: /^Unsorted/ })).toBeTruthy();
   });
 
   it("Sources: a text file keeps its text", async () => {
     await renderStudy();
     fireEvent.click(within(sidebar()).getByText("Sources"));
-    fireEvent.click(screen.getByRole("button", { name: "Open Unsorted, 0 sources" }));
-    fireEvent.click(screen.getAllByRole("button", { name: /New source/ })[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Add link" }));
     const dialog = screen.getByRole("dialog", { name: "Add source" });
     fireEvent.click(within(dialog).getByRole("tab", { name: /Upload file/ }));
     const file = new File(["Photosynthesis makes sugar."], "photo-notes.txt", { type: "text/plain" });
@@ -223,15 +220,15 @@ describe("study app", () => {
     await act(async () => {
       fireEvent.click(within(dialog).getByRole("button", { name: "Add source" }));
     });
-    fireEvent.click(await screen.findByRole("button", { name: "Open photo-notes" }));
+    await waitFor(() => expect(screen.queryByText("Uploading…")).toBeNull());
+    fireEvent.click(await screen.findByText("photo-notes"));
     expect(screen.getByText("Photosynthesis makes sugar.")).toBeTruthy();
   });
 
   it("Sources: a PDF keeps its text", async () => {
     await renderStudy();
     fireEvent.click(within(sidebar()).getByText("Sources"));
-    fireEvent.click(screen.getByRole("button", { name: "Open Unsorted, 0 sources" }));
-    fireEvent.click(screen.getAllByRole("button", { name: /New source/ })[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Add link" }));
     const dialog = screen.getByRole("dialog", { name: "Add source" });
     fireEvent.click(within(dialog).getByRole("tab", { name: /Upload file/ }));
     const file = new File(["%PDF-1.4"], "Chapter 9.pdf", { type: "application/pdf" });
@@ -239,7 +236,8 @@ describe("study app", () => {
     await act(async () => {
       fireEvent.click(within(dialog).getByRole("button", { name: "Add source" }));
     });
-    fireEvent.click(await screen.findByRole("button", { name: "Open Chapter 9" }));
+    await waitFor(() => expect(screen.queryByText("Uploading…")).toBeNull());
+    fireEvent.click(await screen.findByText("Chapter 9"));
     expect(screen.getByText(/Mitochondria make ATP/)).toBeTruthy();
     fireEvent.click(screen.getByRole("tab", { name: "Details" }));
     expect(screen.getByText("Pages").nextSibling.textContent).toBe("2");

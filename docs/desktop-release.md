@@ -45,3 +45,5 @@ For Windows configure the chosen certificate/hardware signing or cloud signing p
 ## Validation and promotion
 
 Record exact OS, commit, package hashes and checks in `desktop-verification.md`. Engine smoke tests prove executable contents, health/authentication, persistence and shutdown; they do not prove that a downloaded GUI launches on every target OS. On each system install/download the actual package, open it through the OS UI, check startup, Study creation, missing-Ollama recovery, model selection, saving/reopening notes, and clean exit. Only then mark that system's GUI verified. Never infer cross-platform success from a Linux build.
+
+For a reproducible native Linux editor check, install the distribution's `WebKitWebDriver` tool and run `python scripts/smoke_native_ui.py apps/study/src-tauri/target/release/bundle/appimage/Kratt.AppDir/AppRun` in a graphical session. It opens the extracted package, uses an isolated Study folder and browser profile, types a note, checks its Markdown file, clears browser storage, and reopens the saved note. It never requests model generation. `scripts/smoke_app.py` separately checks AppImage startup and engine shutdown.

@@ -78,5 +78,10 @@ Note: ticket statuses below predate the landing of the real code. Re-validate in
 
 ## Requested product — Desktop distribution
 
-### D-01 · Cross-cutting (owner-authorized) · doing
+### D-01 · Cross-cutting (owner-authorized) · done (unsigned preview)
 **Ship the native study app, managed bundled engine, local file storage, product site and release pipeline.** Recover the old prototype and validate actual artifacts. The owner explicitly deferred signing/notarization on 2026-11-03: build unsigned previews and keep trusted distribution as a later gate. The owner’s explicit shipping request authorizes changes across the frontend/backend/documentation lanes.
+
+- Delivered: the product site, seven native packages across Linux/macOS/Windows, managed local engine, disk persistence, checksums and a draft-release workflow. See `desktop-verification.md` for exact checks.
+
+### D-02 · Cross-cutting · todo
+**Trusted public desktop distribution.** Add Apple Developer ID signing/notarization and Windows publisher signing when credentials are available. Manually verify downloaded desktop interfaces on macOS and Windows and the Ubuntu package before promoting a stable release. The owner explicitly deferred signing; this does not block unsigned previews.

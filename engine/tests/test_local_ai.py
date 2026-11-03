@@ -1,5 +1,6 @@
 import http.client
 import json
+import os
 import socket
 import subprocess
 import sys
@@ -338,6 +339,7 @@ def test_launch_starts_ollama_only_with_a_local_model_picked(tmp_path, monkeypat
     assert calls == ["ensure", "stop"]
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="TerminateProcess does not send SIGTERM; Windows desktop shutdown is tested through stdin closure")
 def test_terminating_the_service_stops_what_it_started(tmp_path):
     """`kill` (SIGTERM), as start.fish sends, runs the cleanup that stops a started Ollama."""
     script = tmp_path / "run.py"
@@ -353,7 +355,7 @@ class Server:
 m.serve_forever(Server())
 """)
     process = subprocess.Popen([sys.executable, str(script)], stdout=subprocess.PIPE, text=True,
-                               env={"PYTHONPATH": str(local_ai.Path(local_ai.__file__).parents[1])})
+                               env={**os.environ, "PYTHONPATH": str(local_ai.Path(local_ai.__file__).parents[1])})
     assert process.stdout.readline().strip() == "up"
     process.terminate()
     assert process.communicate(timeout=10)[0].strip() == "closed"

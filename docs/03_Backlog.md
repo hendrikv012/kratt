@@ -79,4 +79,4 @@ Note: ticket statuses below predate the landing of the real code. Re-validate in
 ## Requested product — Desktop distribution
 
 ### D-01 · Cross-cutting (owner-authorized) · doing
-**Ship the native study app, managed bundled engine, local file storage, product site and signed release pipeline.** Recover the old prototype, validate actual artifacts, and publish only after platform and signing gates pass. Signing credentials are not configured as of 2026-11-03. The owner’s explicit shipping request authorizes changes across the frontend/backend/documentation lanes.
+**Ship the native study app, managed bundled engine, local file storage, product site and release pipeline.** Recover the old prototype and validate actual artifacts. The owner explicitly deferred signing/notarization on 2026-11-03: build unsigned previews and keep trusted distribution as a later gate. The owner’s explicit shipping request authorizes changes across the frontend/backend/documentation lanes.

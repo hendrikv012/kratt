@@ -80,3 +80,14 @@ def test_corrupt_desktop_config_is_preserved(tmp_path, monkeypatch):
     with pytest.raises(ValueError, match="Cannot read"):
         main(["--data-dir", str(tmp_path)])
     assert config.read_text() == "{corrupt"
+
+
+def test_atomic_replacement_on_platforms_without_fchmod(tmp_path, monkeypatch):
+    import os
+    from memory_engine.frontmatter import atomic_write
+    note = tmp_path / "note.md"
+    atomic_write(note, "First version")
+    monkeypatch.delattr(os, "fchmod", raising=False)
+    atomic_write(note, "Second version")
+    assert note.read_text() == "Second version"
+    assert not list(tmp_path.glob(".*.tmp"))

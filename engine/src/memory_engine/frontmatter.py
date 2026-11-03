@@ -48,7 +48,10 @@ def atomic_write_bytes(path: Path, data: bytes) -> None:
             handle.write(data)
             handle.flush()
             if mode is not None:
-                os.fchmod(handle.fileno(), mode)
+                if hasattr(os, "fchmod"):
+                    os.fchmod(handle.fileno(), mode)
+                else:
+                    os.chmod(temp, mode)  # Windows has no fchmod; preserve its read-only flag.
             os.fsync(handle.fileno())
         os.replace(temp, path)
     except BaseException:

@@ -2,7 +2,7 @@ name: Build desktop release
 on:
   push:
     tags: ['v*']
-    branches: [codex/desktop-release]
+    branches: [main]
     paths-ignore: ['site/**', 'docs/**', '**/*.md']
   workflow_dispatch:
     inputs:

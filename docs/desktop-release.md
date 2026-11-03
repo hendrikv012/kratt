@@ -28,13 +28,13 @@ On macOS, run `python scripts/build_dmg.py` before collecting packages. It uses 
 
 ## GitHub Actions
 
-`build-release.yml` runs manually, for version tags, and on the initial `codex/desktop-release` integration branch. It runs frontend tests, validates version consistency, then builds on native Linux, macOS arm64, macOS Intel and Windows runners. Download test packages under each run's Artifacts. Failed jobs cannot create a release.
+`build-release.yml` runs manually, for version tags, and on `main` for app/build changes. It runs frontend tests, validates version consistency, then builds on native Linux, macOS arm64, macOS Intel and Windows runners. Download test packages under each run's Artifacts. Failed jobs cannot create a release.
 
 Update `apps/study/package.json`, its lockfile, `src-tauri/Cargo.toml` and Cargo.lock together for the next version. The initial desktop preview preserves the app's existing 1.3.3 version. A matching `v1.3.3` tag creates a **draft prerelease**, including generated GitHub notes, install instructions, platform metadata and checksum files. Existing releases are not overwritten on reruns. Review the complete draft before publishing. No signing secrets are required or read in the current workflow.
 
 To promote an already successful branch build without rebuilding, manually run **Build desktop release** with `existing_run` set to its run ID. The promotion job requires all four native jobs and frontend verification to have succeeded in this repository, downloads their exact artifacts on GitHub, validates hashes/platforms/version/source commit and creates an unsigned draft prerelease. It fails on missing or extra files and never overwrites an existing release. Leave the input empty for a normal build. This avoids transferring large installers through a contributor's machine.
 
-`pages-deploy.yml` deploys only `site/` from main or the integration branch, on release publication, or manually. Configure repository Pages to **GitHub Actions**. It needs `pages:write` and `id-token:write`; release creation needs `contents:write`. The website discovers published release assets at load time, so a draft correctly leaves downloads unavailable.
+`pages-deploy.yml` deploys only `site/` from `main`, on release publication, or manually. Configure repository Pages to **GitHub Actions**. It needs `pages:write` and `id-token:write`; release creation needs `contents:write`. The website discovers published release assets at load time, so a draft correctly leaves downloads unavailable.
 
 ## Signing later
 

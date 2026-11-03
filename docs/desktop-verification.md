@@ -1,6 +1,6 @@
 # Desktop verification
 
-Integration branch: `codex/desktop-release`. Binary source commit: `c818a868c12d194c1c9b64e05ed52f6feba7ff74`. [Native build run](https://github.com/hendrikv012/kratt/actions/runs/41706883486). Later commits add release promotion and verification documentation; they do not change the app binaries.
+Merged into `main` through [PR #1](https://github.com/hendrikv012/kratt/pull/1). Binary source commit: `c818a868c12d194c1c9b64e05ed52f6feba7ff74`. [Native build run](https://github.com/hendrikv012/kratt/actions/runs/41706883486). Later commits add release promotion and verification documentation; they do not change the app binaries.
 
 ## Verified checks (2026-11-03)
 

@@ -1,7 +1,7 @@
 name: Deploy product site
 on:
   push:
-    branches: [main, codex/desktop-release]
+    branches: [main]
     paths: ['site/**', '.github/workflows/pages-deploy.yml']
   release:
     types: [published]

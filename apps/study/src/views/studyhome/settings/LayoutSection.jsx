@@ -3,7 +3,8 @@ import { Button } from "../ui/button";
 import { Switch } from "../ui/switch";
 import { useShell } from "../ShellContext";
 import { EXTENSION_EMPTY, groupBySource, useWidgetDefs } from "../widgets/registry";
-import { Group, Row, Section, Segmented, Toggle } from "./controls";
+import { Group, Row, Section, Segmented, Select, Toggle } from "./controls";
+import { BOX_STYLES } from "../sources/boxSummary";
 import HomeGridEditor from "./HomeGridEditor";
 
 const BOX = "divide-y divide-st-border rounded-st border border-st-border";
@@ -88,6 +89,13 @@ export default function LayoutSection({ value, set, settings, setGroup }) {
           />
         </Row>
       </div>
+
+      <Group title="Sources">
+        <Row label="Box style" htmlFor="st-source-box-style" description="Choose how subject boxes and the sources inside them look.">
+          <Select id="st-source-box-style" value={settings.layout.sources?.style || "rich"} options={BOX_STYLES}
+            onChange={(style) => setGroup("layout", { sources: { ...settings.layout.sources, style } })} />
+        </Row>
+      </Group>
 
       <div className="mt-6" />
       <Group title="Home screen">

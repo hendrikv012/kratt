@@ -164,8 +164,9 @@ describe("study app", () => {
   it("Sources: add pasted text, open it, untick it, and delete it", async () => {
     await renderStudy();
     fireEvent.click(within(sidebar()).getByText("Sources"));
+    fireEvent.click(screen.getByRole("button", { name: "Open Unsorted, 0 sources" }));
     expect(screen.getByText("No sources yet")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: /New source/ }));
+    fireEvent.click(screen.getAllByRole("button", { name: /New source/ })[0]);
 
     let dialog = screen.getByRole("dialog", { name: "Add source" });
     fireEvent.click(within(dialog).getByRole("tab", { name: /Enter text/ }));
@@ -174,7 +175,6 @@ describe("study app", () => {
     });
     fireEvent.click(within(dialog).getByRole("button", { name: "Add source" }));
 
-    fireEvent.click(screen.getByRole("button", { name: "Open Unsorted, 1 source" }));
     // The first line became the title of the source box.
     const row = screen.getByRole("article", { name: "Mitosis" });
     expect(within(row).getByText("Text")).toBeTruthy();
@@ -196,7 +196,8 @@ describe("study app", () => {
   it("Sources: several links at once, and a bad line is caught", async () => {
     await renderStudy();
     fireEvent.click(within(sidebar()).getByText("Sources"));
-    fireEvent.click(screen.getByRole("button", { name: /New source/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Open Unsorted, 0 sources" }));
+    fireEvent.click(screen.getAllByRole("button", { name: /New source/ })[0]);
     const dialog = screen.getByRole("dialog", { name: "Add source" });
     const urls = within(dialog).getByRole("textbox");
     fireEvent.change(urls, { target: { value: "https://www.khanacademy.org/biology\nnot a link" } });
@@ -205,16 +206,16 @@ describe("study app", () => {
 
     fireEvent.change(urls, { target: { value: "https://www.khanacademy.org/biology\nhttps://en.wikipedia.org/wiki/Mitosis" } });
     fireEvent.click(within(dialog).getByRole("button", { name: "Add source" }));
-    fireEvent.click(screen.getByRole("button", { name: "Open Unsorted, 2 sources" }));
     expect(screen.getByText("khanacademy.org/biology")).toBeTruthy();
     expect(screen.getByText("en.wikipedia.org/wiki/Mitosis")).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Sources" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Unsorted" })).toBeTruthy();
   });
 
   it("Sources: a text file keeps its text", async () => {
     await renderStudy();
     fireEvent.click(within(sidebar()).getByText("Sources"));
-    fireEvent.click(screen.getByRole("button", { name: /New source/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Open Unsorted, 0 sources" }));
+    fireEvent.click(screen.getAllByRole("button", { name: /New source/ })[0]);
     const dialog = screen.getByRole("dialog", { name: "Add source" });
     fireEvent.click(within(dialog).getByRole("tab", { name: /Upload file/ }));
     const file = new File(["Photosynthesis makes sugar."], "photo-notes.txt", { type: "text/plain" });
@@ -222,15 +223,15 @@ describe("study app", () => {
     await act(async () => {
       fireEvent.click(within(dialog).getByRole("button", { name: "Add source" }));
     });
-    fireEvent.click(await screen.findByRole("button", { name: "Open Unsorted, 1 source" }));
-    fireEvent.click(screen.getByRole("button", { name: "Open photo-notes" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Open photo-notes" }));
     expect(screen.getByText("Photosynthesis makes sugar.")).toBeTruthy();
   });
 
   it("Sources: a PDF keeps its text", async () => {
     await renderStudy();
     fireEvent.click(within(sidebar()).getByText("Sources"));
-    fireEvent.click(screen.getByRole("button", { name: /New source/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Open Unsorted, 0 sources" }));
+    fireEvent.click(screen.getAllByRole("button", { name: /New source/ })[0]);
     const dialog = screen.getByRole("dialog", { name: "Add source" });
     fireEvent.click(within(dialog).getByRole("tab", { name: /Upload file/ }));
     const file = new File(["%PDF-1.4"], "Chapter 9.pdf", { type: "application/pdf" });
@@ -238,8 +239,7 @@ describe("study app", () => {
     await act(async () => {
       fireEvent.click(within(dialog).getByRole("button", { name: "Add source" }));
     });
-    fireEvent.click(await screen.findByRole("button", { name: "Open Unsorted, 1 source" }));
-    fireEvent.click(screen.getByRole("button", { name: "Open Chapter 9" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Open Chapter 9" }));
     expect(screen.getByText(/Mitochondria make ATP/)).toBeTruthy();
     fireEvent.click(screen.getByRole("tab", { name: "Details" }));
     expect(screen.getByText("Pages").nextSibling.textContent).toBe("2");

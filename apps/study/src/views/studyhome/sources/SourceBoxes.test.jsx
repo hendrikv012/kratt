@@ -1,5 +1,5 @@
 import { beforeEach, expect, it, vi } from "vitest";
-import { render, screen, fireEvent, within, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, within, waitFor, act } from "@testing-library/react";
 import SourcesView from "./SourcesView";
 import { useSettings } from "../useSettings";
 import { StudyProvider } from "../data/StudyProvider";
@@ -13,10 +13,11 @@ const snapshot = {
   folders: ["Biology", "Chemistry", "Sources"], layout: { subjects: ["Biology", "Chemistry"] },
   files: [source("cells", "Cells", ["Biology"], "Cells make energy."), source("loose", "Loose", [])],
 };
-let open;
+let open, setSettings;
 beforeEach(() => { installMemoryLocalStorage(); open = vi.fn(); });
 function Wrapper() {
   const [settings, set] = useSettings();
+  setSettings = set;
   return <ShellContext.Provider value={{ open, toast: vi.fn(), sourcesLayout: settings.layout.sources,
     setSourcesLayout: (patch) => set("layout", (layout) => ({ sources: { ...layout.sources, ...patch } })) }}><SourcesView /></ShellContext.Provider>;
 }
@@ -24,7 +25,7 @@ function mount(snap = snapshot) {
   return render(<StudyProvider client={fakeClient(snap)}><Wrapper /></StudyProvider>);
 }
 const subject = (name) => screen.findByRole("button", { name: new RegExp(`^Open ${name},`) });
-const choose = (style) => fireEvent.change(screen.getByLabelText("Box style"), { target: { value: style } });
+const choose = (style) => act(() => setSettings("layout", (layout) => ({ sources: { ...layout.sources, style } })));
 
 it("opens subjects into source boxes and source boxes into their content", async () => {
   mount(); fireEvent.click(await subject("Biology"));
@@ -41,7 +42,7 @@ it("remembers box style and the open subject across remounts", async () => {
   expect(screen.getByText("Cells make energy.")).toBeTruthy();
   view.unmount(); mount();
   await screen.findByRole("button", { name: "Open Cells" });
-  expect(screen.getByLabelText("Box style").value).toBe("preview");
+  expect(document.querySelector(".st-src").dataset.boxStyle).toBe("preview");
   expect(screen.getByText("Cells make energy.")).toBeTruthy();
   choose("simple"); expect(screen.queryByText("Cells make energy.")).toBeNull();
   choose("list"); expect(document.querySelector("tbody tr")).toBeTruthy();
@@ -97,6 +98,16 @@ it("sorts cards and deletes with confirmation", async () => {
 it("renders Unsorted for an empty vault and falls back from unknown styles and deleted subjects", async () => {
   localStorage.setItem("study-preview-settings-v3", JSON.stringify({ layout: { sources: { style: "broken", subjectId: "gone" } } }));
   mount({ folders: [], files: [], layout: {} });
-  expect((await screen.findByLabelText("Box style")).value).toBe("rich");
+  await subject("Unsorted");
+  expect(document.querySelector(".st-src").dataset.boxStyle).toBe("rich");
   fireEvent.click(await subject("Unsorted")); expect(screen.getByText("No sources yet")).toBeTruthy();
+});
+
+it("shows the reference search panel without an inline style selector or pretend search", async () => {
+  mount(); await subject("Biology");
+  expect(screen.getByRole("heading", { name: "Find sources with Kratt" })).toBeTruthy();
+  expect(screen.queryByLabelText("Box style")).toBeNull();
+  expect(screen.queryByRole("button", { name: "New source" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Search", exact: true }).disabled).toBe(true);
+  expect(screen.getByText(/Web search is not available yet/)).toBeTruthy();
 });

@@ -131,7 +131,12 @@ with tempfile.TemporaryDirectory(prefix="kratt-native-ui-") as tmp:
                 assert 'Cells use ATP for energy.' in js('return document.body.textContent')
                 button('All sources')
                 wait(lambda: js('return !!document.querySelector(".st-src-card-open")'))
-                js('const e=document.querySelector(".st-src-style select");e.value="preview";e.dispatchEvent(new Event("change",{bubbles:true}))')
+                assert not js('return !!document.querySelector("#st-source-box-style")')
+                button('Settings')
+                button('Layout and home screen')
+                wait(lambda: js('return !!document.querySelector("#st-source-box-style")'))
+                js('const e=document.querySelector("#st-source-box-style");e.value="preview";e.dispatchEvent(new Event("change",{bubbles:true}))')
+                button('Close')
                 wait(lambda: js('return document.querySelector(".st-src").dataset.boxStyle === "preview"'))
                 wait(lambda: json.loads((Path(tmp) / 'config.json').read_text()).get('preferences', {}).get('layout', {}).get('sources', {}).get('style') == 'preview')
                 if args.screenshot:

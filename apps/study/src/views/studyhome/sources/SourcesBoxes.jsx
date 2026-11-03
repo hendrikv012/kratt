@@ -5,6 +5,7 @@ import { useStudy } from "../data/StudyProvider";
 import { ago, titleOf } from "./SourcesView";
 import { sourceKind, typeSummary } from "./boxSummary";
 import SourceCard from "./SourceCard";
+import FindSourcesPanel from "./FindSourcesPanel";
 
 function SubjectBox({ group, style, onOpen, dropProps, over }) {
   const count = group.sources.length;
@@ -18,7 +19,7 @@ function SubjectBox({ group, style, onOpen, dropProps, over }) {
       {style === "rich" && <>
         <span className="st-src-box-count"><strong>{count}</strong> {count === 1 ? "source" : "sources"}</span>
         <span className="st-src-box-meta st-src-box-summary">{typeSummary(group.sources) || "No sources yet"}
-          <span>{latest ? `Last added ${ago(latest)}` : "Open to add your first source"}</span>
+          <span>{group.id === UNSORTED ? "Not in any subject yet" : latest ? `Last added ${ago(latest)}` : "Open to add your first source"}</span>
         </span>
       </>}
       {style === "preview" && <span className="st-src-box-preview">
@@ -26,7 +27,7 @@ function SubjectBox({ group, style, onOpen, dropProps, over }) {
         {group.sources.slice(0, 3).map((source) => <span className="st-src-box-preview-row" key={source.id}>
           <span>{sourceKind(source)}</span><span>{titleOf(source)}</span>
         </span>)}
-        {count > 3 && <span className="st-src-box-meta">+ {count - 3} more</span>}
+        {count > 3 && <span className="st-src-box-more">+ {count - 3} more</span>}
       </span>}
     </button>
   );
@@ -48,6 +49,8 @@ export default function SourcesBoxes({ groups, style, groupId, onGroup, onAdd, o
 
   return (
     <div className="st-src-boxes-scroll">
+      <div className="st-src-boxes-content" data-subject={active ? "true" : undefined}>
+      {!active && <FindSourcesPanel />}
       {active && <button className="st-ghost-button st-src-box-back" onClick={() => onGroup(null)}><ArrowLeft size={16} /> All subjects</button>}
       <div className="st-src-box-heading">
         <h2 tabIndex={-1} ref={heading}>{active?.name || "Subjects"}</h2>
@@ -58,6 +61,7 @@ export default function SourcesBoxes({ groups, style, groupId, onGroup, onAdd, o
           <label><input type="checkbox" className="st-src-check" checked={allUsed} disabled={!active.sources.length}
             onChange={() => actions.setSourcesUse(active.sources.map((s) => s.id), !allUsed)} /> Use all in {active.name}</label>
           <div className="st-src-tools">
+            <button className="st-src-outline" onClick={onAdd}><Plus size={15} aria-hidden="true" /> New source</button>
             <label className="st-src-style">Sort by <select value={sort.by} onChange={(e) => onSort({ ...sort, by: e.target.value })}>
               <option value="updated">Updated</option><option value="created">Created</option><option value="title">Title</option><option value="type">Type</option>
             </select></label>
@@ -78,6 +82,7 @@ export default function SourcesBoxes({ groups, style, groupId, onGroup, onAdd, o
       </> : <div className="st-src-box-grid" aria-label="Source subjects">
         {destinations.map((group) => <SubjectBox key={group.id} group={group} style={style} onOpen={() => onGroup(group.id)} dropProps={dropProps(group)} over={overId === group.id} />)}
       </div>}
+      </div>
     </div>
   );
 }

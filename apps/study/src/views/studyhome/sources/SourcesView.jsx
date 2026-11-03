@@ -170,22 +170,17 @@ export default function SourcesView() {
 
   return (
     <div className="st-src" data-box-style={style}>
-      <header className="st-src-head">
+      {style === "list" && <header className="st-src-head">
         <div>
           <h1>Sources</h1>
           <p>Your study materials, organised by subject.</p>
         </div>
         <div className="st-src-tools">
-          <label className="st-src-style">Box style
-            <select value={style} onChange={(e) => setSourcesLayout({ style: e.target.value })}>
-              {BOX_STYLES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-            </select>
-          </label>
           <button className="st-src-outline" onClick={() => setAdding(true)}>
             <Plus size={15} aria-hidden="true" /> New source
           </button>
         </div>
-      </header>
+      </header>}
 
       {style !== "list" ? (
         <SourcesBoxes groups={groups} style={style} groupId={groupId}
